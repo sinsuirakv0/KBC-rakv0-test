@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アドレス計算ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0b1220;
+    --card:#071427;
+    --muted:#9fb0c8;
+    --accent:#3b82f6;
+    --glass: rgba(255,255,255,0.03);
+    --text:#e6f0fb;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Noto Sans JP", sans-serif;
+    background: linear-gradient(180deg, #051026 0%, #081428 60%);
+    color: var(--text);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    width: 1100px;
+    max-width: 100%;
+    display: grid;
+    gap: 16px;
+    animation: fadeSlide 1s ease forwards;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: floatIn 0.8s ease forwards;
+  }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: scale(0.97) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    margin-top: 6px;
+    background: var(--glass);
+    color: var(--text);
+    outline: none;
+    transition: 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+  }
+
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+    transform: scale(1.01);
+  }
+
+  .btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    gap: 10px;
+  }
+
+  button {
+    flex: 1;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    transition: 0.3s;
+    backdrop-filter: blur(4px);
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59,130,246,0.4);
+  }
+
+  #result {
+    margin-top: 25px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent);
+    word-break: break-all;
+    text-align: center;
+    padding: 16px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.05);
+    border: 1px solid rgba(59,130,246,0.2);
+    min-height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 結果コピー用ボタン */
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.1);
+    color: var(--muted);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .copy-btn:hover {
+    background: var(--accent);
+    color: white;
+  }
+
+  @media (max-width: 640px) {
+    button, input { font-size: 0.9rem; padding: 12px; }
+    .card { padding: 18px; }
+    .copy-btn { font-size: 0.8rem; padding: 3px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>アドレス計算ツール</h1>
+    <div class="sub">Hexアドレスを自動で加減算します</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <label for="baseAddr">開始アドレス（例：7AF0A1BA20）</label>
+      <input type="text" id="baseAddr" value="7AF0A1BA20" />
+
+      <label for="nValue">N個目（例：3）</label>
+      <input type="number" id="nValue" value="3" />
+
+      <label for="step">増加幅（例：4）</label>
+      <input type="number" id="step" value="4" />
+
+      <div class="btn-group">
+        <button onclick="calcAddress('forward')">進むアドレス</button>
+        <button onclick="calcAddress('back')">戻るアドレス</button>
+      </div>
+
+      <div id="result">
+        <button class="copy-btn" onclick="copyResult()">コピー</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function calcAddress(direction) {
+  const resultEl = document.getElementById("result");
+  const base = document.getElementById("baseAddr").value.trim();
+  const n = parseInt(document.getElementById("nValue").value, 10);
+  const step = parseInt(document.getElementById("step").value, 10);
+
+  if (!/^[0-9A-Fa-f]+$/.test(base)) {
+    resultEl.innerHTML = "❌ 16進数のアドレスを入力してください。";
+    return;
+  }
+
+  const baseDec = parseInt(base, 16);
+  let nextAddr;
+
+  if (direction === 'forward') {
+    nextAddr = baseDec + (n * step);
+  } else if (direction === 'back') {
+    nextAddr = baseDec - (n * step);
+  }
+
+  const hexAddr = nextAddr.toString(16).toUpperCase().padStart(base.length, "0");
+  const label = direction === 'forward' ? "進む" : "戻る";
+
+  resultEl.style.opacity = 0;
+  resultEl.style.transform = "translateY(10px)";
+  setTimeout(() => {
+    resultEl.innerHTML = `
+      <button class="copy-btn" onclick="copyResult()">コピー</button>
+      ${n}個目の${label}アドレス： <span id="addrText">${hexAddr}</span>
+    `;
+    resultEl.style.opacity = 1;
+    resultEl.style.transform = "translateY(0)";
+  }, 80);
+}
+
+function copyResult() {
+  const addrText = document.getElementById("addrText");
+  if (!addrText) return;
+
+  const text = addrText.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".copy-btn");
+    const original = btn.innerText;
+    btn.innerText = "✅ コピーしました";
+    btn.style.background = "rgba(59,130,246,0.5)";
+    btn.style.color = "#fff";
+    setTimeout(() => {
+      btn.innerText = original;
+      btn.style.background = "rgba(255,255,255,0.1)";
+      btn.style.color = "var(--muted)";
+    }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
