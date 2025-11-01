@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>効率計算機＋電卓</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
+  --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
+}
+
+/* ベース設定 */
+*{box-sizing:border-box;}
+body {
+  margin:0;
+  font-family:"Noto Sans JP",sans-serif;
+  background:linear-gradient(180deg,#051026 0%,#081428 60%);
+  color:var(--text);
+  padding:40px 20px;
+  display:block; /* ← flexをやめる */
+  animation: fadeIn 1s ease forwards;
+  opacity:0;
+}
+
+h1 {
+  font-size:26px;
+  color:#ffffff; /* 任意の色 */
+  margin:0px 0 30px 10px; /* 左寄せの余白調整 */
+  text-align:left; /* ← 左揃え */
+}
+
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(10px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+/* コンテナ */
+.container{
+  width:600px;
+  max-width:100%;
+  background:var(--card);
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(2,6,23,0.6);
+  padding:30px;
+  text-align:center;
+  animation: fadeIn 1s ease 0.2s forwards;
+  opacity:0;
+}
+
+/* 見出し */
+h1{
+  font-size:26px;
+  color:FFFFFF;
+  margin-bottom:20px;
+}
+
+/* 入力欄 */
+input{
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.15);
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:8px;
+  width:100px;
+  text-align:center;
+  transition:0.2s;
+}
+input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 6px rgba(59,130,246,0.4);
+}
+
+/* ボタン */
+button{
+  background:var(--accent);
+  border:none;
+  color:white;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.2s;
+  margin:6px;
+}
+button:hover{
+  background:#2563eb;
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(59,130,246,0.4);
+}
+
+/* 結果ボックス */
+.result-box{
+  margin-top:20px;
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  padding:15px;
+  text-align:left;
+  font-size:15px;
+  line-height:1.8;
+  animation: fadeIn 1s ease 0.4s forwards;
+  opacity:0;
+}
+
+/* 電卓セクション */
+#calculator{
+  display:none;
+  background:var(--card);
+  border-radius:12px;
+  padding:20px;
+  margin-top:20px;
+  box-shadow:0 8px 30px rgba(2,6,23,0.6);
+  width:320px;
+  animation: fadeIn 0.5s ease forwards;
+  opacity:0;
+}
+
+.calc-display{
+  background:var(--glass);
+  color:var(--accent);
+  font-size:1.6em;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:12px;
+  text-align:right;
+  font-family:"JetBrains Mono", monospace;
+}
+
+.calc-buttons{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:10px;
+}
+.calc-buttons button{
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--text);
+  font-size:1.2em;
+  border-radius:8px;
+  height:45px;
+  transition:0.2s;
+}
+.calc-buttons button:hover{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 4px 15px rgba(59,130,246,0.4);
+}
+
+/* フッター */
+footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  margin-top:30px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  padding-top:10px;
+  animation: fadeIn 1s ease 1.2s forwards;
+  opacity:0;
+}
+</style>
+</head>
+<body>
+
+<h1>効率計算機</h1>
+
+<div class="container">
+  <div>
+    <label>周回前：</label>
+    <input type="number" id="beforeValue" placeholder="数値">
+    <label>周回後：</label>
+    <input type="number" id="afterValue" placeholder="数値">
+  </div>
+
+  <div style="margin-top:10px;">
+    <label>時間：</label>
+    <input type="number" id="hours" placeholder="時">
+    <input type="number" id="minutes" placeholder="分">
+    <input type="number" id="seconds" placeholder="秒">
+  </div>
+
+  <button onclick="calculate()">計算</button>
+
+  <div class="result-box" id="resultBox">結果がここに表示されます</div>
+
+  <button onclick="copyResult()">結果をコピー</button>
+  <button onclick="toggleCalculator()">電卓を表示 / 非表示</button>
+
+  <div id="calculator">
+    <div class="calc-display" id="calcDisplay">0</div>
+    <div class="calc-buttons">
+      <button onclick="appendCalc('7')">7</button>
+      <button onclick="appendCalc('8')">8</button>
+      <button onclick="appendCalc('9')">9</button>
+      <button onclick="appendCalc('/')">÷</button>
+      <button onclick="appendCalc('4')">4</button>
+      <button onclick="appendCalc('5')">5</button>
+      <button onclick="appendCalc('6')">6</button>
+      <button onclick="appendCalc('*')">×</button>
+      <button onclick="appendCalc('1')">1</button>
+      <button onclick="appendCalc('2')">2</button>
+      <button onclick="appendCalc('3')">3</button>
+      <button onclick="appendCalc('-')">−</button>
+      <button onclick="appendCalc('0')">0</button>
+      <button onclick="appendCalc('.')">.</button>
+      <button onclick="calculateCalc()">=</button>
+      <button onclick="appendCalc('+')">＋</button>
+      <button onclick="clearCalc()">C</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function calculate() {
+  const before = parseFloat(document.getElementById("beforeValue").value);
+  const after = parseFloat(document.getElementById("afterValue").value);
+  const hours = parseFloat(document.getElementById("hours").value) || 0;
+  const minutes = parseFloat(document.getElementById("minutes").value) || 0;
+  const seconds = parseFloat(document.getElementById("seconds").value) || 0;
+
+  const resultBox = document.getElementById("resultBox");
+
+  if (isNaN(before) || isNaN(after)) {
+    resultBox.innerText = "数値を入力してください。";
+    return;
+  }
+
+  const diff = after - before;
+  const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+  if (totalSeconds <= 0) {
+    resultBox.innerText = "時間を正しく入力してください。";
+    return;
+  }
+
+  const perHour = diff / (totalSeconds / 3600);
+  const perMinute = diff / (totalSeconds / 60);
+  const perSecond = diff / totalSeconds;
+
+  resultBox.innerHTML = `
+    <b>差分：</b> ${diff}<br>
+    <b>毎時：</b> ${perHour.toFixed(2)}<br>
+    <b>毎分：</b> ${perMinute.toFixed(2)}<br>
+    <b>毎秒：</b> ${perSecond.toFixed(4)}
+  `;
+}
+
+function copyResult() {
+  const text = document.getElementById("resultBox").innerText;
+  navigator.clipboard.writeText(text);
+  alert("結果をコピーしました！");
+}
+
+// 電卓
+let calcExpression = "";
+
+function appendCalc(value) {
+  calcExpression += value;
+  document.getElementById("calcDisplay").innerText = calcExpression;
+}
+
+function clearCalc() {
+  calcExpression = "";
+  document.getElementById("calcDisplay").innerText = "0";
+}
+
+function calculateCalc() {
+  try {
+    const result = eval(calcExpression);
+    document.getElementById("calcDisplay").innerText = result;
+    calcExpression = result.toString();
+  } catch {
+    document.getElementById("calcDisplay").innerText = "Error";
+    calcExpression = "";
+  }
+}
+
+function toggleCalculator() {
+  const calc = document.getElementById("calculator");
+  if (calc.style.display === "none" || calc.style.display === "") {
+    calc.style.display = "block";
+    calc.style.opacity = "1";
+  } else {
+    calc.style.display = "none";
+  }
+}
+</script>
+
+</body>
+</html>
