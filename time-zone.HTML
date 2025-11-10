@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KBC World Time (仮)</title>
+  <style>
+    :root {
+      --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
+      --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Noto Sans JP",sans-serif;
+      background:linear-gradient(180deg,#051026 0%,#081428 60%);
+      color:var(--text);
+      padding:20px;
+      display:flex;
+      justify-content:center;
+      animation: fadeIn 1s ease forwards;
+      opacity:0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform: translateY(10px); }
+      to { opacity:1; transform: translateY(0); }
+    }
+
+    .container{
+      width:1100px;
+      max-width:100%;
+      display:grid;
+      gap:16px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      animation: fadeIn 1s ease 0.2s forwards;
+      opacity:0;
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo img{
+      width:40px;
+      height:40px;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(59,130,246,0.4);
+      animation: floatLogo 3s ease-in-out infinite;
+    }
+    @keyframes floatLogo {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    h1{margin:0;font-size:22px;}
+    .nav{
+      display:flex;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+    .nav a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:14px;
+      transition:0.2s;
+    }
+    .nav a:hover{
+      color:var(--accent);
+    }
+
+    /* --- New area: hero + grid --- */
+    .hero{
+      text-align:center;
+      padding:28px 20px;
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+      animation: fadeIn 1s ease 0.4s forwards;
+      opacity:0;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+    }
+    .hero h2{
+      font-size:22px;
+      margin:0 0 2px;
+      color:var(--accent);
+    }
+    .hero p{
+      color:var(--muted);
+      font-size:13px;
+      margin:0;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .controls label{ font-size:13px; color:var(--muted); }
+    .controls input[type="datetime-local"]{
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,0.05);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:8px;
+      font-size:13px;
+    }
+    .controls button{
+      background:linear-gradient(90deg,var(--accent),#60a5fa);
+      border:none;
+      color:white;
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+      gap:16px;
+      margin-top:6px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+      transition:transform 0.3s, box-shadow 0.3s;
+      opacity:0;
+      animation: fadeIn 1s ease forwards;
+      min-height:120px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .card h3{
+      margin:0;
+      font-size:16px;
+      color:var(--accent);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+    .big-time{
+      font-size:20px;
+      margin-top:8px;
+      color:var(--text);
+      font-weight:700;
+    }
+    .small{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+    }
+
+    .toggle-list {
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+      align-items:center;
+    }
+    .tz-list {
+      margin-top:12px;
+      max-height:340px;
+      overflow:auto;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.03);
+      padding:8px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+    }
+    .tz-row{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      padding:8px;
+      border-radius:6px;
+      transition:background 0.15s;
+      align-items:center;
+    }
+    .tz-row:hover{ background: rgba(255,255,255,0.02); cursor:pointer;}
+    .tz-name{ font-size:14px; color:var(--text);}
+    .tz-time{ font-size:13px; color:var(--muted); min-width:170px; text-align:right; }
+
+    footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:30px;
+      border-top:1px solid rgba(255,255,255,0.05);
+      padding-top:10px;
+      animation: fadeIn 1s ease 1.2s forwards;
+      opacity:0;
+    }
+
+    /* responsive tweaks */
+    @media (max-width:640px){
+      .controls{ flex-direction:column; align-items:center; }
+      .tz-time{ min-width:120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- <<< header: DO NOT CHANGE (user wanted it untouched) >>> -->
+    <header class="header">
+      <div class="logo">
+        <img src="logo.png" alt="ロゴ">
+        <h1>KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="#">  </a>
+        <a href="#"></a>
+        <a href="#"></a>
+        <a href="#"></a>
+      </nav>
+    </header>
+
+    <!-- NEW: hero and controls (placed directly under header as requested) -->
+    <section class="hero" aria-live="polite">
+      <h2>KBC World Time (仮)</h2>
+      <p>基準時刻は日本標準時 (Asia/Tokyo) を World Time API から取得して使用します。端末時刻には依存しません（取得失敗時は端末時刻を使用）。</p>
+
+      <div class="controls">
+        <label>基準時刻を手動で設定（JST基準）：
+          <input id="manualDatetime" type="datetime-local" />
+        </label>
+        <button id="resetToServer">API 時刻にリセット</button>
+        <button id="nowJump">今に合わせる</button>
+        <div style="min-width:12px;"></div>
+        <span style="color:var(--muted); font-size:13px;">更新: <span id="lastSync">—</span></span>
+      </div>
+    </section>
+
+    <!-- cards grid: 4常時カード + 1切替リストカード -->
+    <section class="grid" id="timeGrid">
+      <!-- 1: 現在時刻 (日本時間) -->
+      <div class="card" id="card-jst">
+        <h3>現在時刻（日本時間） <span id="jst-offset">JST</span></h3>
+        <div>
+          <div class="big-time" id="jst-time">--:--:--</div>
+          <div class="small" id="jst-date">----</div>
+        </div>
+      </div>
+
+      <!-- 2: 米領サモア (Pacific/Pago_Pago, UTC-11) -->
+      <div class="card" id="card-samoa">
+        <h3>米領サモア <span id="samoa-offset">UTC-11</span></h3>
+        <div>
+          <div class="big-time" id="samoa-time">--:--:--</div>
+          <div class="small" id="samoa-date">----</div>
+        </div>
+      </div>
+
+      <!-- 3: キリバス (Pacific/Kiritimati, UTC+14) -->
+      <div class="card" id="card-kiri">
+        <h3>キリバス <span id="kiri-offset">UTC+14</span></h3>
+        <div>
+          <div class="big-time" id="kiri-time">--:--:--</div>
+          <div class="small" id="kiri-date">----</div>
+        </div>
+      </div>
+
+      <!-- 4: キリバス +41時間 -->
+      <div class="card" id="card-kiri-plus">
+        <h3>キリバス +41時間（41時間後） <span id="kiriplus-offset">UTC+14</span></h3>
+        <div>
+          <div class="big-time" id="kiri-plus-time">--:--:--</div>
+          <div class="small" id="kiri-plus-date">----</div>
+        </div>
+      </div>
+
+      <!-- 5: タイムゾーン一覧（表示切替可）-->
+      <div class="card" id="card-list">
+        <h3>タイムゾーン一覧（表示 / 非表示）</h3>
+
+        <div class="toggle-list">
+          <button id="toggleTzList">一覧を表示</button>
+          <input id="tzSearch" placeholder="検索 (例: Tokyo, America, Europe)" style="flex:1;padding:8px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:var(--text)"/>
+        </div>
+
+        <div class="tz-list" id="tzList" style="display:none;">
+          <div style="color:var(--muted);font-size:13px;padding:6px 4px;">読み込み中...</div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      <small>※ 時刻は World Time API を基準に取得しています（API: worldtimeapi.org）。</small>
+    </footer>
+  </div>
+
+  <script>
+    /* ===========================
+       動作説明（要約）
+       - 起動時に World Time API (Asia/Tokyo) から基準時刻を取得。
+       - 取得した時刻を基準に内部で秒刻みのカウントを行い、各タイムゾーンを Intl.DateTimeFormat で表示。
+       - 手動入力（datetime-local）で基準時刻を差し替え可能。
+       - タイムゾーン一覧は worldtimeapi.org/timezones から取得して表示（検索可）。
+       =========================== */
+
+    const API_BASE = 'https://worldtimeapi.org/api';
+    const JST_TZ = 'Asia/Tokyo';
+    const SAMOA_TZ = 'Pacific/Pago_Pago';
+    const KIRITIMATI_TZ = 'Pacific/Kiritimati';
+
+    let serverBaseDate = null; // Date object representing base moment (UTC time)
+    let baseTimestamp = 0;     // ms since epoch at lastSync
+    let lastSyncAt = null;
+
+    // Elements
+    const lastSyncEl = document.getElementById('lastSync');
+    const manualInput = document.getElementById('manualDatetime');
+    const resetBtn = document.getElementById('resetToServer');
+    const nowJumpBtn = document.getElementById('nowJump');
+
+    const jstTimeEl = document.getElementById('jst-time');
+    const jstDateEl = document.getElementById('jst-date');
+
+    const samoaTimeEl = document.getElementById('samoa-time');
+    const samoaDateEl = document.getElementById('samoa-date');
+
+    const kiriTimeEl = document.getElementById('kiri-time');
+    const kiriDateEl = document.getElementById('kiri-date');
+
+    const kiriPlusTimeEl = document.getElementById('kiri-plus-time');
+    const kiriPlusDateEl = document.getElementById('kiri-plus-date');
+
+    // timezone list
+    const toggleTzBtn = document.getElementById('toggleTzList');
+    const tzListEl = document.getElementById('tzList');
+    const tzSearch = document.getElementById('tzSearch');
+
+    // helper: format by timezone
+    function formatByTZ(dateObj, timeZone, opts = {}) {
+      const def = { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+      const fmt = new Intl.DateTimeFormat('ja-JP', Object.assign({}, def, opts, { timeZone }));
+      // produce "YYYY/MM/DD" and "HH:MM:SS"
+      const parts = fmt.formatToParts(dateObj);
+      const p = {};
+      parts.forEach(x => p[x.type] = x.value);
+      const date = `${p.year}/${p.month}/${p.day}`;
+      const time = `${p.hour}:${p.minute}:${p.second}`;
+      return { date, time };
+    }
+
+    // anchor server time (Date object) using API or fallback
+    async function syncServerTime() {
+      try {
+        const res = await fetch(\`\${API_BASE}/timezone/\${JST_TZ}\`);
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        // data.datetime is ISO like "2025-11-10T12:34:56.789012+09:00"
+        serverBaseDate = new Date(data.datetime);
+        baseTimestamp = Date.now();
+        lastSyncAt = new Date();
+        lastSyncEl.textContent = lastSyncAt.toLocaleString();
+        // Pre-fill manual input with JST local equivalent (truncate seconds)
+        const localIso = toDatetimeLocalValue(serverBaseDate);
+        manualInput.value = localIso;
+        // load timezone list if not yet loaded
+        loadTimezoneListOnce();
+        console.log('synced server time from API:', serverBaseDate.toISOString());
+      } catch (e) {
+        console.warn('Failed to fetch server time, falling back to device time.', e);
+        serverBaseDate = new Date(); // fallback (device)
+        baseTimestamp = Date.now();
+        lastSyncAt = new Date();
+        lastSyncEl.textContent = lastSyncAt.toLocaleString() + ' (fallback)';
+        const localIso = toDatetimeLocalValue(serverBaseDate);
+        manualInput.value = localIso;
+      }
+    }
+
+    // convert Date -> value for datetime-local (yyyy-MM-ddTHH:mm)
+    function toDatetimeLocalValue(date) {
+      // convert to JST string parts using Intl (ensure JST)
+      const fmt = new Intl.DateTimeFormat('sv', { timeZone: JST_TZ, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+      // note: sv format yields "YYYY-MM-DD HH:MM", replace space with T
+      const s = fmt.format(date).replace(' ', 'T');
+      return s;
+    }
+
+    // read manual input (datetime-local) and set serverBaseDate accordingly (treat input as JST)
+    function applyManualInput() {
+      const val = manualInput.value;
+      if (!val) return;
+      // val is like "2025-11-10T21:30"
+      // Interpret as JST: create Date from ISO with +09:00
+      const iso = val + ":00+09:00";
+      serverBaseDate = new Date(iso);
+      baseTimestamp = Date.now();
+      lastSyncAt = new Date();
+      lastSyncEl.textContent = lastSyncAt.toLocaleString() + ' (手動設定)';
+      // update immediately
+      renderAll();
+    }
+
+    // ticking function: compute current virtual time = serverBaseDate + (now - baseTimestamp)
+    function getVirtualNow() {
+      if (!serverBaseDate) return new Date();
+      const elapsed = Date.now() - baseTimestamp;
+      return new Date(serverBaseDate.getTime() + elapsed);
+    }
+
+    // render all card contents
+    function renderAll() {
+      const now = getVirtualNow();
+
+      // JST display
+      const jst = formatByTZ(now, JST_TZ);
+      jstTimeEl.textContent = jst.time;
+      jstDateEl.textContent = jst.date + ' (Asia/Tokyo)';
+
+      // Samoa
+      const sam = formatByTZ(now, SAMOA_TZ);
+      samoaTimeEl.textContent = sam.time;
+      samoaDateEl.textContent = sam.date + ' (' + SAMOA_TZ + ')';
+
+      // Kiritimati (current)
+      const kiri = formatByTZ(now, KIRITIMATI_TZ);
+      kiriTimeEl.textContent = kiri.time;
+      kiriDateEl.textContent = kiri.date + ' (' + KIRITIMATI_TZ + ')';
+
+      // Kiritimati +41h
+      const plus41 = new Date(now.getTime() + 41 * 3600 * 1000);
+      const kiriPlus = formatByTZ(plus41, KIRITIMATI_TZ);
+      kiriPlusTimeEl.textContent = kiriPlus.time;
+      kiriPlusDateEl.textContent = kiriPlus.date + ' (' + KIRITIMATI_TZ + ' +41h)';
+
+      // update tz-list times if visible
+      updateTimezoneListTimes(now);
+    }
+
+    // periodic ticker
+    setInterval(renderAll, 1000);
+
+    // initial sync
+    (async function init() {
+      await syncServerTime();
+      renderAll();
+    })();
+
+    // manual controls
+    manualInput.addEventListener('change', applyManualInput);
+    resetBtn.addEventListener('click', async () => {
+      await syncServerTime();
+      renderAll();
+    });
+    nowJumpBtn.addEventListener('click', () => {
+      // set base to "now" in JST (serverBaseDate = now in UTC but considered JST)
+      const now = new Date();
+      // convert now to JST-equivalent string then parse with +09:00 to treat as JST
+      const isoLocal = toDatetimeLocalValue(now) + ":00+09:00";
+      serverBaseDate = new Date(isoLocal);
+      baseTimestamp = Date.now();
+      lastSyncAt = new Date();
+      lastSyncEl.textContent = lastSyncAt.toLocaleString() + ' (now set)';
+      manualInput.value = toDatetimeLocalValue(serverBaseDate);
+      renderAll();
+    });
+
+    /* ============= timezone list loading and handling ============= */
+    let cachedTimezones = null;
+
+    async function loadTimezoneListOnce() {
+      if (cachedTimezones) return;
+      try {
+        const res = await fetch(\`\${API_BASE}/timezones\`);
+        if (!res.ok) throw new Error('tzlist fetch failed');
+        const list = await res.json(); // array of tz strings
+        cachedTimezones = list;
+        renderTimezoneList(list);
+      } catch (e) {
+        console.warn('Failed to load timezone list', e);
+        tzListEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:6px 4px;">タイムゾーン一覧の読み込みに失敗しました。</div>';
+      }
+    }
+
+    function renderTimezoneList(list) {
+      tzListEl.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+
+      // create a filtered subset (common zones first) for usability
+      const common = ['Asia/Tokyo','Pacific/Pago_Pago','Pacific/Kiritimati','UTC','America/New_York','Europe/London','Europe/Paris','Asia/Shanghai','Asia/Kolkata'];
+      const shown = new Set();
+
+      // show commons first if present
+      common.forEach(tz => {
+        if (list.includes(tz)) {
+          fragment.appendChild(createTzRow(tz));
+          shown.add(tz);
+        }
+      });
+
+      // then the rest
+      list.forEach(tz => {
+        if (!shown.has(tz)) fragment.appendChild(createTzRow(tz));
+      });
+
+      tzListEl.appendChild(fragment);
+    }
+
+    function createTzRow(tz) {
+      const row = document.createElement('div');
+      row.className = 'tz-row';
+      const name = document.createElement('div');
+      name.className = 'tz-name';
+      name.textContent = tz.replace('_',' ');
+
+      const time = document.createElement('div');
+      time.className = 'tz-time';
+      time.textContent = '読み込み中...';
+
+      row.appendChild(name);
+      row.appendChild(time);
+
+      // clicking a row copies the timezone identifier to clipboard
+      row.addEventListener('click', () => {
+        navigator.clipboard?.writeText(tz).then(() => {
+          // show brief feedback
+          row.style.background = 'rgba(59,130,246,0.12)';
+          setTimeout(()=> row.style.background = '', 600);
+        }).catch(()=>{/* ignore */});
+      });
+
+      // attach tz data node
+      row.dataset.tz = tz;
+      return row;
+    }
+
+    // show/hide toggle
+    toggleTzBtn.addEventListener('click', async () => {
+      if (tzListEl.style.display === 'none') {
+        tzListEl.style.display = 'block';
+        toggleTzBtn.textContent = '一覧を非表示';
+        // ensure list is loaded
+        await loadTimezoneListOnce();
+        // render times immediately
+        updateTimezoneListTimes(getVirtualNow());
+      } else {
+        tzListEl.style.display = 'none';
+        toggleTzBtn.textContent = '一覧を表示';
+      }
+    });
+
+    // search filter
+    tzSearch.addEventListener('input', () => {
+      const q = tzSearch.value.trim().toLowerCase();
+      const rows = tzListEl.querySelectorAll('.tz-row');
+      rows.forEach(r => {
+        const tz = r.dataset.tz.toLowerCase();
+        if (!q || tz.includes(q) || r.textContent.toLowerCase().includes(q)) r.style.display = '';
+        else r.style.display = 'none';
+      });
+    });
+
+    // update times in tz-list (called each second from renderAll)
+    async function updateTimezoneListTimes(now) {
+      if (!cachedTimezones) return;
+      // iterate rows and update using Intl
+      const rows = tzListEl.querySelectorAll('.tz-row');
+      rows.forEach(r => {
+        const tz = r.dataset.tz;
+        if (!tz) return;
+        try {
+          const fmt = formatByTZ(now, tz);
+          r.querySelector('.tz-time').textContent = fmt.date + ' ' + fmt.time;
+        } catch (e) {
+          r.querySelector('.tz-time').textContent = 'N/A';
+        }
+      });
+    }
+
+    // initial UI state
+    tzListEl.style.display = 'none';
+
+    /* ============= small accessibility / fallback notes ============= */
+    // If the API rate limits or is unavailable, we fall back to device time but still allow manual setting.
+    // The primary authoritative source is worldtimeapi.org (Asia/Tokyo) as requested.
+
+    /* =================== End of script =================== */
+  </script>
+</body>
+</html>
