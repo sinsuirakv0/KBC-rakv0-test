@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KBC World Time (改良版)</title>
+  <title>KBC World Time</title>
   <style>
     :root {
       --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
@@ -100,8 +100,8 @@
 
     <!-- hero (added light explanation under title as requested) -->
     <section class="hero" aria-live="polite">
-      <h2>KBC World Time（改良版）</h2>
-      <p>基準時刻は日本標準時 (Asia/Tokyo) をサーバー基準で扱います。手動で基準時刻を設定しても秒が進みます。タイムゾーンの割当てはカード単位で変更可能です。</p>
+      <h2>KBC World Time</h2>
+      <p>日本標準時を基準に各タイムゾーンの時間を確認できます。カードを選択し、下の一覧から選択すると変更されます。</p>
     </section>
 
     <!-- main grid: fixed 4 cards + dynamic changeable-cards container + tz list card -->
@@ -126,7 +126,7 @@
       </div>
 
       <div class="card" id="card-kiri-plus">
-        <h3>キリバス +41時間（41時間後） <span class="small-muted">Pacific/Kiritimati</span></h3>
+        <h3>キリバス +36時間（41時間後） <span class="small-muted">Pacific/Kiritimati</span></h3>
         <div class="big-time" id="kiri-plus-time">--:--:--</div>
         <div class="small" id="kiri-plus-date">----</div>
       </div>
@@ -173,381 +173,236 @@
     <footer>© KBC World Time Viewer</footer>
   </div>
 
-  <script>
-  (function(){
-    const API_BASE = 'https://worldtimeapi.org/api';
-    const JST_TZ = 'Asia/Tokyo';
-    const SAMOA_TZ = 'Pacific/Pago_Pago';
-    const KIRITIMATI_TZ = 'Pacific/Kiritimati';
+<script>
+(function(){
+  const JST_TZ = 'Asia/Tokyo';
+  const SAMOA_TZ = 'Pacific/Pago_Pago';
+  const KIRITIMATI_TZ = 'Pacific/Kiritimati';
 
-    // --- state for virtual time (works for manual setting + ticking) ---
-    // serverBaseDate = Date object representing base moment (UTC time)
-    // baseTimestamp = Date.now() when serverBaseDate was recorded
-    let serverBaseDate = null;
-    let baseTimestamp = Date.now();
+  const OFFSET_MAP = [
+    [-12,"Pacific/Pago_Pago"],[-11,"Pacific/Midway"],[-10,"Pacific/Honolulu"],
+    [-9,"America/Anchorage"],[-8,"America/Los_Angeles"],[-7,"America/Denver"],
+    [-6,"America/Chicago"],[-5,"America/New_York"],[-4,"America/Halifax"],
+    [-3,"America/Sao_Paulo"],[-2,"Atlantic/South_Georgia"],[-1,"Atlantic/Azores"],
+    [0,"Europe/London"],[1,"Europe/Paris"],[2,"Europe/Athens"],[3,"Europe/Moscow"],
+    [4,"Asia/Dubai"],[5,"Asia/Karachi"],[6,"Asia/Dhaka"],[7,"Asia/Bangkok"],
+    [8,"Asia/Singapore"],[9,"Asia/Tokyo"],[10,"Australia/Sydney"],
+    [11,"Pacific/Noumea"],[12,"Pacific/Auckland"],[13,"Pacific/Tongatapu"],
+    [14,"Pacific/Kiritimati"]
+  ];
 
-    // elements
-    const jstTimeEl = document.getElementById('jst-time');
-    const jstDateEl = document.getElementById('jst-date');
-    const samoaTimeEl = document.getElementById('samoa-time');
-    const samoaDateEl = document.getElementById('samoa-date');
-    const kiriTimeEl = document.getElementById('kiri-time');
-    const kiriDateEl = document.getElementById('kiri-date');
-    const kiriPlusTimeEl = document.getElementById('kiri-plus-time');
-    const kiriPlusDateEl = document.getElementById('kiri-plus-date');
+  let serverBaseDate = null;
+  let baseTimestamp = Date.now();
 
-    const addCardBtn = document.getElementById('addCard');
-    const changeablesContainer = document.getElementById('changeablesContainer');
-    const activeCardLabel = document.getElementById('activeCardLabel');
-    const manualDatetime = document.getElementById('manualDatetime');
-    const applyManualBtn = document.getElementById('applyManual');
-    const resetToNowBtn = document.getElementById('resetToNow');
+  const jstTimeEl = document.getElementById('jst-time');
+  const jstDateEl = document.getElementById('jst-date');
+  const samoaTimeEl = document.getElementById('samoa-time');
+  const samoaDateEl = document.getElementById('samoa-date');
+  const kiriTimeEl = document.getElementById('kiri-time');
+  const kiriDateEl = document.getElementById('kiri-date');
+  const kiriPlusTimeEl = document.getElementById('kiri-plus-time');
+  const kiriPlusDateEl = document.getElementById('kiri-plus-date');
 
-    const tzListEl = document.getElementById('tzList');
-    const tzSearch = document.getElementById('tzSearch');
-    const reloadTzBtn = document.getElementById('reloadTz');
+  const addCardBtn = document.getElementById('addCard');
+  const changeablesContainer = document.getElementById('changeablesContainer');
+  const activeCardLabel = document.getElementById('activeCardLabel');
+  const manualDatetime = document.getElementById('manualDatetime');
+  const applyManualBtn = document.getElementById('applyManual');
+  const resetToNowBtn = document.getElementById('resetToNow');
+  const tzListEl = document.getElementById('tzList');
+  const tzSearch = document.getElementById('tzSearch');
 
-    // changeable cards state
-    // each card: { id, tz, label, el } ; default tz = JST
-    let changeableCards = [];
-    let activeCardId = null;
+  let changeableCards = [];
+  let activeCardId = null;
 
-    // tz list cache
-    let tzCache = null;
+  // ---- 保存・復元機能 ----
+  function saveState(){
+    const data = {
+      cards: changeableCards.map(c=>({id:c.id,tz:c.tz,label:c.label})),
+      active: activeCardId
+    };
+    localStorage.setItem('worldtime_state', JSON.stringify(data));
+  }
 
-    // --- helper: format by timezone into {date, time} strings ---
-    function formatByTZ(dateObj, timeZone) {
-      try {
-        const def = { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone };
-        const fmt = new Intl.DateTimeFormat('ja-JP', def);
-        const parts = fmt.formatToParts(dateObj);
-        const p = {};
-        parts.forEach(x => p[x.type] = x.value);
-        const date = `${p.year}/${p.month}/${p.day}`;
-        const time = `${p.hour}:${p.minute}:${p.second}`;
-        return { date, time };
-      } catch (e) {
-        return { date: 'N/A', time: 'N/A' };
-      }
-    }
-
-    // --- virtual now (serverBaseDate + elapsed) ---
-    function getVirtualNow() {
-      if (!serverBaseDate) return new Date();
-      const elapsed = Date.now() - baseTimestamp;
-      return new Date(serverBaseDate.getTime() + elapsed);
-    }
-
-    // --- sync server time (Asia/Tokyo) from API; fallback to device ---
-    async function syncServerTime() {
-      try {
-        const res = await fetch(\`\${API_BASE}/timezone/\${JST_TZ}\`);
-        if (!res.ok) throw new Error('api error');
-        const data = await res.json();
-        serverBaseDate = new Date(data.datetime); // includes offset
-        baseTimestamp = Date.now();
-        // fill manual input with JST-local truncated-minute
-        manualDatetime.value = toDatetimeLocalValue(serverBaseDate);
-        return true;
-      } catch (e) {
-        console.warn('sync failed, using device time', e);
-        serverBaseDate = new Date();
-        baseTimestamp = Date.now();
-        manualDatetime.value = toDatetimeLocalValue(serverBaseDate);
-        return false;
-      }
-    }
-
-    // convert Date -> value for datetime-local (yyyy-MM-ddTHH:mm)
-    function toDatetimeLocalValue(date) {
-      // ensure JST
-      const fmt = new Intl.DateTimeFormat('sv', { timeZone: JST_TZ, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
-      return fmt.format(date).replace(' ', 'T');
-    }
-
-    // --- render core fixed cards ---
-    function renderFixedCards() {
-      const now = getVirtualNow();
-      const jst = formatByTZ(now, JST_TZ);
-      jstTimeEl.textContent = jst.time; jstDateEl.textContent = jst.date + ' (Asia/Tokyo)';
-      const sam = formatByTZ(now, SAMOA_TZ);
-      samoaTimeEl.textContent = sam.time; samoaDateEl.textContent = sam.date + ' (' + SAMOA_TZ + ')';
-      const k = formatByTZ(now, KIRITIMATI_TZ);
-      kiriTimeEl.textContent = k.time; kiriDateEl.textContent = k.date + ' (' + KIRITIMATI_TZ + ')';
-      const plus41 = new Date(now.getTime() + 41 * 3600 * 1000);
-      const kp = formatByTZ(plus41, KIRITIMATI_TZ);
-      kiriPlusTimeEl.textContent = kp.time; kiriPlusDateEl.textContent = kp.date + ' (' + KIRITIMATI_TZ + ' +41h)';
-    }
-
-    // --- changeable cards render/update ---
-    function createChangeableCard() {
-      const id = 'ch-' + (Date.now().toString(36).slice(6));
-      const el = document.createElement('div');
-      el.className = 'card';
-      el.dataset.cardId = id;
-      // structure
-      el.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;flex-direction:column;">
-            <div style="font-size:14px;color:var(--accent);">変更可能カード</div>
-            <div class="small-muted" style="font-size:12px;">タイムゾーン: <span class="tz-label">Asia/Tokyo</span></div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-            <label style="font-size:12px;color:var(--muted);"><input type="radio" name="activeCardRadio" style="margin-right:6px;"> 選択</label>
-            <button class="removeCard" title="削除" style="background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:4px 8px;border-radius:6px;">削除</button>
-          </div>
-        </div>
-        <div style="margin-top:6px;">
-          <div class="big-time">--:--:--</div>
-          <div class="small tz-date">----</div>
-        </div>
-      `;
-      changeablesContainer.appendChild(el);
-
-      const cardObj = {
-        id, tz: JST_TZ, label: 'Asia/Tokyo', el
-      };
-      changeableCards.push(cardObj);
-
-      // events
-      const radio = el.querySelector('input[type="radio"]');
-      radio.addEventListener('change', () => {
-        setActiveCard(id);
-      });
-
-      const removeBtn = el.querySelector('.removeCard');
-      removeBtn.addEventListener('click', () => {
-        removeChangeableCard(id);
-      });
-
-      // if first card, select by default
-      if (changeableCards.length === 1) {
-        radio.checked = true;
-        setActiveCard(id);
-      }
-
-      updateChangeableCardDisplay(cardObj);
-    }
-
-    function removeChangeableCard(id) {
-      const idx = changeableCards.findIndex(c => c.id === id);
-      if (idx >= 0) {
-        const card = changeableCards[idx];
-        card.el.remove();
-        changeableCards.splice(idx,1);
-        if (activeCardId === id) {
-          activeCardId = changeableCards.length ? changeableCards[0].id : null;
-          // set radio of new active (if exists)
-          if (activeCardId) {
-            const newCard = changeableCards[0].el.querySelector('input[type="radio"]');
-            if (newCard) newCard.checked = true;
-            activeCardLabel.textContent = changeableCards[0].label || 'なし';
-          } else {
-            activeCardLabel.textContent = 'なし';
-          }
-        }
-      }
-    }
-
-    function setActiveCard(id) {
-      activeCardId = id;
-      const c = changeableCards.find(x => x.id === id);
-      activeCardLabel.textContent = c ? c.label : 'なし';
-    }
-
-    function updateChangeableCardDisplay(cardObj) {
-      const now = getVirtualNow();
-      const fmt = formatByTZ(now, cardObj.tz);
-      const timeEl = cardObj.el.querySelector('.big-time');
-      const dateEl = cardObj.el.querySelector('.tz-date');
-      const labelEl = cardObj.el.querySelector('.tz-label');
-      if (timeEl) timeEl.textContent = fmt.time;
-      if (dateEl) dateEl.textContent = fmt.date + ' (' + cardObj.tz + ')';
-      if (labelEl) labelEl.textContent = toJapaneseTzLabel(cardObj.tz);
-    }
-
-    // update all changeable cards
-    function updateAllChangeables() {
-      changeableCards.forEach(c => updateChangeableCardDisplay(c));
-    }
-
-    // --- timezone list handling ---
-    async function loadTimezoneList() {
-      tzListEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:6px 4px;">読み込み中…</div>';
-      try {
-        const res = await fetch(\`\${API_BASE}/timezones\`);
-        if (!res.ok) throw new Error('tz fetch failed');
-        const list = await res.json(); // array of strings
-        tzCache = list;
-        renderTimezoneList(list);
-      } catch (e) {
-        console.warn('tz load failed', e);
-        tzListEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:6px 4px;">タイムゾーン一覧の読み込みに失敗しました。</div>';
-      }
-    }
-
-    function renderTimezoneList(list) {
-      tzListEl.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-      // show all zones
-      list.forEach(tz => {
-        const row = document.createElement('div');
-        row.className = 'tz-row';
-        row.dataset.tz = tz;
-        const name = document.createElement('div');
-        name.className = 'tz-name';
-        name.textContent = toJapaneseTzLabel(tz); // Japanese-friendly label
-        const time = document.createElement('div');
-        time.className = 'tz-time';
-        time.textContent = '—';
-        row.appendChild(name);
-        row.appendChild(time);
-
-        // click: assign to active card (or copy if no active)
-        row.addEventListener('click', async () => {
-          if (activeCardId) {
-            const card = changeableCards.find(c => c.id === activeCardId);
-            if (card) {
-              card.tz = tz;
-              card.label = tz;
-              updateChangeableCardDisplay(card);
-              // brief highlight
-              row.style.background = 'rgba(59,130,246,0.08)';
-              setTimeout(()=> row.style.background = '', 500);
-            }
-          } else {
-            // copy tz to clipboard as fallback
-            try { await navigator.clipboard.writeText(tz); flashRow(row,'コピー済み'); }
-            catch { flashRow(row,'選択カードがありません'); }
-          }
+  function loadState(){
+    const raw = localStorage.getItem('worldtime_state');
+    if(!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if(data.cards && Array.isArray(data.cards)){
+        data.cards.forEach(c=>{
+          createChangeableCard(c.tz,c.label,c.id);
         });
-
-        fragment.appendChild(row);
-      });
-      tzListEl.appendChild(fragment);
-      // update times immediately
-      updateTzListTimes();
-    }
-
-    function flashRow(row, text) {
-      const prev = row.querySelector('.tz-time');
-      if (prev) {
-        const old = prev.textContent;
-        prev.textContent = text;
-        setTimeout(()=> prev.textContent = old, 900);
       }
-    }
+      if(data.active) setActiveCard(data.active);
+    } catch(e){ console.warn('loadState error', e); }
+  }
 
-    // update displayed times for tz-list
-    function updateTzListTimes() {
-      if (!tzCache) return;
-      const now = getVirtualNow();
-      const rows = tzListEl.querySelectorAll('.tz-row');
-      rows.forEach(row => {
-        const tz = row.dataset.tz;
-        try {
-          const f = formatByTZ(now, tz);
-          row.querySelector('.tz-time').textContent = f.date + ' ' + f.time;
-        } catch (e) {
-          row.querySelector('.tz-time').textContent = 'N/A';
+  // ---- 共通フォーマット ----
+  function formatByTZ(dateObj, timeZone) {
+    try {
+      const fmt = new Intl.DateTimeFormat('ja-JP', {
+        year:'numeric',month:'2-digit',day:'2-digit',
+        hour:'2-digit',minute:'2-digit',second:'2-digit',
+        hour12:false,timeZone
+      });
+      const p = {}; fmt.formatToParts(dateObj).forEach(x=>p[x.type]=x.value);
+      return {date:`${p.year}/${p.month}/${p.day}`, time:`${p.hour}:${p.minute}:${p.second}`};
+    } catch { return {date:'N/A', time:'N/A'}; }
+  }
+
+  function getVirtualNow(){
+    if(!serverBaseDate) return new Date();
+    const elapsed = Date.now() - baseTimestamp;
+    return new Date(serverBaseDate.getTime() + elapsed);
+  }
+
+  async function syncServerTime(){
+    try {
+      const res = await fetch(`https://worldtimeapi.org/api/timezone/${JST_TZ}`,{mode:'cors'});
+      if(!res.ok) throw 0;
+      const data = await res.json();
+      serverBaseDate = new Date(data.datetime);
+    } catch {
+      serverBaseDate = new Date();
+    }
+    baseTimestamp = Date.now();
+    manualDatetime.value = toDatetimeLocalValue(serverBaseDate);
+  }
+
+  function toDatetimeLocalValue(date){
+    const fmt = new Intl.DateTimeFormat('sv',{timeZone:JST_TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return fmt.format(date).replace(' ','T');
+  }
+
+  function renderFixedCards(){
+    const now = getVirtualNow();
+    const jst = formatByTZ(now, JST_TZ);
+    jstTimeEl.textContent = jst.time; jstDateEl.textContent = jst.date + ' (Asia/Tokyo)';
+    const sam = formatByTZ(now, SAMOA_TZ);
+    samoaTimeEl.textContent = sam.time; samoaDateEl.textContent = sam.date;
+    const k = formatByTZ(now, KIRITIMATI_TZ);
+    kiriTimeEl.textContent = k.time; kiriDateEl.textContent = k.date;
+    const plus41 = new Date(now.getTime() + 41*3600*1000);
+    const kp = formatByTZ(plus41, KIRITIMATI_TZ);
+    kiriPlusTimeEl.textContent = kp.time; kiriPlusDateEl.textContent = kp.date;
+  }
+
+  // ---- カード生成・管理 ----
+  function createChangeableCard(tz=JST_TZ,label='Asia/Tokyo',id){
+    id = id || 'ch-' + Math.random().toString(36).slice(2,7);
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;">
+        <div><span style="color:var(--accent);font-size:14px;">変更可能カード</span><br>
+        <span class="small-muted">タイムゾーン: <span class="tz-label">${label}</span></span></div>
+        <div><label style="font-size:12px;"><input type="radio" name="activeCardRadio"> 選択</label>
+        <button class="removeCard" style="border:1px solid rgba(255,255,255,0.05);background:none;color:var(--muted);border-radius:6px;">削除</button></div>
+      </div>
+      <div style="margin-top:6px;">
+        <div class="big-time">--:--:--</div>
+        <div class="small tz-date">----</div>
+      </div>`;
+    changeablesContainer.appendChild(el);
+    const cardObj = {id,tz,label,el};
+    changeableCards.push(cardObj);
+    const radio = el.querySelector('input[type="radio"]');
+    radio.addEventListener('change',()=>setActiveCard(id));
+    el.querySelector('.removeCard').addEventListener('click',()=>removeChangeableCard(id));
+    updateChangeableCardDisplay(cardObj);
+    saveState();
+    return cardObj;
+  }
+
+  function setActiveCard(id){
+    activeCardId = id;
+    const c = changeableCards.find(x=>x.id===id);
+    activeCardLabel.textContent = c?c.label:'なし';
+    saveState();
+  }
+
+  function removeChangeableCard(id){
+    const idx = changeableCards.findIndex(c=>c.id===id);
+    if(idx>=0){ changeableCards[idx].el.remove(); changeableCards.splice(idx,1); }
+    if(activeCardId===id){ activeCardId=null; activeCardLabel.textContent='なし'; }
+    saveState();
+  }
+
+  function updateChangeableCardDisplay(c){
+    const now=getVirtualNow();
+    const f=formatByTZ(now,c.tz);
+    c.el.querySelector('.big-time').textContent=f.time;
+    c.el.querySelector('.tz-date').textContent=f.date+' ('+c.tz+')';
+    c.el.querySelector('.tz-label').textContent=c.tz;
+  }
+
+  function updateAllChangeables(){ changeableCards.forEach(updateChangeableCardDisplay); }
+
+  // ---- タイムゾーン一覧 ----
+  function renderTimezoneList(){
+    tzListEl.innerHTML='';
+    OFFSET_MAP.forEach(([offset, zone])=>{
+      const label=`UTC${offset>=0?'+':''}${offset} (${zone})`;
+      const row=document.createElement('div');
+      row.className='tz-row'; row.dataset.tz=zone; row.dataset.offset=offset;
+      row.innerHTML=`<div class="tz-name">${label}</div><div class="tz-time">---</div>`;
+      row.addEventListener('click',()=>{
+        if(activeCardId){
+          const card=changeableCards.find(c=>c.id===activeCardId);
+          card.tz=zone; card.label=zone;
+          updateChangeableCardDisplay(card);
+          saveState(); // 状態を保持
         }
       });
-    }
-
-    // filter search
-    tzSearch.addEventListener('input', () => {
-      const q = tzSearch.value.trim().toLowerCase();
-      const rows = tzListEl.querySelectorAll('.tz-row');
-      rows.forEach(r => {
-        const label = r.querySelector('.tz-name').textContent.toLowerCase();
-        const tz = r.dataset.tz.toLowerCase();
-        if (!q || label.includes(q) || tz.includes(q)) r.style.display = '';
-        else r.style.display = 'none';
-      });
+      tzListEl.appendChild(row);
     });
+    updateTzListTimes();
+  }
 
-    reloadTzBtn.addEventListener('click', () => loadTimezoneList());
-
-    // --- Japanese-friendly label generator ---
-    const regionMap = {
-      'Asia':'アジア','Europe':'ヨーロッパ','America':'アメリカ','Pacific':'太平洋','Africa':'アフリカ','Australia':'オーストラリア','Indian':'インド洋','Antarctica':'南極'
-    };
-    const cityMap = {
-      'Tokyo':'東京','Seoul':'ソウル','Taipei':'台北','Shanghai':'上海','Singapore':'シンガポール','New_York':'ニューヨーク','Los_Angeles':'ロサンゼルス','London':'ロンドン',
-      'Paris':'パリ','Beijing':'北京','Mumbai':'ムンバイ','Kolkata':'コルカタ','Hong_Kong':'香港','Sydney':'シドニー','Honolulu':'ホノルル','Kiritimati':'キリバス','Pago_Pago':'サモア'
-      // 必要に応じてここに追記可能
-    };
-
-    function toJapaneseTzLabel(tz) {
-      // tz like "Region/City" or "Region/Subregion/City"
-      const parts = tz.split('/');
-      const region = parts[0] || '';
-      const cityPart = parts.slice(1).join('/'); // keep subregions
-      let cityKey = parts[parts.length - 1] || cityPart;
-      // try mapping
-      const cityKeyUnderscore = cityKey.replace(/ /g,'_');
-      const mappedCity = cityMap[cityKeyUnderscore] || cityMap[cityKey] || cityKey.replace(/_/g,' ');
-      const regionJp = regionMap[region] || region;
-      return `${mappedCity} (${region}/${cityPart})`;
-    }
-
-    // --- manual set / apply / reset handlers ---
-    applyManualBtn.addEventListener('click', () => {
-      const v = manualDatetime.value;
-      if (!v) return;
-      // input value assumed JST (yyyy-mm-ddTHH:MM)
-      // construct ISO with +09:00 so Date parses as correct JST instant
-      const iso = v + ':00+09:00';
-      serverBaseDate = new Date(iso);
-      baseTimestamp = Date.now();
-      // update immediately (and seconds will tick because we use virtual now)
-      renderAll();
+  function updateTzListTimes(){
+    const now=getVirtualNow();
+    document.querySelectorAll('.tz-row').forEach(r=>{
+      const tz=r.dataset.tz;
+      const f=formatByTZ(now,tz);
+      r.querySelector('.tz-time').textContent=f.date+' '+f.time;
     });
+  }
 
-    resetToNowBtn.addEventListener('click', async () => {
-      // re-sync from API (preferred): if fails, set to device "now"
-      const ok = await syncServerTime();
-      if (!ok) {
-        serverBaseDate = new Date();
-        baseTimestamp = Date.now();
-      }
-      renderAll();
+  tzSearch.addEventListener('input',()=>{
+    const q=tzSearch.value.toLowerCase();
+    document.querySelectorAll('.tz-row').forEach(r=>{
+      const match=r.dataset.tz.toLowerCase().includes(q) || r.dataset.offset.includes(q);
+      r.style.display=match?'':'none';
     });
+  });
 
-    // add card button
-    addCardBtn.addEventListener('click', () => {
-      createChangeableCard();
-    });
+  // ---- 手動設定 ----
+  applyManualBtn.addEventListener('click',()=>{
+    if(!manualDatetime.value)return;
+    const iso=manualDatetime.value+':00+09:00';
+    serverBaseDate=new Date(iso);
+    baseTimestamp=Date.now();
+  });
 
-    // --- render loop ---
-    function renderAll() {
-      renderFixedCards();
-      updateAllChangeables();
-      updateTzListTimes();
-    }
+  resetToNowBtn.addEventListener('click',syncServerTime);
+  addCardBtn.addEventListener('click',()=>{createChangeableCard();saveState();});
 
-    // tick every second
-    setInterval(renderAll, 1000);
+  function renderAll(){
+    renderFixedCards();
+    updateAllChangeables();
+    updateTzListTimes();
+  }
+  setInterval(renderAll,1000);
 
-    // initial boot
-    (async function init(){
-      await syncServerTime();
-      // create two default changeable cards
-      createChangeableCard();
-      createChangeableCard();
-      renderAll();
-      // ensure tz-list loaded
-      await loadTimezoneList();
-      // set manual input default
-      manualDatetime.value = toDatetimeLocalValue(serverBaseDate || new Date());
-    })();
-
-    // --- Utilities for debugging (optional) ---
-    window._kbc = {
-      getState: () => ({ serverBaseDate, baseTimestamp, changeableCards })
-    };
-
+  (async function init(){
+    await syncServerTime();
+    loadState(); // ← 自動復元
+    if(changeableCards.length===0) createChangeableCard();
+    renderTimezoneList();
+    renderAll();
   })();
-  </script>
+})();
+</script>
 </body>
 </html>
