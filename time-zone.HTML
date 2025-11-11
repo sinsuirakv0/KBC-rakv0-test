@@ -179,17 +179,42 @@
   const SAMOA_TZ = 'Pacific/Pago_Pago';
   const KIRITIMATI_TZ = 'Pacific/Kiritimati';
 
-  const OFFSET_MAP = [
-    [-12,"Pacific/Pago_Pago"],[-11,"Pacific/Midway"],[-10,"Pacific/Honolulu"],
-    [-9,"America/Anchorage"],[-8,"America/Los_Angeles"],[-7,"America/Denver"],
-    [-6,"America/Chicago"],[-5,"America/New_York"],[-4,"America/Halifax"],
-    [-3,"America/Sao_Paulo"],[-2,"Atlantic/South_Georgia"],[-1,"Atlantic/Azores"],
-    [0,"Europe/London"],[1,"Europe/Paris"],[2,"Europe/Athens"],[3,"Europe/Moscow"],
-    [4,"Asia/Dubai"],[5,"Asia/Karachi"],[6,"Asia/Dhaka"],[7,"Asia/Bangkok"],
-    [8,"Asia/Singapore"],[9,"Asia/Tokyo"],[10,"Australia/Sydney"],
-    [11,"Pacific/Noumea"],[12,"Pacific/Auckland"],[13,"Pacific/Tongatapu"],
-    [14,"Pacific/Kiritimati"]
-  ];
+// 🌍 すべてのタイムゾーンをUTC順に並べたリスト（主要都市・地域付き・日本語対応）
+const OFFSET_MAP = [
+  [-12, "アメリカ領サモア（Pacific/Pago_Pago）"],
+  [-11, "ミッドウェー諸島（Pacific/Midway）"],
+  [-10, "ハワイ（Pacific/Honolulu）"],
+  [-9, "アラスカ（America/Anchorage）"],
+  [-8, "ロサンゼルス（America/Los_Angeles）"],
+  [-7, "デンバー（America/Denver）"],
+  [-6, "シカゴ（America/Chicago）"],
+  [-5, "ニューヨーク（America/New_York）"],
+  [-4, "サンティアゴ（America/Santiago）"],
+  [-3, "ブエノスアイレス（America/Argentina/Buenos_Aires）"],
+  [-2, "南ジョージア（Atlantic/South_Georgia）"],
+  [-1, "アゾレス諸島（Atlantic/Azores）"],
+  [0, "ロンドン（Europe/London）"],
+  [1, "ベルリン（Europe/Berlin）"],
+  [2, "カイロ（Africa/Cairo）"],
+  [3, "モスクワ（Europe/Moscow）"],
+  [3.5, "テヘラン（Asia/Tehran）"],
+  [4, "ドバイ（Asia/Dubai）"],
+  [4.5, "カブール（Asia/Kabul）"],
+  [5, "カラチ（Asia/Karachi）"],
+  [5.5, "インド／スリランカ（Asia/Kolkata）"],
+  [5.75, "カトマンズ（Asia/Kathmandu）"],
+  [6, "ダッカ（Asia/Dhaka）"],
+  [6.5, "ヤンゴン（Asia/Yangon）"],
+  [7, "バンコク（Asia/Bangkok）"],
+  [8, "北京／シンガポール（Asia/Shanghai）"],
+  [9, "東京（Asia/Tokyo）"],
+  [9.5, "アデレード（Australia/Adelaide）"],
+  [10, "シドニー（Australia/Sydney）"],
+  [11, "ソロモン諸島（Pacific/Guadalcanal）"],
+  [12, "フィジー（Pacific/Fiji）"],
+  [13, "トンガ（Pacific/Tongatapu）"],
+  [14, "キリバス（Pacific/Kiritimati）"]
+];
 
   let serverBaseDate = null;
   let baseTimestamp = Date.now();
@@ -275,18 +300,33 @@
     return fmt.format(date).replace(' ','T');
   }
 
-  function renderFixedCards(){
-    const now = getVirtualNow();
-    const jst = formatByTZ(now, JST_TZ);
-    jstTimeEl.textContent = jst.time; jstDateEl.textContent = jst.date + ' (Asia/Tokyo)';
-    const sam = formatByTZ(now, SAMOA_TZ);
-    samoaTimeEl.textContent = sam.time; samoaDateEl.textContent = sam.date;
-    const k = formatByTZ(now, KIRITIMATI_TZ);
-    kiriTimeEl.textContent = k.time; kiriDateEl.textContent = k.date;
-    const plus41 = new Date(now.getTime() + 41*3600*1000);
-    const kp = formatByTZ(plus41, KIRITIMATI_TZ);
-    kiriPlusTimeEl.textContent = kp.time; kiriPlusDateEl.textContent = kp.date;
-  }
+function renderFixedCards(){
+  const now = getVirtualNow();
+
+  // 現在時刻 (JST)
+  const jst = formatByTZ(now, JST_TZ);
+  jstTimeEl.textContent = jst.time;
+  jstDateEl.textContent = `${jst.date} (Asia/Tokyo)`;
+
+  // 米領サモア
+  const sam = formatByTZ(now, SAMOA_TZ);
+  samoaTimeEl.textContent = sam.time;
+  samoaDateEl.textContent = sam.date;
+
+  // キリバス (Kiritimati)
+  const k = formatByTZ(now, KIRITIMATI_TZ);
+  kiriTimeEl.textContent = k.time;
+  kiriDateEl.textContent = k.date;
+
+  // 🔹 JST基準で36時間後を求める
+  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: JST_TZ }));
+  const jstPlus36 = new Date(jstNow.getTime() + 36 * 60 * 60 * 1000);
+
+  // 🔹 JST+36時間をキリバス時間で表示
+  const kPlus = formatByTZ(jstPlus36, KIRITIMATI_TZ);
+  kiriPlusTimeEl.textContent = kPlus.time;
+  kiriPlusDateEl.textContent = `${kPlus.date} (JST +36h / Pacific/Kiritimati)`;
+}
 
   // ---- カード生成・管理 ----
   function createChangeableCard(tz=JST_TZ,label='Asia/Tokyo',id){
@@ -339,43 +379,202 @@
 
   function updateAllChangeables(){ changeableCards.forEach(updateChangeableCardDisplay); }
 
-  // ---- タイムゾーン一覧 ----
-  function renderTimezoneList(){
-    tzListEl.innerHTML='';
-    OFFSET_MAP.forEach(([offset, zone])=>{
-      const label=`UTC${offset>=0?'+':''}${offset} (${zone})`;
-      const row=document.createElement('div');
-      row.className='tz-row'; row.dataset.tz=zone; row.dataset.offset=offset;
-      row.innerHTML=`<div class="tz-name">${label}</div><div class="tz-time">---</div>`;
-      row.addEventListener('click',()=>{
-        if(activeCardId){
-          const card=changeableCards.find(c=>c.id===activeCardId);
-          card.tz=zone; card.label=zone;
-          updateChangeableCardDisplay(card);
-          saveState(); // 状態を保持
-        }
+// ---------- タイムゾーン一覧：ブラウザ＋固定リスト両対応 ----------
+async function renderTimezoneList() {
+  tzListEl.innerHTML =
+    '<div style="color:var(--muted);font-size:13px;padding:6px 4px;">一覧を作成中…（ローカル生成）</div>';
+
+  const cacheKey = 'kbc_tz_all_v2';
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      buildTzRowsFromArray(parsed);
+      return;
+    }
+  } catch (e) {}
+
+  let zones = [];
+  if (typeof Intl === 'object' && typeof Intl.supportedValuesOf === 'function') {
+    try {
+      zones = Intl.supportedValuesOf('timeZone');
+    } catch (e) {
+      zones = [];
+    }
+  }
+
+  // UTC -12 ～ +14 を網羅（仮想含む）
+  const FIXED_ZONES = [
+    [-12, "Etc/GMT+12", "ベーカー島（米領）"],
+    [-11, "Pacific/Pago_Pago", "米領サモア"],
+    [-10, "Pacific/Honolulu", "ハワイ（米国）"],
+    [-9,  "America/Anchorage", "アラスカ（米国）"],
+    [-8,  "America/Los_Angeles", "ロサンゼルス（米国）"],
+    [-7,  "America/Denver", "デンバー（米国）"],
+    [-6,  "America/Chicago", "シカゴ（米国）"],
+    [-5,  "America/New_York", "ニューヨーク（米国）"],
+    [-4,  "America/Halifax", "ハリファックス（カナダ）"],
+    [-3,  "America/Argentina/Buenos_Aires", "ブエノスアイレス（アルゼンチン）"],
+    [-2,  "America/Noronha", "フェルナンド・デ・ノローニャ（ブラジル）"],
+    [-1,  "Atlantic/Azores", "アゾレス諸島（ポルトガル）"],
+    [0,   "Europe/London", "ロンドン（イギリス）"],
+    [1,   "Europe/Paris", "パリ（フランス）"],
+    [2,   "Europe/Athens", "アテネ（ギリシャ）"],
+    [3,   "Europe/Moscow", "モスクワ（ロシア）"],
+    [4,   "Asia/Dubai", "ドバイ（UAE）"],
+    [5,   "Asia/Karachi", "カラチ（パキスタン）"],
+    [5.5, "Asia/Kolkata", "コルカタ（インド）"],
+    [6,   "Asia/Dhaka", "ダッカ（バングラデシュ）"],
+    [7,   "Asia/Bangkok", "バンコク（タイ）"],
+    [8,   "Asia/Shanghai", "上海（中国）"],
+    [9,   "Asia/Tokyo", "東京（日本）"],
+    [9.5, "Australia/Darwin", "ダーウィン（豪州）"],
+    [10,  "Australia/Sydney", "シドニー（豪州）"],
+    [11,  "Pacific/Noumea", "ヌメア（ニューカレドニア）"],
+    [12,  "Pacific/Auckland", "オークランド（ニュージーランド）"],
+    [13,  "Pacific/Tongatapu", "トンガ（トンガ）"],
+    [14,  "Pacific/Kiritimati", "キリバス（ライン諸島）"]
+  ];
+
+  const baseNow = getVirtualNow();
+
+  function computeOffsetHoursForZone(nowDate, zone) {
+    try {
+      const fmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: zone,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
       });
-      tzListEl.appendChild(row);
-    });
-    updateTzListTimes();
+      const parts = fmt.formatToParts(nowDate);
+      const p = {};
+      parts.forEach(x => p[x.type] = x.value);
+      const utcFromZone = Date.UTC(
+        Number(p.year), Number(p.month) - 1, Number(p.day),
+        Number(p.hour), Number(p.minute), Number(p.second)
+      );
+      const nowUtc = nowDate.getTime();
+      const offsetMinutes = Math.round((utcFromZone - nowUtc) / 60000);
+      return offsetMinutes / 60;
+    } catch (e) {
+      return null;
+    }
   }
 
-  function updateTzListTimes(){
-    const now=getVirtualNow();
-    document.querySelectorAll('.tz-row').forEach(r=>{
-      const tz=r.dataset.tz;
-      const f=formatByTZ(now,tz);
-      r.querySelector('.tz-time').textContent=f.date+' '+f.time;
-    });
+  const arr = [];
+
+  // ブラウザから取得できるタイムゾーン
+  for (let i = 0; i < zones.length; i++) {
+    const zone = zones[i];
+    const offsetH = computeOffsetHoursForZone(baseNow, zone);
+    if (offsetH === null || Number.isNaN(offsetH)) continue;
+    arr.push({ offset: offsetH, zone, jpName: null });
   }
 
-  tzSearch.addEventListener('input',()=>{
-    const q=tzSearch.value.toLowerCase();
-    document.querySelectorAll('.tz-row').forEach(r=>{
-      const match=r.dataset.tz.toLowerCase().includes(q) || r.dataset.offset.includes(q);
-      r.style.display=match?'':'none';
-    });
+  // 固定ゾーン（−12〜＋14）を必ず追加
+  FIXED_ZONES.forEach(([offset, zone, jpName]) => {
+    if (!arr.some(a => a.zone === zone)) {
+      arr.push({ offset, zone, jpName });
+    }
   });
+
+  arr.sort((a, b) => {
+    if (a.offset !== b.offset) return a.offset - b.offset;
+    return a.zone.localeCompare(b.zone);
+  });
+
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(arr));
+  } catch (e) {}
+
+  buildTzRowsFromArray(arr);
+}
+
+// ---------- リスト生成 ----------
+function buildTzRowsFromArray(arr) {
+  tzListEl.innerHTML = '';
+  arr.forEach(item => {
+    const offset = item.offset;
+    const zone = item.zone;
+    const jpName = item.jpName;
+
+    let displayName = jpName || zone.replace(/_/g, ' ').replace('/', ' / ');
+    displayName = displayName
+      .replace(/^Asia \//, 'アジア / ')
+      .replace(/^Europe \//, 'ヨーロッパ / ')
+      .replace(/^America \//, 'アメリカ / ')
+      .replace(/^Pacific \//, '太平洋 / ')
+      .replace(/^Atlantic \//, '大西洋 / ')
+      .replace(/^Africa \//, 'アフリカ / ')
+      .replace(/^Australia \//, 'オーストラリア / ')
+      .replace(/^Indian \//, 'インド洋 / ')
+      .replace(/^Antarctica \//, '南極 / ');
+
+    const sign = offset >= 0 ? '+' : '';
+    const hours = Math.trunc(Math.abs(offset));
+    const frac = Math.abs(offset) - hours;
+    const minutesPart = Math.round(frac * 60);
+    const offsetStr =
+      offset % 1 === 0
+        ? `${sign}${offset}`
+        : `${sign}${hours}:${String(minutesPart).padStart(2, '0')}`;
+
+    const label = `UTC${offsetStr}　${displayName}`;
+
+    const row = document.createElement('div');
+    row.className = 'tz-row';
+    row.dataset.tz = zone;
+    row.dataset.offset = offset;
+    row.innerHTML = `<div class="tz-name">${label}</div><div class="tz-time">---</div>`;
+
+    row.addEventListener('click', () => {
+      if (activeCardId) {
+        const card = changeableCards.find(c => c.id === activeCardId);
+        if (card) {
+          card.tz = zone;
+          card.label = displayName;
+          updateChangeableCardDisplay(card);
+          saveState();
+        }
+      } else {
+        navigator.clipboard?.writeText(zone).then(() => {
+          row.querySelector('.tz-time').textContent = 'コピーしました';
+          setTimeout(() => updateTzListTimes(), 800);
+        });
+      }
+    });
+
+    tzListEl.appendChild(row);
+  });
+
+  updateTzListTimes();
+}
+
+// ---------- タイムゾーン時間更新 ----------
+function updateTzListTimes() {
+  const now = getVirtualNow();
+  document.querySelectorAll('.tz-row').forEach(r => {
+    const tz = r.dataset.tz;
+    try {
+      const f = formatByTZ(now, tz);
+      r.querySelector('.tz-time').textContent = `${f.date} ${f.time}`;
+    } catch (e) {
+      r.querySelector('.tz-time').textContent = 'N/A';
+    }
+  });
+}
+
+// ---------- 検索 ----------
+tzSearch.addEventListener('input', () => {
+  const q = tzSearch.value.trim().toLowerCase();
+  document.querySelectorAll('.tz-row').forEach(r => {
+    const tz = (r.dataset.tz || '').toLowerCase();
+    const name = (r.querySelector('.tz-name')?.textContent || '').toLowerCase();
+    const offset = ('' + (r.dataset.offset ?? '')).toLowerCase();
+    const ok = !q || tz.includes(q) || name.includes(q) || offset.includes(q);
+    r.style.display = ok ? '' : 'none';
+  });
+});
 
   // ---- 手動設定 ----
   applyManualBtn.addEventListener('click',()=>{
