@@ -1,141 +1,244 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>シード計算機</title>
-<style>
-  :root {
-    --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-    --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:"Noto Sans JP",sans-serif;background:linear-gradient(180deg,#051026 0%,#081428 60%);color:var(--text);padding:20px;display:flex;justify-content:center;}
-  .container{width:1100px;max-width:100%;display:grid;gap:16px;}
-  .header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-  h1{margin:0;font-size:20px;}
-  .sub{color:var(--muted);font-size:13px;}
-  .grid{display:grid;grid-template-columns:1fr;gap:16px;}
-  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);}
-  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px;}
-  input[type=text], input[type=number], select{width:100%;padding:8px 10px;border-radius:8px;background:#061429;border:1px solid rgba(255,255,255,0.04);color:var(--text);}
-  .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
-  button{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;cursor:pointer;}
-  button.primary{background:linear-gradient(90deg,var(--accent),#2563eb);color:#041129;border:0;}
-  .out{font-family:monospace;background:var(--glass);padding:10px;border-radius:8px;margin-top:8px;color:var(--text);}
-  .small{font-size:12px;color:var(--muted);}
-  progress{width:100%;height:14px;border-radius:8px;overflow:hidden;background:#051a2a;}
-  progress::-webkit-progress-bar{background:#051a2a;}
-  progress::-webkit-progress-value{background:linear-gradient(90deg,var(--accent),#60a5fa);}
-  @media(max-width:1000px){.grid{grid-template-columns:1fr;}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC Seed Tool</title>
+
+  <!-- ▼ KBC原型.html の CSS（ロゴ部分そのまま） ▼ -->
+  <style>
+    :root {
+      --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
+      --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Noto Sans JP",sans-serif;
+      background:linear-gradient(180deg,#051026 0%,#081428 60%);
+      color:var(--text);
+      padding:20px;
+      display:flex;
+      justify-content:center;
+      animation: fadeIn 1s ease forwards;
+      opacity:0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform: translateY(10px); }
+      to { opacity:1; transform: translateY(0); }
+    }
+
+    .container{
+      width:1100px;
+      max-width:100%;
+      display:grid;
+      gap:16px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      padding:10px 0 20px;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      animation: fadeIn 1s ease 0.2s forwards;
+      opacity:0;
+      margin-bottom:20px;
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo img{
+      width:40px;
+      height:40px;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(59,130,246,0.4);
+      animation: floatLogo 3s ease-in-out infinite;
+    }
+    @keyframes floatLogo {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    h1{margin:0;font-size:22px;color:var(--text);}
+  </style>
+
+  <!-- ▼ Seed-Calculator.html の CSS（中身そのまま） ▼ -->
+  <style>
+    :root {
+      --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
+      --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
+    }
+
+    .sc-body{margin:0;font-family:"Noto Sans JP",sans-serif;color:var(--text);}
+
+    /* ▼ここだけ調整済み：スマホ時の幅を正しく適用 */
+    .sc-container{
+      width:100%;
+      max-width:700px;
+      margin:0 auto;
+      display:grid;
+      gap:16px;
+    }
+
+    .sc-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+    .sc-header h1{margin:0;font-size:20px;}
+    .sub{color:var(--muted);font-size:13px;}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);}
+    label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px;}
+    input[type=text], input[type=number], select{width:100%;padding:8px 10px;border-radius:8px;background:#061429;border:1px solid rgba(255,255,255,0.04);color:var(--text);}
+    .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+    button{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;cursor:pointer;}
+    button.primary{background:linear-gradient(90deg,var(--accent),#2563eb);color:#041129;border:0;}
+    .out{font-family:monospace;background:var(--glass);padding:10px;border-radius:8px;margin-top:8px;color:var(--text);}
+    .small{font-size:12px;color:var(--muted);}
+    progress{width:100%;height:14px;border-radius:8px;overflow:hidden;background:#051a2a;}
+    progress::-webkit-progress-bar{background:#051a2a;}
+    progress::-webkit-progress-value{background:linear-gradient(90deg,var(--accent),#60a5fa);}
+  </style>
+
+  <!-- ▼ スマホ対応：container が幅1100px固定されるのを上書き ▼ -->
+  <style>
+    @media(max-width:768px){
+      .container{
+        width:100% !important;
+        padding:0 10px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="container">
-  <div class="header">
-    <div>
-      <h1>シード計算機</h1>
-      <div class="sub">現在のシードからNロール前/後のシードを計算</div>
+  <div class="container">
+
+    <!-- ▼ ロゴ部分（完全そのまま） ▼ -->
+    <header class="header">
+      <div class="logo">
+        <img src="logo.png" alt="ロゴ">
+        <h1>KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="">ホーム</a>
+        <a href="#"></a>
+        <a href="#"></a>
+        <a href="#"></a>
+      </nav>
+    </header>
+
+    <!-- ▼ Seed Calculator（そのまま配置） ▼ -->
+    <div class="sc-container">
+
+      <div class="sc-header">
+        <div>
+          <h1>シード計算機</h1>
+          <div class="sub">現在のシードからNロール前/後のシードを計算</div>
     </div>
     <button id="theme-toggle">テーマ切り替え</button>
   </div>
 
-  <div class="grid">
-    <!-- 順方向計算 -->
-    <div class="card">
-      <label>順方向計算</label>
-      <label>Seed</label>
-      <input id="forward-seed" type="text" value="1"/>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="flex:3">
-          <label>ロール数 n</label>
-          <input id="forward-n" type="number" value="1" min="0"/>
-        </div>
-        <div style="flex:1">
-          <label>モード</label>
-          <select id="forward-mode">
-            <option value="normal">通常</option>
-            <option value="fast">高速</option>
-            <option value="slow">低負荷</option>
-          </select>
-        </div>
-      </div>
-      <div class="controls">
-        <button id="btn-forward" class="primary">計算</button>
-        <button id="btn-forward-cancel">キャンセル</button>
-        <button id="btn-forward-copy">コピー</button>
-      </div>
-      <div class="out" id="forward-out">結果: —</div>
-      <div class="small" id="forward-progress-text"></div>
-      <progress id="forward-progress" value="0" max="100"></progress>
-    </div>
+      <div class="grid">
 
-    <!-- 逆方向計算 -->
-    <div class="card">
-      <label>逆方向計算</label>
-      <label>Seed</label>
-      <input id="back-seed" type="text" value="1"/>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="flex:3">
-          <label>ロール数 n</label>
-          <input id="back-n" type="number" value="1" min="0"/>
+        <!-- ▼ 順方向 -->
+        <div class="card">
+          <label>順方向計算</label>
+          <label>Seed</label>
+          <input id="forward-seed" type="text" value="1"/>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="flex:3">
+              <label>ロール数 n</label>
+              <input id="forward-n" type="number" value="1" min="0"/>
+            </div>
+            <div style="flex:1">
+              <label>モード</label>
+              <select id="forward-mode">
+                <option value="normal">通常</option>
+                <option value="fast">高速</option>
+                <option value="slow">低負荷</option>
+              </select>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="btn-forward" class="primary">計算</button>
+            <button id="btn-forward-cancel">キャンセル</button>
+            <button id="btn-forward-copy">コピー</button>
+          </div>
+          <div class="out" id="forward-out">結果: —</div>
+          <div class="small" id="forward-progress-text"></div>
+          <progress id="forward-progress" value="0" max="100"></progress>
         </div>
-        <div style="flex:1">
-          <label>モード</label>
-          <select id="back-mode">
-            <option value="normal">通常</option>
-            <option value="fast">高速</option>
-            <option value="slow">低負荷</option>
-          </select>
-        </div>
-      </div>
-      <div class="controls">
-        <button id="btn-back" class="primary">計算</button>
-        <button id="btn-back-cancel">キャンセル</button>
-        <button id="btn-back-copy">コピー</button>
-      </div>
-      <div class="out" id="back-out">結果: —</div>
-      <div class="small" id="back-progress-text"></div>
-      <progress id="back-progress" value="0" max="100"></progress>
-    </div>
 
-    <!-- 探索 -->
-    <div class="card">
-      <label>探索 (SeedA → SeedBまでのロール数計算)</label>
-      <label>Seed A</label>
-      <input id="dist-a" type="text" value="1"/>
-      <label>Seed B</label>
-      <input id="dist-b" type="text" value="2"/>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="flex:3">
-          <label>方向</label>
-          <select id="dist-dir">
-            <option value="forward">順方向</option>
-            <option value="backward">逆方向</option>
-          </select>
+        <!-- ▼ 逆方向 -->
+        <div class="card">
+          <label>逆方向計算</label>
+          <label>Seed</label>
+          <input id="back-seed" type="text" value="1"/>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="flex:3">
+              <label>ロール数 n</label>
+              <input id="back-n" type="number" value="1" min="0"/>
+            </div>
+            <div style="flex:1">
+              <label>モード</label>
+              <select id="back-mode">
+                <option value="normal">通常</option>
+                <option value="fast">高速</option>
+                <option value="slow">低負荷</option>
+              </select>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="btn-back" class="primary">計算</button>
+            <button id="btn-back-cancel">キャンセル</button>
+            <button id="btn-back-copy">コピー</button>
+          </div>
+          <div class="out" id="back-out">結果: —</div>
+          <div class="small" id="back-progress-text"></div>
+          <progress id="back-progress" value="0" max="100"></progress>
         </div>
-        <div style="flex:1">
-          <label>モード</label>
-          <select id="dist-mode">
-            <option value="normal">通常</option>
-            <option value="fast">高速</option>
-            <option value="slow">低負荷</option>
-          </select>
+
+        <!-- ▼ 探索 -->
+        <div class="card">
+          <label>探索 (SeedA → SeedBまでのロール数計算)</label>
+          <label>Seed A</label>
+          <input id="dist-a" type="text" value="1"/>
+          <label>Seed B</label>
+          <input id="dist-b" type="text" value="2"/>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="flex:3">
+              <label>方向</label>
+              <select id="dist-dir">
+                <option value="forward">順方向</option>
+                <option value="backward">逆方向</option>
+              </select>
+            </div>
+            <div style="flex:1">
+              <label>モード</label>
+              <select id="dist-mode">
+                <option value="normal">通常</option>
+                <option value="fast">高速</option>
+                <option value="slow">低負荷</option>
+              </select>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="btn-dist" class="primary">探索開始</button>
+            <button id="btn-dist-cancel">キャンセル</button>
+            <button id="btn-dist-copy">コピー</button>
+          </div>
+          <div class="out" id="dist-out">結果: —</div>
+          <div class="small">進行: <span id="dist-percent">0.00</span>%</div>
+          <progress id="dist-progress" value="0" max="100"></progress>
         </div>
+
       </div>
-      <div class="controls">
-        <button id="btn-dist" class="primary">探索開始</button>
-        <button id="btn-dist-cancel">キャンセル</button>
-        <button id="btn-dist-copy">コピー</button>
-      </div>
-      <div class="out" id="dist-out">結果: —</div>
-      <div class="small">進行: <span id="dist-percent">0.00</span>%</div>
-      <progress id="dist-progress" value="0" max="100"></progress>
     </div>
   </div>
-</div>
 
-<script>
+  <!-- ▼ Seed Calculator の JS（そのまま貼り付け） ▼ -->
+  <script>
 const MAX_U32 = 0xFFFFFFFF;
 let forwardCancel=false, backCancel=false, distCancel = false;
 
@@ -308,6 +411,6 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     inputs.forEach(el => { el.style.background = '#061429'; el.style.color='#e6f0fb'; el.style.borderColor='rgba(255,255,255,0.04)'; });
   }
 });
-</script>
+  </script>
 </body>
 </html>
