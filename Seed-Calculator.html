@@ -375,7 +375,7 @@ document.getElementById('btn-dist').addEventListener('click',async()=>{
     prog.value = p; percent.textContent = p.toFixed(2);
     if(mode!=='fast') await new Promise(r=>setTimeout(r,0));
   }
-  if(current!==b) out.textContent='到達できません';
+  if(current!==b) out.textContent='キャンセル';
 });
 
 document.getElementById('btn-dist-cancel').addEventListener('click',()=>{distCancel.value=true;});
