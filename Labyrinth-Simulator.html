@@ -1,379 +1,95 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBC Labyrinth Simulator</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root {
-  --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-  --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-}
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  font-family:"Noto Sans JP",sans-serif;
-  background:linear-gradient(180deg,#051026 0%,#081428 60%);
-  color:var(--text);
-  padding:20px;
-  display:flex;
-  justify-content:center;
-  animation: fadeIn 1s ease forwards;
-  opacity:0;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC - 迷宮シミュレーター</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .input-item { display: flex; flex-direction: column; gap: 4px; }
+    .input-item label { font-size: 12px; color: var(--muted); }
+    .blue-input { width: 100% !important; }
 
-@keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    #summaryTable { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 20px; }
+    #summaryTable th, #summaryTable td { border-bottom: 1px solid var(--border); padding: 8px; text-align: center; }
+    #summaryTable th { color: var(--accent); background: rgba(255,255,255,0.02); }
 
-.container{
-  width:1100px;
-  max-width:100%;
-  display:grid;
-  gap:16px;
-}
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-  animation: fadeIn 1s ease 0.2s forwards;
-  opacity:0;
-}
-.logo{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.logo img{
-  width:40px;
-  height:40px;
-  border-radius:8px;
-  box-shadow:0 0 10px rgba(59,130,246,0.4);
-  animation: floatLogo 3s ease-in-out infinite;
-}
-@keyframes floatLogo { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-h1{margin:0;font-size:22px;}
-.nav{
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
-}
-.nav a{
-  color:var(--muted);
-  text-decoration:none;
-  font-size:14px;
-  transition:0.2s;
-}
-.nav a:hover{ color:var(--accent); }
-
-.hero{
-  text-align:center;
-  padding:60px 20px;
-  background:var(--card);
-  border-radius:12px;
-  box-shadow:0 8px 30px rgba(2,6,23,0.6);
-  animation: fadeIn 1s ease 0.4s forwards;
-  opacity:0;
-}
-.hero h2{ font-size:28px; margin:0 0 10px; }
-.hero p{ color:var(--muted); font-size:15px; margin:0; }
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
-  gap:16px;
-}
-.card{
-  background:var(--card);
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 8px 30px rgba(2,6,23,0.6);
-  transition:transform 0.3s, box-shadow 0.3s, opacity 0.5s;
-  opacity:0;
-  animation: fadeIn 1s ease forwards;
-}
-.card:nth-child(1){animation-delay:0.6s;}
-.card:nth-child(2){animation-delay:0.8s;}
-.card:nth-child(3){animation-delay:1s;}
-.card:nth-child(4){animation-delay:1.2s;}
-.card:nth-child(5){animation-delay:1.4s;}
-.card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 10px 40px rgba(59,130,246,0.3);
-}
-.card h3{ margin-top:0; font-size:18px; color:var(--accent); }
-.card p{ font-size:14px; color:var(--muted); }
-
-footer{
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
-  margin-top:30px;
-  border-top:1px solid rgba(255,255,255,0.05);
-  padding-top:10px;
-  animation: fadeIn 1s ease 1.2s forwards;
-  opacity:0;
-}
-
-/* ---- KBC風シミュレーター ---- */
-#simCard{
-  grid-column: 1 / -1;
-  background: var(--card);
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 8px 30px rgba(2,6,23,0.6);
-  opacity:0;
-  animation: fadeIn 1s ease 1.6s forwards;
-}
-#simForm{
-  display:flex;
-  flex-wrap:wrap;
-  gap:16px;
-  margin-bottom:10px;
-}
-#simForm label{
-  flex:1 1 150px;
-  display:flex;
-  flex-direction:column;
-  font-size:14px;
-}
-#simForm input{
-  padding:6px;
-  border-radius:6px;
-  border:1px solid var(--muted);
-  background:#0f172a;
-  color:var(--text);
-}
-#simForm button, #downloadBtn{
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  padding:8px 12px;
-  cursor:pointer;
-  transition:0.2s;
-}
-#simForm button:hover, #downloadBtn:hover{
-  background:#2563eb;
-}
-#result{
-  font-weight:bold;
-  margin-top:10px;
-  text-align:center;
-  font-size:16px;
-  animation: fadeIn 0.8s ease forwards;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-  background:var(--card);
-  border-radius:8px;
-  overflow:hidden;
-  box-shadow:0 2px 6px rgba(0,0,0,0.5);
-}
-th, td{
-  border:1px solid var(--muted);
-  padding:6px;
-  text-align:center;
-}
-th{ background:#1a1f35; }
-canvas{ max-width:100%; margin:20px auto; display:block; }
-</style>
+    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
+    #result { text-align: center; padding: 15px; background: var(--glass); border-radius: 8px; margin: 15px 0; }
+  </style>
 </head>
-<body>
+<body class="fade-in">
 
-<div class="container">
-  <header class="header">
-    <div class="logo">
-      <img src="logo.png" alt="ロゴ">
-      <h1>KBC</h1>
-    </div>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo">
+        <h1 class="site-title">KBC</h1>
+      </div>
       <nav class="nav">
-        <a href="https://kbc-rakv0.vercel.app">ホーム</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
+        <a href="index.html">Home</a>
       </nav>
-  </header>
+    </header>
 
-  <section class="grid">
-    <div class="card">
-      <h3>使い方</h3>
-      <p>KBCグランドアビスシミュレーター(仮)</p>
+    <div class="grid">
+      <section class="card" style="grid-column: 1 / -1;">
+        <h3>グランドアビス シミュレーター</h3>
+        <p class="muted">残キャラ数や勝率から、どこまで到達できるかを1000回試行して算出します。</p>
+        
+        <form id="simForm" style="margin-top:20px;">
+          <div class="sim-grid">
+            <div class="input-item">
+              <label>残キャラ数</label>
+              <input type="number" id="chars" class="blue-input" value="20">
+            </div>
+            <div class="input-item">
+              <label>開始階層</label>
+              <input type="number" id="floor" class="blue-input" value="1" max="99">
+            </div>
+            <div class="input-item">
+              <label>勝率(%)</label>
+              <input type="number" id="winrate" class="blue-input" value="100">
+            </div>
+            <div class="input-item">
+              <label>試行回数</label>
+              <input type="number" id="count" class="blue-input" value="1000">
+            </div>
+          </div>
+          <button type="submit" class="blue-input" style="background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; height:45px;">シミュレーション開始</button>
+        </form>
+
+        <div id="result">期待値がここに表示されます</div>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button onclick="downloadCSV()" class="blue-input" style="flex:1; cursor:pointer; font-size:12px;">CSVダウンロード</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>到達分布グラフ</h3>
+        <div class="chart-container">
+          <canvas id="resultChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>詳細データ</h3>
+        <table id="summaryTable">
+          <thead>
+            <tr><th>到達階層</th><th>回数</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="2" class="muted">データなし</td></tr>
+          </tbody>
+        </table>
+      </section>
     </div>
-    <div class="card" id="simCard">
-      <h3>シミュレーション</h3>
-      <form id="simForm">
-        <label>残キャラ数:<input type="number" id="chars" value="20" min="0"></label>
-        <label>現在階層:<input type="number" id="floor" value="1" min="1" max="100"></label>
-        <label>勝率(%):<input type="number" id="winrate" value="100" min="1" max="100"></label>
-        <label>回数:<input type="number" id="count" value="1000" min="1"></label>
+  </div>
 
-        <button type="submit">開始</button>
-      </form>
-      <button id="downloadBtn" onclick="downloadCSV()">CSVダウンロード</button>
-      <div id="result"></div>
-      <table id="summaryTable">
-        <thead><tr><th>階層</th><th>回数</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <canvas id="resultChart"></canvas>
-    </div>
-  </section>
-
-</div>
-
-<script>
-let summary = {};
-let chart;
-
-function getLossRange(floor) {
-  if (1 <= floor && floor <= 9) return [3, 5];
-  if (floor === 10) return [7, 9];
-  if ((11 <= floor && floor <= 19) || (21 <= floor && floor <= 29)) return [3, 5];
-  if (floor === 20 || floor === 30) return [7, 9];
-  if ((31 <= floor && floor <= 39) || (41 <= floor && floor <= 49) || (51 <= floor && floor <= 59)) return [4, 6];
-  if (floor === 40 || floor === 50 || floor === 60) return [7, 9];
-  if ((61 <= floor && floor <= 69) || (71 <= floor && floor <= 79) ||
-      (81 <= floor && floor <= 89) || (91 <= floor && floor <= 98)) return [5, 7];
-  if (floor === 70 || floor === 80 || floor === 90 || floor === 99) return [7, 9];
-  return [0, 0];
-}
-
-function simulate() {
-  const reserveCharsStart = parseInt(document.getElementById("chars").value);
-  const floorStart = parseInt(document.getElementById("floor").value);
-  const simCount = parseInt(document.getElementById("count").value);
-  const winRateValue = parseFloat(document.getElementById("winrate").value);
-
-  if (winRateValue < 1 || winRateValue > 100) {
-    alert("勝率は1〜100%の範囲で入力してください。");
-    return;
-  }
-
-  const winRate = winRateValue / 100;
-  let totalFloors = 0;
-  summary = {};
-
-  // 高速化のためループは同期で回す
-  for (let i = 0; i < simCount; i++) {
-    let reserveChars = reserveCharsStart;
-    let floor = floorStart;
-    let currentChars = 10;
-    let defeated = false;
-
-    while (floor <= 99) {
-      if (Math.random() > winRate) {
-        defeated = true;
-        reserveChars -= 2;
-        if (reserveChars < 0) reserveChars = 0;
-        if (reserveChars + currentChars < 10) break;
-        continue;
-      }
-
-      let [minLoss, maxLoss] = getLossRange(floor);
-      let loss = minLoss + Math.floor(Math.random() * (maxLoss - minLoss + 1));
-      currentChars -= loss;
-      if (currentChars < 0) currentChars = 0;
-      if (currentChars > 0 && Math.random() < 0.6) currentChars += 1;
-
-      let need = 10 - currentChars;
-      if (need > 0) {
-        if (reserveChars >= need) {
-          reserveChars -= need;
-          currentChars += need;
-        } else {
-          break;
-        }
-      }
-
-      floor++;
-    }
-
-    let reachedFloor = floor;
-    if (!defeated && floor === 100) {
-      reachedFloor = reserveChars >= 10 - currentChars ? 100 : 99;
-    }
-
-    totalFloors += reachedFloor;
-    summary[reachedFloor] = (summary[reachedFloor] || 0) + 1;
-  }
-
-  // 結果表示（同期）
-  const expected = (totalFloors / simCount).toFixed(2);
-  document.getElementById("result").textContent = `到達階層期待値：${expected} 層`;
-
-  // テーブル更新
-  const tbody = document.querySelector("#summaryTable tbody");
-  tbody.innerHTML = "";
-  Object.keys(summary).map(Number).sort((a, b) => a - b).forEach(k => {
-    let row = document.createElement("tr");
-    row.innerHTML = `<td>${k}</td><td>${summary[k]}</td>`;
-    tbody.appendChild(row);
-  });
-
-  // グラフ描画
-  drawChart(summary);
-}
-
-document.getElementById("simForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  simulate();
-});
-
-function drawChart(summary) {
-  const labels = [];
-  const data = [];
-  Object.entries(summary).forEach(([floor, count]) => {
-    labels.push(`${floor}層`);
-    data.push(count);
-  });
-
-  if (chart) chart.destroy();
-  const ctx = document.getElementById("resultChart").getContext("2d");
-  chart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "到達割合",
-        data: data,
-        backgroundColor: labels.map((_, i) => `hsl(${i * 40 % 360}, 70%, 70%)`)
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#fff' } }
-      }
-    }
-  });
-}
-
-function downloadCSV() {
-  if (!summary || Object.keys(summary).length === 0) {
-    alert("先にシミュレーションを実行してください。");
-    return;
-  }
-
-  let csv = "クリア階層,到達回数\n";
-  Object.keys(summary).map(Number).sort((a, b) => a - b).forEach(k => {
-    csv += `${k},${summary[k]}\n`;
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "floor_summary.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-</script>
-
+  <script src="js/labyrinth-logic.js"></script>
+  <script src="secret.js"></script>
 </body>
 </html>
+

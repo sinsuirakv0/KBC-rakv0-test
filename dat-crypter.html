@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC - DatFileCrypter</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    /* --- 暗号化ツール専用スタイル --- */
+    
+    /* 設定エリアのグリッド */
+    .config-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 15px; 
+      margin-bottom: 20px; 
+    }
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    .input-group label { font-size: 12px; color: var(--muted); }
+
+    /* メイン操作ボタン */
+    .btn-main-group { display: flex; gap: 10px; margin: 20px 0; }
+    .btn-main { 
+      flex: 1; 
+      height: 50px; 
+      border-radius: 8px; 
+      border: none; 
+      font-weight: bold; 
+      cursor: pointer; 
+      color: white; 
+      transition: 0.2s; 
+      font-size: 16px;
+    }
+    .btn-main.decrypt { background: #28a745; }
+    .btn-main.encrypt { background: var(--accent); }
+    .btn-main:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+    /* テーブルレイアウトの固定と省略設定 */
+    .result-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      font-size: 13px; 
+      table-layout: fixed; /* 重要：列幅を固定 */
+    }
+    .result-table th, .result-table td { 
+      padding: 12px 10px; 
+      border-bottom: 1px solid var(--border); 
+      vertical-align: middle;
+      overflow: hidden;
+    }
+
+    /* 各列の幅 */
+    .col-old    { width: 30%; } 
+    .col-new    { width: 30%; } 
+    .col-status { width: 75px; text-align: center; } 
+    .col-action { width: 175px; text-align: right; }
+
+    /* ファイル名の省略表示 (...) */
+    .name-column {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      display: block;
+    }
+
+    /* 状態バッジ */
+    .status-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--glass);
+    }
+    .status-badge.decrypt { color: #4ade80; border: 1px solid #4ade80; }
+    .status-badge.encrypt { color: var(--accent); border: 1px solid var(--accent); }
+
+    /* 操作ボタン（小） */
+    .action-column { white-space: nowrap; text-align: right; }
+    .btn-action { 
+      padding: 5px 10px; 
+      border-radius: 4px; 
+      font-size: 11px; 
+      cursor: pointer; 
+      border: none; 
+      color: white; 
+      margin-left: 4px; 
+      text-decoration: none; 
+      display: inline-block; 
+      transition: 0.2s;
+    }
+    .btn-action:hover { opacity: 0.8; }
+    .btn-action.view { background: #6c757d; }
+    .btn-action.copy { background: #17a2b8; }
+    .btn-action.download { background: #333; }
+
+    /* プレビューエリア */
+    #previewContainer { 
+      margin-top: 20px; 
+      padding: 15px; 
+      background: rgba(0,0,0,0.2); 
+      border-radius: 10px; 
+      border: 1px solid var(--border); 
+      display: none; 
+    }
+    #previewArea { 
+      width: 100%; 
+      height: 250px; 
+      background: transparent; 
+      color: var(--text); 
+      border: 1px solid var(--border); 
+      border-radius: 5px; 
+      padding: 10px; 
+      font-family: monospace; 
+      font-size: 12px; 
+      margin-top: 10px; 
+      resize: vertical; 
+      outline: none;
+    }
+
+    /* スマホ対応 */
+    @media (max-width: 600px) {
+      .col-action { width: 140px; }
+      .btn-action { padding: 4px 6px; font-size: 10px; }
+      .col-old, .col-new { width: 25%; }
+    }
+  </style>
+</head>
+<body class="fade-in">
+
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <img src="logo.png" alt="Logo" id="logo">
+        <h1 class="site-title">KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+      </nav>
+    </header>
+
+    <section class="card">
+      <h2 style="margin:0 0 10px;">DatFileCrypter</h2>
+      <p class="muted">暗号化・復号処理を行います。ファイル名が長い場合は自動的に短縮されます。</p>
+
+      <div class="config-grid">
+        <div class="input-group">
+          <label>国コード (Locale)</label>
+          <select id="locale" class="blue-input">
+            <option value="jp">jp (日本)</option>
+            <option value="en">en (英語)</option>
+            <option value="kr">kr (韓国)</option>
+            <option value="tw">tw (台湾)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ファイルを選択 (複数選択可)</label>
+          <input type="file" id="fileInput" class="blue-input" multiple>
+        </div>
+      </div>
+
+      <div class="btn-main-group">
+        <button class="btn-main decrypt" onclick="processAll('decrypt')">一括復号 (TSV化)</button>
+        <button class="btn-main encrypt" onclick="processAll('encrypt')">一括暗号 (DAT化)</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="result-table">
+          <thead>
+            <tr>
+              <th class="col-old">元のファイル</th>
+              <th class="col-new">変換後の名称</th>
+              <th class="col-status">状態</th>
+              <th class="col-action">操作</th>
+            </tr>
+          </thead>
+          <tbody id="resultList">
+            </tbody>
+        </table>
+      </div>
+
+      <div id="previewContainer">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span id="previewTitle" class="muted" style="font-size:12px;">プレビューエリア</span>
+          <button onclick="document.getElementById('previewContainer').style.display='none'" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px;">&times;</button>
+        </div>
+        <textarea id="previewArea" readonly spellcheck="false"></textarea>
+      </div>
+    </section>
+
+    <footer>
+      <p>KBC DatFileCrypter Pro Ver 1.2</p>
+    </footer>
+  </div>
+
+  <script src="js/dat-crypter-logic.js"></script>
+  <script src="secret.js"></script>
+</body>
+</html>
+

@@ -1,610 +1,102 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KBC World Time</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-      --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-    }
-    *{box-sizing:border-box;}
-    body{
-      margin:0;
-      font-family:"Noto Sans JP",sans-serif;
-      background:linear-gradient(180deg,#051026 0%,#081428 60%);
-      color:var(--text);
-      padding:20px;
-      display:flex;
-      justify-content:center;
-      animation: fadeIn 1s ease forwards;
-      opacity:0;
-    }
-
-    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-
-    .container{
-      width:1100px; max-width:100%; display:grid; gap:16px;
-    }
-    .header{
-      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1);
-      animation: fadeIn 1s ease 0.2s forwards; opacity:0;
-    }
-    .logo{ display:flex; align-items:center; gap:10px; }
-    .logo img{ width:40px; height:40px; border-radius:8px; box-shadow:0 0 10px rgba(59,130,246,0.4); animation: floatLogo 3s ease-in-out infinite; }
-    @keyframes floatLogo { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-    h1{margin:0;font-size:22px;}
-    .nav{display:flex;gap:20px;flex-wrap:wrap;}
-    .nav a{color:var(--muted);text-decoration:none;font-size:14px;transition:0.2s;}
-    .nav a:hover{color:var(--accent);}
-
-    /* hero + small explanation (keeps UI same) */
-    .hero{
-      text-align:center; padding:18px 20px; background:var(--card); border-radius:12px;
-      box-shadow:0 8px 30px rgba(2,6,23,0.6); animation: fadeIn 1s ease 0.4s forwards; opacity:0;
-      display:flex; flex-direction:column; gap:8px;
-    }
-    .hero h2{ font-size:22px; margin:0; color:var(--accent); }
-    .hero p{ color:var(--muted); font-size:13px; margin:0; }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
-      gap:16px;
-      margin-top:6px;
-    }
-    .card{
-      background:var(--card); border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(2,6,23,0.6);
-      transition:transform 0.3s, box-shadow 0.3s; opacity:0; animation: fadeIn 1s ease forwards;
-      min-height:120px; display:flex; flex-direction:column; gap:8px;
-    }
-    .card h3{ margin:0; font-size:16px; color:var(--accent); display:flex; justify-content:space-between; align-items:center; }
-    .big-time{ font-size:20px; margin-top:6px; color:var(--text); font-weight:700; }
-    .small{ color:var(--muted); font-size:13px; }
-
-    .controls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px; }
-    .controls input[type="datetime-local"]{ background:var(--glass); border:1px solid rgba(255,255,255,0.05); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px; }
-    .controls button{ background:linear-gradient(90deg,var(--accent),#60a5fa); border:none; color:white; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; }
-
-    .tz-list {
-      margin-top:8px; max-height:360px; overflow:auto; border-radius:8px; border:1px solid rgba(255,255,255,0.03);
-      padding:6px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
-    }
-    .tz-row{ display:flex; justify-content:space-between; gap:8px; padding:8px; border-radius:6px; transition:background 0.12s; align-items:center; }
-    .tz-row:hover{ background: rgba(255,255,255,0.02); cursor:pointer; }
-    .tz-name{ font-size:14px; color:var(--text); }
-    .tz-time{ font-size:13px; color:var(--muted); min-width:170px; text-align:right; }
-
-    .card-tools { display:flex; gap:8px; align-items:center; margin-top:6px; }
-    .small-muted{ color:var(--muted); font-size:12px; }
-
-    footer{ text-align:center; color:var(--muted); font-size:13px; margin-top:30px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px; animation: fadeIn 1s ease 1.2s forwards; opacity:0; }
-
-    @media (max-width:640px){ .controls{ flex-direction:column; align-items:center; } .tz-time{ min-width:120px; } }
+    /* ページ固有の高度なスタイル */
+    .hero { text-align:center; padding:18px; background:var(--card); border-radius:12px; margin-bottom:16px; border:1px solid var(--glass); }
+    .hero h2 { color:var(--accent); margin:0; }
+    .hero p { color:var(--muted); font-size:13px; }
+    
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
+    .big-time { font-family: 'JetBrains Mono', monospace; font-size: 24px; color: var(--text); font-weight: bold; }
+    .small-muted { font-size: 12px; color: var(--muted); opacity: 0.8; }
+    
+    .tz-list { background: var(--glass); border-radius: 8px; max-height: 400px; overflow-y: auto; padding: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .tz-row { display: flex; justify-content: space-between; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .tz-row:hover { background: rgba(59,130,246,0.1); }
+    
+    .btn-action { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    input[type="datetime-local"], #tzSearch { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 8px; border-radius: 6px; }
   </style>
 </head>
-<body>
+<body class="fade-in">
+
   <div class="container">
-    <!-- header (unchanged) -->
     <header class="header">
-      <div class="logo">
-        <img src="logo.png" alt="ロゴ">
-        <h1>KBC</h1>
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo">
+        <h1 class="site-title">KBC</h1>
       </div>
       <nav class="nav">
-        <a href="https://kbc-rakv0.vercel.app">ホーム</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
+        <a href="index.html">Home</a>
       </nav>
     </header>
 
-    <!-- hero (added light explanation under title as requested) -->
-    <section class="hero" aria-live="polite">
-      <h2>KBC World Time</h2>
-      <p>日本標準時を基準に各タイムゾーンの時間を確認できます。カードを選択し、下の一覧から選択すると変更されます。</p>
+    <section class="hero">
+      <h2>World Time Viewer</h2>
+      <p>各地域の時刻を確認・比較できます。カスタムカードを選択してリストから割当可能です。</p>
     </section>
 
-    <!-- main grid: fixed 4 cards + dynamic changeable-cards container + tz list card -->
-    <section class="grid" id="timeGrid">
-      <!-- 固定カード群（常時表示） -->
-      <div class="card" id="card-jst">
-        <h3>現在時刻（日本時間） <span class="small-muted">Asia/Tokyo</span></h3>
+    <div class="grid">
+      <div class="card">
+        <h3>日本 (JST)</h3>
         <div class="big-time" id="jst-time">--:--:--</div>
-        <div class="small" id="jst-date">----</div>
+        <div class="small-muted" id="jst-date">----</div>
       </div>
 
-      <div class="card" id="card-samoa">
-        <h3>米領サモア <span class="small-muted">Pacific/Pago_Pago (UTC−11)</span></h3>
+      <div class="card">
+        <h3>米領サモア (UTC-11)</h3>
         <div class="big-time" id="samoa-time">--:--:--</div>
-        <div class="small" id="samoa-date">----</div>
+        <div class="small-muted" id="samoa-date">----</div>
       </div>
 
-      <div class="card" id="card-kiri">
-        <h3>キリバス <span class="small-muted">Pacific/Kiritimati (UTC＋14)</span></h3>
+      <div class="card">
+        <h3>キリバス (UTC+14)</h3>
         <div class="big-time" id="kiri-time">--:--:--</div>
-        <div class="small" id="kiri-date">----</div>
+        <div class="small-muted" id="kiri-date">----</div>
       </div>
 
-      <div class="card" id="card-kiri-plus">
-        <h3>キリバス +36時間（41時間後） <span class="small-muted">Pacific/Kiritimati</span></h3>
+      <div class="card" style="border: 1px solid var(--accent);">
+        <h3>JST 36時間後 → キリバス</h3>
         <div class="big-time" id="kiri-plus-time">--:--:--</div>
-        <div class="small" id="kiri-plus-date">----</div>
+        <div class="small-muted" id="kiri-plus-date">----</div>
       </div>
 
-      <!-- 変更可能カード群（ユーザーが増やせる） -->
-      <div class="card" id="card-changeables">
-        <h3>変更可能なカード <span class="small-muted">（カードを選んで、一覧からタイムゾーンを割当）</span></h3>
-
-        <div id="changeablesContainer" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-          <!-- 動的にカードを追加 -->
+      <div class="card" style="grid-column: span 1;">
+        <h3>Custom Cards</h3>
+        <div id="changeablesContainer"></div>
+        <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+          <button id="addCard" class="btn-action">＋ 追加</button>
+          <span class="small-muted">対象: <b id="activeCardLabel">なし</b></span>
         </div>
-
-        <div class="card-tools">
-          <button id="addCard">カードを追加</button>
-          <button id="resetToNow">現在時刻に戻す</button>
-          <div style="flex:1"></div>
-          <div class="small-muted">ターゲットカード：<span id="activeCardLabel">なし</span></div>
-        </div>
-
-        <div class="controls" style="margin-top:8px;">
-          <label style="font-size:13px;color:var(--muted);">基準時刻を手動で設定（JST）:
-            <input id="manualDatetime" type="datetime-local" style="margin-left:6px;">
-          </label>
-          <button id="applyManual">適用</button>
+        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
+        <div class="small-muted" style="margin-bottom:5px;">基準時刻シミュレーション:</div>
+        <input id="manualDatetime" type="datetime-local" style="width:100%; margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button id="applyManual" class="btn-action" style="flex:1;">適用</button>
+          <button id="resetToNow" class="btn-action" style="flex:1; background:transparent; border:1px solid var(--muted);">リセット</button>
         </div>
       </div>
 
-      <!-- タイムゾーン一覧カード -->
-      <div class="card" id="card-list">
-        <h3>タイムゾーン一覧（全件） <span class="small-muted">検索・クリックで割当</span></h3>
-
-        <div class="controls" style="margin-top:6px;">
-          <input id="tzSearch" placeholder="検索（例: Tokyo, America, Europe）" style="flex:1;padding:8px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:var(--text)"/>
-          <button id="reloadTz">再読み込み</button>
-        </div>
-
-        <div class="tz-list" id="tzList" style="margin-top:8px;">
-          <div style="color:var(--muted);font-size:13px;padding:6px 4px;">読み込み中…</div>
-        </div>
-
+      <div class="card">
+        <h3>Timezone Selector</h3>
+        <input id="tzSearch" placeholder="都市・地域を検索..." style="width:100%; margin-bottom:10px;">
+        <div class="tz-list" id="tzList"></div>
       </div>
-    </section>
+    </div>
 
-    <footer>© KBC World Time Viewer</footer>
+    <footer style="text-align:center; padding:20px; opacity:0.5; font-size:12px;">
+      &copy; KBC World Time Viewer
+    </footer>
   </div>
 
-<script>
-(function(){
-  const JST_TZ = 'Asia/Tokyo';
-  const SAMOA_TZ = 'Pacific/Pago_Pago';
-  const KIRITIMATI_TZ = 'Pacific/Kiritimati';
-
-// 🌍 すべてのタイムゾーンをUTC順に並べたリスト（主要都市・地域付き・日本語対応）
-const OFFSET_MAP = [
-  [-12, "アメリカ領サモア（Pacific/Pago_Pago）"],
-  [-11, "ミッドウェー諸島（Pacific/Midway）"],
-  [-10, "ハワイ（Pacific/Honolulu）"],
-  [-9, "アラスカ（America/Anchorage）"],
-  [-8, "ロサンゼルス（America/Los_Angeles）"],
-  [-7, "デンバー（America/Denver）"],
-  [-6, "シカゴ（America/Chicago）"],
-  [-5, "ニューヨーク（America/New_York）"],
-  [-4, "サンティアゴ（America/Santiago）"],
-  [-3, "ブエノスアイレス（America/Argentina/Buenos_Aires）"],
-  [-2, "南ジョージア（Atlantic/South_Georgia）"],
-  [-1, "アゾレス諸島（Atlantic/Azores）"],
-  [0, "ロンドン（Europe/London）"],
-  [1, "ベルリン（Europe/Berlin）"],
-  [2, "カイロ（Africa/Cairo）"],
-  [3, "モスクワ（Europe/Moscow）"],
-  [3.5, "テヘラン（Asia/Tehran）"],
-  [4, "ドバイ（Asia/Dubai）"],
-  [4.5, "カブール（Asia/Kabul）"],
-  [5, "カラチ（Asia/Karachi）"],
-  [5.5, "インド／スリランカ（Asia/Kolkata）"],
-  [5.75, "カトマンズ（Asia/Kathmandu）"],
-  [6, "ダッカ（Asia/Dhaka）"],
-  [6.5, "ヤンゴン（Asia/Yangon）"],
-  [7, "バンコク（Asia/Bangkok）"],
-  [8, "北京／シンガポール（Asia/Shanghai）"],
-  [9, "東京（Asia/Tokyo）"],
-  [9.5, "アデレード（Australia/Adelaide）"],
-  [10, "シドニー（Australia/Sydney）"],
-  [11, "ソロモン諸島（Pacific/Guadalcanal）"],
-  [12, "フィジー（Pacific/Fiji）"],
-  [13, "トンガ（Pacific/Tongatapu）"],
-  [14, "キリバス（Pacific/Kiritimati）"]
-];
-
-  let serverBaseDate = null;
-  let baseTimestamp = Date.now();
-
-  const jstTimeEl = document.getElementById('jst-time');
-  const jstDateEl = document.getElementById('jst-date');
-  const samoaTimeEl = document.getElementById('samoa-time');
-  const samoaDateEl = document.getElementById('samoa-date');
-  const kiriTimeEl = document.getElementById('kiri-time');
-  const kiriDateEl = document.getElementById('kiri-date');
-  const kiriPlusTimeEl = document.getElementById('kiri-plus-time');
-  const kiriPlusDateEl = document.getElementById('kiri-plus-date');
-
-  const addCardBtn = document.getElementById('addCard');
-  const changeablesContainer = document.getElementById('changeablesContainer');
-  const activeCardLabel = document.getElementById('activeCardLabel');
-  const manualDatetime = document.getElementById('manualDatetime');
-  const applyManualBtn = document.getElementById('applyManual');
-  const resetToNowBtn = document.getElementById('resetToNow');
-  const tzListEl = document.getElementById('tzList');
-  const tzSearch = document.getElementById('tzSearch');
-
-  let changeableCards = [];
-  let activeCardId = null;
-
-  // ---- 保存・復元機能 ----
-  function saveState(){
-    const data = {
-      cards: changeableCards.map(c=>({id:c.id,tz:c.tz,label:c.label})),
-      active: activeCardId
-    };
-    localStorage.setItem('worldtime_state', JSON.stringify(data));
-  }
-
-  function loadState(){
-    const raw = localStorage.getItem('worldtime_state');
-    if(!raw) return;
-    try {
-      const data = JSON.parse(raw);
-      if(data.cards && Array.isArray(data.cards)){
-        data.cards.forEach(c=>{
-          createChangeableCard(c.tz,c.label,c.id);
-        });
-      }
-      if(data.active) setActiveCard(data.active);
-    } catch(e){ console.warn('loadState error', e); }
-  }
-
-  // ---- 共通フォーマット ----
-  function formatByTZ(dateObj, timeZone) {
-    try {
-      const fmt = new Intl.DateTimeFormat('ja-JP', {
-        year:'numeric',month:'2-digit',day:'2-digit',
-        hour:'2-digit',minute:'2-digit',second:'2-digit',
-        hour12:false,timeZone
-      });
-      const p = {}; fmt.formatToParts(dateObj).forEach(x=>p[x.type]=x.value);
-      return {date:`${p.year}/${p.month}/${p.day}`, time:`${p.hour}:${p.minute}:${p.second}`};
-    } catch { return {date:'N/A', time:'N/A'}; }
-  }
-
-  function getVirtualNow(){
-    if(!serverBaseDate) return new Date();
-    const elapsed = Date.now() - baseTimestamp;
-    return new Date(serverBaseDate.getTime() + elapsed);
-  }
-
-  async function syncServerTime(){
-    try {
-      const res = await fetch(`https://worldtimeapi.org/api/timezone/${JST_TZ}`,{mode:'cors'});
-      if(!res.ok) throw 0;
-      const data = await res.json();
-      serverBaseDate = new Date(data.datetime);
-    } catch {
-      serverBaseDate = new Date();
-    }
-    baseTimestamp = Date.now();
-    manualDatetime.value = toDatetimeLocalValue(serverBaseDate);
-  }
-
-  function toDatetimeLocalValue(date){
-    const fmt = new Intl.DateTimeFormat('sv',{timeZone:JST_TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return fmt.format(date).replace(' ','T');
-  }
-
-function renderFixedCards(){
-  const now = getVirtualNow();
-
-  // 現在時刻 (JST)
-  const jst = formatByTZ(now, JST_TZ);
-  jstTimeEl.textContent = jst.time;
-  jstDateEl.textContent = `${jst.date} (Asia/Tokyo)`;
-
-  // 米領サモア
-  const sam = formatByTZ(now, SAMOA_TZ);
-  samoaTimeEl.textContent = sam.time;
-  samoaDateEl.textContent = sam.date;
-
-  // キリバス (Kiritimati)
-  const k = formatByTZ(now, KIRITIMATI_TZ);
-  kiriTimeEl.textContent = k.time;
-  kiriDateEl.textContent = k.date;
-
-  // 🔹 JST基準で36時間後を求める
-  const jstNow = new Date(now.toLocaleString("en-US", { timeZone: JST_TZ }));
-  const jstPlus36 = new Date(jstNow.getTime() + 36 * 60 * 60 * 1000);
-
-  // 🔹 JST+36時間をキリバス時間で表示
-  const kPlus = formatByTZ(jstPlus36, KIRITIMATI_TZ);
-  kiriPlusTimeEl.textContent = kPlus.time;
-  kiriPlusDateEl.textContent = `${kPlus.date} (JST +36h / Pacific/Kiritimati)`;
-}
-
-  // ---- カード生成・管理 ----
-  function createChangeableCard(tz=JST_TZ,label='Asia/Tokyo',id){
-    id = id || 'ch-' + Math.random().toString(36).slice(2,7);
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;">
-        <div><span style="color:var(--accent);font-size:14px;">変更可能カード</span><br>
-        <span class="small-muted">タイムゾーン: <span class="tz-label">${label}</span></span></div>
-        <div><label style="font-size:12px;"><input type="radio" name="activeCardRadio"> 選択</label>
-        <button class="removeCard" style="border:1px solid rgba(255,255,255,0.05);background:none;color:var(--muted);border-radius:6px;">削除</button></div>
-      </div>
-      <div style="margin-top:6px;">
-        <div class="big-time">--:--:--</div>
-        <div class="small tz-date">----</div>
-      </div>`;
-    changeablesContainer.appendChild(el);
-    const cardObj = {id,tz,label,el};
-    changeableCards.push(cardObj);
-    const radio = el.querySelector('input[type="radio"]');
-    radio.addEventListener('change',()=>setActiveCard(id));
-    el.querySelector('.removeCard').addEventListener('click',()=>removeChangeableCard(id));
-    updateChangeableCardDisplay(cardObj);
-    saveState();
-    return cardObj;
-  }
-
-  function setActiveCard(id){
-    activeCardId = id;
-    const c = changeableCards.find(x=>x.id===id);
-    activeCardLabel.textContent = c?c.label:'なし';
-    saveState();
-  }
-
-  function removeChangeableCard(id){
-    const idx = changeableCards.findIndex(c=>c.id===id);
-    if(idx>=0){ changeableCards[idx].el.remove(); changeableCards.splice(idx,1); }
-    if(activeCardId===id){ activeCardId=null; activeCardLabel.textContent='なし'; }
-    saveState();
-  }
-
-  function updateChangeableCardDisplay(c){
-    const now=getVirtualNow();
-    const f=formatByTZ(now,c.tz);
-    c.el.querySelector('.big-time').textContent=f.time;
-    c.el.querySelector('.tz-date').textContent=f.date+' ('+c.tz+')';
-    c.el.querySelector('.tz-label').textContent=c.tz;
-  }
-
-  function updateAllChangeables(){ changeableCards.forEach(updateChangeableCardDisplay); }
-
-// ---------- タイムゾーン一覧：ブラウザ＋固定リスト両対応 ----------
-async function renderTimezoneList() {
-  tzListEl.innerHTML =
-    '<div style="color:var(--muted);font-size:13px;padding:6px 4px;">一覧を作成中…（ローカル生成）</div>';
-
-  const cacheKey = 'kbc_tz_all_v2';
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      buildTzRowsFromArray(parsed);
-      return;
-    }
-  } catch (e) {}
-
-  let zones = [];
-  if (typeof Intl === 'object' && typeof Intl.supportedValuesOf === 'function') {
-    try {
-      zones = Intl.supportedValuesOf('timeZone');
-    } catch (e) {
-      zones = [];
-    }
-  }
-
-  // UTC -12 ～ +14 を網羅（仮想含む）
-  const FIXED_ZONES = [
-    [-12, "Etc/GMT+12", "ベーカー島（米領）"],
-    [-11, "Pacific/Pago_Pago", "米領サモア"],
-    [-10, "Pacific/Honolulu", "ハワイ（米国）"],
-    [-9,  "America/Anchorage", "アラスカ（米国）"],
-    [-8,  "America/Los_Angeles", "ロサンゼルス（米国）"],
-    [-7,  "America/Denver", "デンバー（米国）"],
-    [-6,  "America/Chicago", "シカゴ（米国）"],
-    [-5,  "America/New_York", "ニューヨーク（米国）"],
-    [-4,  "America/Halifax", "ハリファックス（カナダ）"],
-    [-3,  "America/Argentina/Buenos_Aires", "ブエノスアイレス（アルゼンチン）"],
-    [-2,  "America/Noronha", "フェルナンド・デ・ノローニャ（ブラジル）"],
-    [-1,  "Atlantic/Azores", "アゾレス諸島（ポルトガル）"],
-    [0,   "Europe/London", "ロンドン（イギリス）"],
-    [1,   "Europe/Paris", "パリ（フランス）"],
-    [2,   "Europe/Athens", "アテネ（ギリシャ）"],
-    [3,   "Europe/Moscow", "モスクワ（ロシア）"],
-    [4,   "Asia/Dubai", "ドバイ（UAE）"],
-    [5,   "Asia/Karachi", "カラチ（パキスタン）"],
-    [5.5, "Asia/Kolkata", "コルカタ（インド）"],
-    [6,   "Asia/Dhaka", "ダッカ（バングラデシュ）"],
-    [7,   "Asia/Bangkok", "バンコク（タイ）"],
-    [8,   "Asia/Shanghai", "上海（中国）"],
-    [9,   "Asia/Tokyo", "東京（日本）"],
-    [9.5, "Australia/Darwin", "ダーウィン（豪州）"],
-    [10,  "Australia/Sydney", "シドニー（豪州）"],
-    [11,  "Pacific/Noumea", "ヌメア（ニューカレドニア）"],
-    [12,  "Pacific/Auckland", "オークランド（ニュージーランド）"],
-    [13,  "Pacific/Tongatapu", "トンガ（トンガ）"],
-    [14,  "Pacific/Kiritimati", "キリバス（ライン諸島）"]
-  ];
-
-  const baseNow = getVirtualNow();
-
-  function computeOffsetHoursForZone(nowDate, zone) {
-    try {
-      const fmt = new Intl.DateTimeFormat('en-CA', {
-        timeZone: zone,
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit',
-        hour12: false
-      });
-      const parts = fmt.formatToParts(nowDate);
-      const p = {};
-      parts.forEach(x => p[x.type] = x.value);
-      const utcFromZone = Date.UTC(
-        Number(p.year), Number(p.month) - 1, Number(p.day),
-        Number(p.hour), Number(p.minute), Number(p.second)
-      );
-      const nowUtc = nowDate.getTime();
-      const offsetMinutes = Math.round((utcFromZone - nowUtc) / 60000);
-      return offsetMinutes / 60;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  const arr = [];
-
-  // ブラウザから取得できるタイムゾーン
-  for (let i = 0; i < zones.length; i++) {
-    const zone = zones[i];
-    const offsetH = computeOffsetHoursForZone(baseNow, zone);
-    if (offsetH === null || Number.isNaN(offsetH)) continue;
-    arr.push({ offset: offsetH, zone, jpName: null });
-  }
-
-  // 固定ゾーン（−12〜＋14）を必ず追加
-  FIXED_ZONES.forEach(([offset, zone, jpName]) => {
-    if (!arr.some(a => a.zone === zone)) {
-      arr.push({ offset, zone, jpName });
-    }
-  });
-
-  arr.sort((a, b) => {
-    if (a.offset !== b.offset) return a.offset - b.offset;
-    return a.zone.localeCompare(b.zone);
-  });
-
-  try {
-    localStorage.setItem(cacheKey, JSON.stringify(arr));
-  } catch (e) {}
-
-  buildTzRowsFromArray(arr);
-}
-
-// ---------- リスト生成 ----------
-function buildTzRowsFromArray(arr) {
-  tzListEl.innerHTML = '';
-  arr.forEach(item => {
-    const offset = item.offset;
-    const zone = item.zone;
-    const jpName = item.jpName;
-
-    let displayName = jpName || zone.replace(/_/g, ' ').replace('/', ' / ');
-    displayName = displayName
-      .replace(/^Asia \//, 'アジア / ')
-      .replace(/^Europe \//, 'ヨーロッパ / ')
-      .replace(/^America \//, 'アメリカ / ')
-      .replace(/^Pacific \//, '太平洋 / ')
-      .replace(/^Atlantic \//, '大西洋 / ')
-      .replace(/^Africa \//, 'アフリカ / ')
-      .replace(/^Australia \//, 'オーストラリア / ')
-      .replace(/^Indian \//, 'インド洋 / ')
-      .replace(/^Antarctica \//, '南極 / ');
-
-    const sign = offset >= 0 ? '+' : '';
-    const hours = Math.trunc(Math.abs(offset));
-    const frac = Math.abs(offset) - hours;
-    const minutesPart = Math.round(frac * 60);
-    const offsetStr =
-      offset % 1 === 0
-        ? `${sign}${offset}`
-        : `${sign}${hours}:${String(minutesPart).padStart(2, '0')}`;
-
-    const label = `UTC${offsetStr}　${displayName}`;
-
-    const row = document.createElement('div');
-    row.className = 'tz-row';
-    row.dataset.tz = zone;
-    row.dataset.offset = offset;
-    row.innerHTML = `<div class="tz-name">${label}</div><div class="tz-time">---</div>`;
-
-    row.addEventListener('click', () => {
-      if (activeCardId) {
-        const card = changeableCards.find(c => c.id === activeCardId);
-        if (card) {
-          card.tz = zone;
-          card.label = displayName;
-          updateChangeableCardDisplay(card);
-          saveState();
-        }
-      } else {
-        navigator.clipboard?.writeText(zone).then(() => {
-          row.querySelector('.tz-time').textContent = 'コピーしました';
-          setTimeout(() => updateTzListTimes(), 800);
-        });
-      }
-    });
-
-    tzListEl.appendChild(row);
-  });
-
-  updateTzListTimes();
-}
-
-// ---------- タイムゾーン時間更新 ----------
-function updateTzListTimes() {
-  const now = getVirtualNow();
-  document.querySelectorAll('.tz-row').forEach(r => {
-    const tz = r.dataset.tz;
-    try {
-      const f = formatByTZ(now, tz);
-      r.querySelector('.tz-time').textContent = `${f.date} ${f.time}`;
-    } catch (e) {
-      r.querySelector('.tz-time').textContent = 'N/A';
-    }
-  });
-}
-
-// ---------- 検索 ----------
-tzSearch.addEventListener('input', () => {
-  const q = tzSearch.value.trim().toLowerCase();
-  document.querySelectorAll('.tz-row').forEach(r => {
-    const tz = (r.dataset.tz || '').toLowerCase();
-    const name = (r.querySelector('.tz-name')?.textContent || '').toLowerCase();
-    const offset = ('' + (r.dataset.offset ?? '')).toLowerCase();
-    const ok = !q || tz.includes(q) || name.includes(q) || offset.includes(q);
-    r.style.display = ok ? '' : 'none';
-  });
-});
-
-  // ---- 手動設定 ----
-  applyManualBtn.addEventListener('click',()=>{
-    if(!manualDatetime.value)return;
-    const iso=manualDatetime.value+':00+09:00';
-    serverBaseDate=new Date(iso);
-    baseTimestamp=Date.now();
-  });
-
-  resetToNowBtn.addEventListener('click',syncServerTime);
-  addCardBtn.addEventListener('click',()=>{createChangeableCard();saveState();});
-
-  function renderAll(){
-    renderFixedCards();
-    updateAllChangeables();
-    updateTzListTimes();
-  }
-  setInterval(renderAll,1000);
-
-  (async function init(){
-    await syncServerTime();
-    loadState(); // ← 自動復元
-    if(changeableCards.length===0) createChangeableCard();
-    renderTimezoneList();
-    renderAll();
-  })();
-})();
-</script>
+  <script src="js/tz-logic.js"></script>
+  <script src="secret.js"></script>
 </body>
 </html>
+

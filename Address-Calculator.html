@@ -1,227 +1,81 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBC Address Tool</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC - アドレス計算ツール</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* 固有の調整 */
+    .ac-header { margin-bottom: 20px; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    
+    label { display: block; margin-top: 15px; color: var(--muted); font-size: 13px; font-weight: 600; }
+    .blue-input { width: 100% !important; margin-top: 6px; font-family: monospace; }
 
-<!-- ▼ 原型.html のデザイン（ロゴ部分そのまま） -->
-<style>
-  :root {
-    --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-    --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:"Noto Sans JP",sans-serif;
-    background:linear-gradient(180deg,#051026 0%,#081428 60%);
-    color:var(--text);
-    padding:20px;
-    display:flex;
-    justify-content:center;
-  }
+    .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+    .btn-calc { flex: 1; height: 50px; cursor: pointer; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+    .btn-calc:hover { filter: brightness(1.2); transform: translateY(-2px); }
+    .btn-calc.back { background: var(--glass); border: 1px solid var(--border); color: var(--text); }
 
-  /* 原型の container をスマホ対応 */
-  .container{
-    width:1100px;
-    max-width:100%;
-    display:grid;
-    gap:16px;
-  }
-  @media(max-width:768px){
-    .container{ width:100% !important; padding:0 12px; }
-  }
-
-  /* ロゴ部分（完全そのまま） */
-  .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    padding:10px 0 20px;
-    border-bottom:1px solid rgba(255,255,255,0.1);
-  }
-  .logo{
-    display:flex; align-items:center; gap:10px;
-  }
-  .logo img{
-    width:40px; height:40px; border-radius:8px;
-    box-shadow:0 0 10px rgba(59,130,246,0.4);
-  }
-  h1{margin:0;font-size:22px;color:var(--text);}
-</style>
-
-<!-- ▼ Address Calculator の CSS（ほぼそのまま） -->
-<style>
-  .ac-container{
-    width:100%;
-    max-width:700px;
-    margin:0 auto;
-    display:grid;
-    gap:16px;
-  }
-
-  .ac-header{
-    margin-top:10px;
-  }
-
-  .sub{
-    color:var(--muted);
-    font-size:13px;
-    margin-top:4px;
-  }
-
-  .grid{display:grid;grid-template-columns:1fr;gap:16px;}
-
-  .card{
-    background:var(--card);
-    border-radius:12px;
-    padding:24px;
-    box-shadow:0 8px 30px rgba(2,6,23,0.6);
-    border:1px solid rgba(255,255,255,0.05);
-  }
-
-  label{display:block;margin-top:15px;color:var(--muted);font-weight:600;}
-
-  input{
-    width:100%; padding:14px 16px; font-size:1rem;
-    border:none; border-radius:8px; margin-top:6px;
-    background:var(--glass); color:var(--text);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(6px);
-  }
-
-  .btn-group{
-    display:flex; gap:10px; margin-top:20px;
-  }
-
-  button{
-    flex:1; padding:14px; font-size:1rem; font-weight:bold;
-    border:none; border-radius:10px; cursor:pointer;
-    color:#fff; background:linear-gradient(135deg,#1e3a8a,#3b82f6);
-  }
-
-  #result{
-    margin-top:25px; font-size:1.2rem; font-weight:600;
-    color:var(--accent); text-align:center;
-    padding:16px; border-radius:10px;
-    background:rgba(59,130,246,0.05);
-    border:1px solid rgba(59,130,246,0.2);
-    min-height:70px; position:relative;
-  }
-
-  .copy-btn{
-    position:absolute; top:8px; right:8px;
-    padding:4px 10px; font-size:0.9rem;
-    border-radius:8px; background:rgba(255,255,255,0.1);
-    color:var(--muted); border:none; cursor:pointer;
-  }
-
-  @media(max-width:640px){
-    .card{padding:18px;}
-    button,input{font-size:0.9rem;padding:12px;}
-  }
-</style>
+    #result {
+      margin-top: 25px; min-height: 80px; position: relative;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    }
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px; padding: 4px 12px; font-size: 11px;
+      border-radius: 6px; background: rgba(255,255,255,0.1); color: var(--muted); border: none; cursor: pointer;
+    }
+  </style>
 </head>
+<body class="fade-in">
 
-<body>
-<div class="container">
-
-  <!-- ▼ 原型のロゴ（完全そのまま） -->
-  <header class="header">
-    <div class="logo">
-      <img src="logo.png" alt="KBCロゴ">
-      <h1>KBC</h1>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo">
+        <h1 class="site-title">KBC</h1>
+      </div>
       <nav class="nav">
-        <a href="https://kbc-rakv0.vercel.app">ホーム</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
-        <a href="#">仮</a>
+        <a href="index.html">Home</a>
       </nav>
-    </div>
-  </header>
+    </header>
 
-  <!-- ▼ ここから Address Calculator 本体 -->
-  <div class="ac-container">
+    <div style="max-width: 600px; margin: 0 auto; width: 100%;">
+      <div class="ac-header">
+        <h2 style="margin:0;">アドレス計算ツール</h2>
+        <div class="sub">Hexアドレス（16進数）を自動で加減算します</div>
+      </div>
 
-    <div class="ac-header">
-      <h1>アドレス計算ツール</h1>
-      <div class="sub">Hexアドレスを自動で加減算します</div>
-    </div>
+      <section class="card">
+        <label>開始アドレス</label>
+        <input type="text" id="baseAddr" class="blue-input" value="7AF0A1BA20" placeholder="7AF0A1BA20">
 
-    <div class="grid">
-      <div class="card">
-        <label for="baseAddr">開始アドレス（例：7AF0A1BA20）</label>
-        <input type="text" id="baseAddr" value="7AF0A1BA20" />
-
-        <label for="nValue">N個目（例：3）</label>
-        <input type="number" id="nValue" value="3" />
-
-        <label for="step">増加幅（例：4）</label>
-        <input type="number" id="step" value="4" />
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div>
+            <label>N個目</label>
+            <input type="number" id="nValue" class="blue-input" value="3">
+          </div>
+          <div>
+            <label>増加幅（Step）</label>
+            <input type="number" id="step" class="blue-input" value="4">
+          </div>
+        </div>
 
         <div class="btn-group">
-          <button onclick="calcAddress('forward')">進むアドレス</button>
-          <button onclick="calcAddress('back')">戻るアドレス</button>
+          <button onclick="calcAddress('forward')" class="btn-calc">進む (+)</button>
+          <button onclick="calcAddress('back')" class="btn-calc back">戻る (-)</button>
         </div>
 
         <div id="result">
-          <button class="copy-btn" onclick="copyResult()">コピー</button>
+          <span style="color:var(--muted); font-size:14px;">計算結果がここに表示されます</span>
         </div>
-
-      </div>
+      </section>
     </div>
   </div>
 
-</div>
-
-<!-- ▼ Address Calculator の JS（そのまま） -->
-<script>
-function calcAddress(direction) {
-  const resultEl = document.getElementById("result");
-  const base = document.getElementById("baseAddr").value.trim();
-  const n = parseInt(document.getElementById("nValue").value, 10);
-  const step = parseInt(document.getElementById("step").value, 10);
-
-  if (!/^[0-9A-Fa-f]+$/.test(base)) {
-    resultEl.innerHTML = "❌ 16進数のアドレスを入力してください。";
-    return;
-  }
-
-  const baseDec = parseInt(base, 16);
-  let nextAddr;
-
-  if (direction === 'forward') nextAddr = baseDec + (n * step);
-  else nextAddr = baseDec - (n * step);
-
-  const hexAddr = nextAddr.toString(16).toUpperCase().padStart(base.length, "0");
-  const label = direction === 'forward' ? "進む" : "戻る";
-
-  resultEl.innerHTML = `
-    <button class="copy-btn" onclick="copyResult()">コピー</button>
-    ${n}個目の${label}アドレス： <span id="addrText">${hexAddr}</span>
-  `;
-}
-
-function copyResult() {
-  const addrText = document.getElementById("addrText");
-  if (!addrText) return;
-
-  navigator.clipboard.writeText(addrText.textContent).then(() => {
-    const btn = document.querySelector(".copy-btn");
-    const original = btn.innerText;
-    btn.innerText = "✅ コピーしました";
-    btn.style.background = "rgba(59,130,246,0.5)";
-    btn.style.color = "#fff";
-    setTimeout(() => {
-      btn.innerText = original;
-      btn.style.background = "rgba(255,255,255,0.1)";
-      btn.style.color = "var(--muted)";
-    }, 1500);
-  });
-}
-</script>
-
+  <script src="js/address-logic.js"></script>
+  <script src="secret.js"></script>
 </body>
 </html>

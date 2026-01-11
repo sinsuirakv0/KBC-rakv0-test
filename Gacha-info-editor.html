@@ -1,474 +1,192 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KBC Gacha info Editor</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC Gacha Info Editor</title>
+  <link rel="stylesheet" href="style.css">
   <style>
-    :root {
-      --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-      --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-      --btn-bg: #3b82f6; --btn-radius:10px; --btn-padding:10px 14px;
-    }
-    *{box-sizing:border-box;}
-    body{
-      margin:0;
-      font-family:"Noto Sans JP",sans-serif;
-      background:linear-gradient(180deg,#051026 0%,#081428 60%);
-      color:var(--text);
-      padding:18px;
-      display:flex;
-      justify-content:center;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
-
-    .container{
-      width:1100px;
-      max-width:100%;
-      display:grid;
-      gap:16px;
-    }
-
-    .header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      padding:10px 0;
-      border-bottom:1px solid rgba(255,255,255,0.06);
-    }
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .logo img{
-      width:40px;
-      height:40px;
-      border-radius:8px;
-      box-shadow:0 0 10px rgba(59,130,246,0.4);
-    }
-    h1{margin:0;font-size:20px;}
-    .nav{display:flex;gap:12px;}
-    .nav a{color:var(--muted);text-decoration:none;font-size:14px;}
-
-    /* Hero not used, but keep small */
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:16px;
-    }
-
-    /* card */
-    .card{
-      background:var(--card);
-      border-radius:12px;
-      padding:16px;
-      box-shadow:0 8px 30px rgba(2,6,23,0.6);
-    }
-    .card h3{margin:0 0 8px;color:var(--accent);font-size:16px;}
-    .muted{color:var(--muted);font-size:13px;margin-bottom:8px;}
-
-    /* layout inside */
-    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .col { display:flex; flex-direction:column; gap:8px; }
-
-    textarea, input[type="text"], input[type="number"] {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-      color:var(--text);
-      padding:10px;
-      border-radius:8px;
-      outline:none;
-    }
-
-    textarea {
-      width:100%;
-      min-height:180px; /* larger as requested */
-      resize:vertical;
-    }
-
-    /* buttons uniform */
-    .btn {
-      background:var(--btn-bg);
-      color:white;
-      border:none;
-      border-radius:var(--btn-radius);
-      padding:var(--btn-padding);
-      font-weight:600;
-      cursor:pointer;
-      min-width:86px;
-      text-align:center;
-    }
-    .btn.secondary { background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--text); }
-    .btn.small { padding:6px 10px; min-width:64px; font-size:13px; }
-
-    /* rarity tabs */
-    .tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-    .tab {
-      background: rgba(255,255,255,0.02);
-      padding:8px 12px;
-      border-radius:10px;
-      cursor:pointer;
-      border:1px solid transparent;
-      color:var(--muted);
-    }
-    .tab.active { background: linear-gradient(90deg,#08315a,#14395f); color:var(--text); border-color: rgba(59,130,246,0.25); box-shadow:0 6px 20px rgba(59,130,246,0.06); }
-
-    /* character list */
-    .char-list { display:flex; flex-direction:column; gap:8px; }
-    .char-item {
-      display:flex; gap:8px; align-items:center;
-      background: rgba(255,255,255,0.02);
-      padding:8px; border-radius:8px;
-    }
-    .char-index { width:28px; text-align:right; color:var(--muted); font-size:14px; }
-    .char-name { flex:1; }
-    .char-actions { display:flex; gap:6px; }
-
-    /* outputs */
-    .output { background: rgba(0,0,0,0.12); padding:12px; border-radius:8px; color:var(--text); font-family:monospace; white-space:pre-wrap; max-height:300px; overflow:auto; }
-
-    /* responsive */
-    @media (max-width:720px) {
-      body { padding:12px; }
-      .container { gap:12px; }
-      textarea { min-height:220px; }
-      .row { flex-direction:column; align-items:stretch; }
-      .tabs { overflow:auto; }
-    }
+    /* ページ固有の調整 */
+    textarea { width: 100%; min-height: 150px; font-family: monospace; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .tab { padding: 8px 15px; background: var(--glass); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--muted); }
+    .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .char-item { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; margin-bottom: 6px; }
+    .output-box { background: #000; color: #a7f3d0; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 8px; height: 200px; overflow-y: auto; border: 1px solid var(--border); white-space: pre-wrap; }
+    .btn-mini { padding: 4px 10px; cursor: pointer; background: var(--glass); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
   </style>
 </head>
-<body>
+<body class="fade-in">
+
   <div class="container">
     <header class="header">
-      <div class="logo">
-        <!-- keep logo as-is -->
-        <img src="logo.png" alt="ロゴ" />
-        <div>
-          <h1>KBC</h1>
-        </div>
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo">
+        <h1 class="site-title">KBC</h1>
       </div>
-   <nav class="nav">
-        <a href="https://kbc-rakv0.vercel.app/">ホーム</a>
-        <a href="仮"></a>
-        <a href="仮"></a>
-        <a href="仮"></a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
       </nav>
     </header>
 
-    <!-- Top: input card -->
-    <section class="grid">
     <section class="card">
-      <h3>Gacha informationを貼り付け</h3>
-      <div class="muted">解析は <strong>自動反映</strong> されます。貼り付け後にページ内の編集を行ってください。</div>
-      <textarea id="inputText" placeholder="例:
-Rare: 69.7% (25 cats) 0 キャラネーム, 1 キャラネーム, ...
-Super: 25% (29 cats) 0 キャラネーム, ...
-Uber: 5% (11 cats) 0 キャラネーム, ...
-Legendary: 0.3% (1 cats) 0 キャラネーム
-"></textarea>
-
-      <div class="row" style="margin-top:10px;">
-        <button class="btn" id="btnParse">解析</button>
-        <button class="btn secondary" id="btnClear">クリア</button>
-        <div style="flex:1"></div>
-        <button class="btn" id="btnCopyAll">全出力をコピー</button>
+      <h3>1. 解析データを貼り付け</h3>
+      <p class="muted">Rare: 69.7%... などのデータを貼り付けると即座に反映されます</p>
+      <textarea id="inputText" placeholder="ここに貼り付け..."></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px;">
+        <button onclick="parseInput()" class="blue-input" style="background:var(--accent); color:white; border:none; cursor:pointer;">手動解析</button>
+        <button onclick="clearAll()" class="blue-input" style="cursor:pointer;">クリア</button>
       </div>
     </section>
 
-    <!-- Editor / tabs -->
     <section class="card">
-      <h3>レアリティ編集</h3>
-      <div class="tabs" id="tabs"></div>
-
-      <div class="row" style="margin-top:8px;">
-        <div style="flex:1;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="muted">現在のレアリティ：<strong id="currentRarityLabel">Rare</strong></div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn small" id="btnAddChar">＋ キャラ追加</button>
-              <button class="btn small" id="btnResetOrder">番号再割り当て</button>
-            </div>
-          </div>
-
-          <div style="margin-top:10px;" id="listContainer">
-            <div class="char-list" id="charList"></div>
-          </div>
+      <h3>2. レアリティ編集</h3>
+      <div id="tabs" class="tabs"></div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:300px;">
+          <button onclick="addChar()" class="blue-input" style="margin-bottom:10px; cursor:pointer;">＋ キャラ追加</button>
+          <div id="charList"></div>
         </div>
-
-        <div style="width:300px;">
-          <div class="muted">レート（% 表示）</div>
-          <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <input type="number" id="ratePercent" step="0.1" style="width:120px;" />
-            <div class="muted" style="align-self:center;">レート : <span id="rateRaw">0</span></div>
-          </div>
-
-          <div class="muted"></div>
-
-          <div style="margin-top:12px; display:flex; gap:8px;">
-            <button class="btn small" id="btnSaveRate">保存</button>
-            <button class="btn small secondary" id="btnAutoAssign">自動計算で計算されます</button>
-          </div>
+        
+        <div style="width:250px; background:var(--glass); padding:15px; border-radius:10px; border:1px solid var(--border);">
+          <label class="muted">単体レート(%)</label>
+          <input type="number" id="ratePercent" class="blue-input" step="0.1" style="width:100%; margin-top:5px;" oninput="updateRatePreview()">
+          <div class="muted" style="margin-top:10px;">内部レート: <span id="rateRaw" style="color:var(--accent); font-weight:bold;">0</span></div>
+          <button onclick="saveRate()" class="blue-input" style="width:100%; margin-top:15px; background:var(--accent); color:white; border:none; cursor:pointer;">レートを保存</button>
         </div>
       </div>
     </section>
 
-    <!-- Rate mode and outputs -->
     <section class="card">
-      <h3>再生成</h3>
-      <div class="muted">変更は自動で反映されます</div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
         <div>
-          <h4 style="margin:6px 0 8px;">Gacha information</h4>
-          <div class="output" id="outputGacha"></div>
-          <div style="margin-top:8px; display:flex; gap:8px;">
-            <button class="btn" id="btnCopyGacha">コピー</button>
-            <button class="btn secondary" id="btnShowGacha">表示</button>
-          </div>
+          <div class="muted">Gacha information 形式</div>
+          <div id="outputGacha" class="output-box"></div>
+          <button onclick="copyTxt('outputGacha')" class="blue-input" style="width:100%; margin-top:10px; cursor:pointer;">コピー</button>
         </div>
-
         <div>
-          <h4 style="margin:6px 0 8px;">レア度順まとめ</h4>
-          <div class="output" id="outputSummary"></div>
-          <div style="margin-top:8px; display:flex; gap:8px;">
-            <button class="btn" id="btnCopySummary">コピー</button>
-            <button class="btn secondary" id="btnShowSummary">表示</button>
-          </div>
+          <div class="muted">レア度順まとめ 形式</div>
+          <div id="outputSummary" class="output-box"></div>
+          <button onclick="copyTxt('outputSummary')" class="blue-input" style="width:100%; margin-top:10px; cursor:pointer;">コピー</button>
         </div>
       </div>
     </section>
-
-    <footer>ちらちら見てただろ</footer>
   </div>
 
-<script>
-/* ------------------------------
-   データ構造と初期化
-   ------------------------------ */
-const rarities = ["Rare", "Super", "Uber", "Legendary"];
-let gacha = {
-  Rare: [], Super: [], Uber: [], Legendary: []
-};
-// rates stored as percentage numbers (display) per rarity (not cumulative)
-let rates = {
-  Rare: 69.7, Super: 25.0, Uber: 5.0, Legendary: 0.3
-};
+  <script>
+    const rarities = ["Rare", "Super", "Uber", "Legendary"];
+    let gacha = { Rare: [], Super: [], Uber: [], Legendary: [] };
+    let rates = { Rare: 69.7, Super: 25.0, Uber: 5.0, Legendary: 0.3 };
+    let currentRarity = "Rare";
 
-let currentRarity = "Rare";
+    function parseInput() {
+      const text = document.getElementById("inputText").value;
+      if (!text.trim()) return;
 
-/* ---------- helpers ---------- */
-function sanitizeName(s) {
-  // remove leading numbering like "0 " or "0:" or "0　" or "0:"
-  return s.replace(/^\s*\d+\s*[:\uFF1A]?\s*/, "").trim();
-}
+      rarities.forEach(r => {
+        const re = new RegExp(r + ":[\\s\\S]*?(?=(?:Rare|Super|Uber|Legendary|$))", "i");
+        const m = text.match(re);
+        if (!m) return;
 
-function percentToRaw(percent) {
-  // percent like 69.7 => raw 6970 (percent * 100 rounded)
-  // use Math.round to match user's mapping
-  return Math.round(percent * 100);
-}
-function rawToPercent(raw) {
-  return (raw / 100).toFixed(1);
-}
+        const block = m[0];
+        const pMatch = block.match(/:\s*([0-9.]+)%/);
+        if (pMatch) rates[r] = parseFloat(pMatch[1]);
 
-/* ---------- DOM refs ---------- */
-const inputText = document.getElementById("inputText");
-const tabsDiv = document.getElementById("tabs");
-const charListDiv = document.getElementById("charList");
-const currentRarityLabel = document.getElementById("currentRarityLabel");
-const ratePercentInput = document.getElementById("ratePercent");
-const rateRawSpan = document.getElementById("rateRaw");
-const outputGacha = document.getElementById("outputGacha");
-const outputSummary = document.getElementById("outputSummary");
+        let listPart = "";
+        if (block.includes(")")) {
+          listPart = block.split(")").slice(1).join(")").trim();
+        } else if (pMatch) {
+          listPart = block.slice(block.indexOf(pMatch[0]) + pMatch[0].length).trim();
+        }
 
-/* ---------- rendering UI ---------- */
-function renderTabs() {
-  tabsDiv.innerHTML = "";
-  rarities.forEach(r => {
-    const el = document.createElement("div");
-    el.className = "tab" + (r === currentRarity ? " active" : "");
-    el.textContent = r;
-    el.onclick = () => { currentRarity = r; renderAll(); };
-    tabsDiv.appendChild(el);
-  });
-}
-function renderCharList() {
-  charListDiv.innerHTML = "";
-  const arr = gacha[currentRarity];
-  arr.forEach((name, i) => {
-    const row = document.createElement("div");
-    row.className = "char-item";
-    // index, name input, actions
-    const idx = document.createElement("div"); idx.className = "char-index"; idx.textContent = i;
-    const input = document.createElement("input"); input.type = "text"; input.className="char-name"; input.value = name;
-    input.oninput = (e) => { gacha[currentRarity][i] = e.target.value; triggerAutoUpdate(); };
-    const actions = document.createElement("div"); actions.className = "char-actions";
-    const up = document.createElement("button"); up.className="btn small"; up.textContent="↑";
-    up.onclick = () => { if (i>0) { [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; renderAll(); } };
-    const down = document.createElement("button"); down.className="btn small"; down.textContent="↓";
-    down.onclick = () => { if (i < arr.length-1) { [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; renderAll(); } };
-    const del = document.createElement("button"); del.className="btn small"; del.style.background="#e74c3c"; del.textContent="削除";
-    del.onclick = () => { arr.splice(i,1); renderAll(); };
-    actions.appendChild(up); actions.appendChild(down); actions.appendChild(del);
-    row.appendChild(idx); row.appendChild(input); row.appendChild(actions);
-    charListDiv.appendChild(row);
-  });
-}
-function renderRateEditor() {
-  ratePercentInput.value = rates[currentRarity];
-  rateRawSpan.textContent = percentToRaw(rates[currentRarity]);
-}
-
-/* ---------- parsing ---------- */
-function parseInputText() {
-  const text = inputText.value;
-  // reset
-  rarities.forEach(r => gacha[r] = []);
-  // For each rarity, find block
-  rarities.forEach(r => {
-    const re = new RegExp(r + ":[\\s\\S]*?(?=(?:Rare|Super|Uber|Legendary|$))","i");
-    const m = text.match(re);
-    if (!m) return;
-    const block = m[0];
-    // extract percent
-    const p = block.match(/:\s*([0-9.]+)%/);
-    if (p) {
-      rates[r] = parseFloat(p[1]);
+        if (listPart) {
+          gacha[r] = listPart.split(",")
+            .map(s => s.replace(/^\s*\d+\s*[:\uFF1A]?\s*/, "").trim())
+            .filter(s => s.length > 0);
+        }
+      });
+      renderAll();
     }
-    // extract list after the first ')' if exists, else try after percent
-    let listPart = "";
-    const afterParen = block.split(")");
-    if (afterParen.length > 1) listPart = afterParen.slice(1).join(")").trim();
-    else {
-      // fallback: everything after the percent token
-      listPart = block.replace(/^[\s\S]*?\)[\s\S]*$/,"").trim();
-      // but safer to take everything after the percent match
-      if (p) {
-        const idx = block.indexOf(p[0]);
-        listPart = block.slice(idx + p[0].length).trim();
+
+    function renderAll() {
+      const tabsDiv = document.getElementById("tabs");
+      tabsDiv.innerHTML = "";
+      rarities.forEach(r => {
+        const el = document.createElement("div");
+        el.className = "tab" + (r === currentRarity ? " active" : "");
+        el.textContent = r;
+        el.onclick = () => { currentRarity = r; renderAll(); };
+        tabsDiv.appendChild(el);
+      });
+
+      const listDiv = document.getElementById("charList");
+      listDiv.innerHTML = "";
+      gacha[currentRarity].forEach((name, i) => {
+        const row = document.createElement("div");
+        row.className = "char-item";
+        row.innerHTML = `
+          <div style="width:25px; opacity:0.5; font-size:12px;">${i}</div>
+          <input type="text" class="blue-input" value="${name}" style="flex:1; padding:4px;" oninput="gacha['${currentRarity}'][${i}]=this.value; updateOutputs();">
+          <button class="btn-mini" onclick="moveChar(${i},-1)">↑</button>
+          <button class="btn-mini" onclick="moveChar(${i},1)">↓</button>
+          <button class="btn-mini" onclick="delChar(${i})" style="color:#ff4444">×</button>
+        `;
+        listDiv.appendChild(row);
+      });
+
+      document.getElementById("ratePercent").value = rates[currentRarity];
+      updateRatePreview();
+      updateOutputs();
+    }
+
+    function updateOutputs() {
+      let gText = ""; let sText = "";
+      rarities.forEach(r => {
+        const arr = gacha[r];
+        if (!arr || arr.length === 0) return;
+        const pStr = rates[r].toFixed(1);
+        gText += `${r}: ${pStr}% (${arr.length} cats) ${arr.map((n, i) => `${i} ${n}`).join(", ")}\n\n`;
+        sText += `${r} (${pStr}%) rate:${Math.round(rates[r] * 100)}\n${arr.join("\n")}\n\n`;
+      });
+      document.getElementById("outputGacha").innerText = gText.trim();
+      document.getElementById("outputSummary").innerText = sText.trim();
+    }
+
+    function updateRatePreview() {
+      const v = parseFloat(document.getElementById("ratePercent").value) || 0;
+      document.getElementById("rateRaw").textContent = Math.round(v * 100);
+    }
+
+    function saveRate() {
+      rates[currentRarity] = parseFloat(document.getElementById("ratePercent").value) || 0;
+      updateOutputs();
+    }
+
+    function addChar() { gacha[currentRarity].unshift("新キャラ"); renderAll(); }
+    function delChar(i) { gacha[currentRarity].splice(i,1); renderAll(); }
+    function moveChar(i, dir) {
+      const arr = gacha[currentRarity];
+      if (i+dir >= 0 && i+dir < arr.length) {
+        [arr[i], arr[i+dir]] = [arr[i+dir], arr[i]];
+        renderAll();
       }
     }
-    // split by commas and sanitize
-    const items = listPart.split(",").map(s => sanitizeName(s)).filter(s => s.length>0);
-    gacha[r] = items;
-  });
-}
+    function clearAll() {
+      document.getElementById("inputText").value = "";
+      rarities.forEach(r => gacha[r] = []);
+      renderAll();
+    }
+    function copyTxt(id) {
+      navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert("コピーしました"));
+    }
 
-/* ---------- outputs ---------- */
-function generateGachaInfoText() {
-  // produce each rarity line with percent (non-cumulative) and numbered list 0 name, 1 name...
-  let out = "";
-  rarities.forEach(r => {
-    const arr = gacha[r];
-    if (!arr || arr.length===0) return;
-    // percent string with 1 decimal
-    const percentStr = (Math.round(rates[r]*10)/10).toFixed(1);
-    out += `${r}: ${percentStr}% (${arr.length} cats) `;
-    // items numbered
-    out += arr.map((name,i) => `${i} ${name}`).join(", ");
-    out += "\n\n";
-  });
-  return out.trim();
-}
-
-function generateSummaryText() {
-  // format:
-  // Rare (69.7%) rate:6970
-  // name
-  // name
-  let out = "";
-  rarities.forEach(r => {
-    const arr = gacha[r];
-    if (!arr || arr.length===0) return;
-    const percentStr = (Math.round(rates[r]*10)/10).toFixed(1);
-    const raw = percentToRaw(rates[r]);
-    out += `${r} (${percentStr}%) rate:${raw}\n`;
-    arr.forEach(name => {
-      out += `${name}\n`;
-    });
-    out += `\n`;
-  });
-  return out.trim();
-}
-
-/* ---------- auto update handling ---------- */
-let autoUpdateTimer = null;
-function triggerAutoUpdate() {
-  // debounced update to avoid too many renders while typing
-  if (autoUpdateTimer) clearTimeout(autoUpdateTimer);
-  autoUpdateTimer = setTimeout(() => {
-    renderAllOutputs();
-  }, 120);
-}
-
-/* ---------- render all ---------- */
-function renderAll() {
-  renderTabs();
-  renderCharList();
-  renderRateEditor();
-  renderAllOutputs();
-}
-
-function renderAllOutputs() {
-  outputGacha.textContent = generateGachaInfoText();
-  outputSummary.textContent = generateSummaryText();
-}
-
-/* ---------- button handlers ---------- */
-document.getElementById("btnParse").onclick = ()=>{ parseInputText(); renderAll(); };
-document.getElementById("btnClear").onclick = ()=>{ inputText.value=""; parseInputText(); renderAll(); };
-document.getElementById("btnAddChar").onclick = ()=>{ gacha[currentRarity].unshift("新キャラ"); renderAll(); };
-document.getElementById("btnResetOrder").onclick = ()=>{ /* reassign indices implicitly by rendering */ renderAll(); };
-document.getElementById("btnSaveRate").onclick = ()=>{ rates[currentRarity] = parseFloat(ratePercentInput.value) || 0; renderAll(); };
-document.getElementById("btnAutoAssign").onclick = ()=>{ // fill rates cumulatively based on current percents or equal split
-  // simple auto assign: keep current Rare, then set others to remaining proportionally if their percent is zero
-  // Here we'll do a simple approach: if sum !=100, scale proportionally
-  let sum = 0; rarities.forEach(r=> sum += (rates[r]||0));
-  if (sum === 0) {
-    rates.Rare=69.7; rates.Super=25; rates.Uber=5; rates.Legendary=0.3;
-  } else {
-    const scale = 100 / sum;
-    rarities.forEach(r => rates[r] = Math.round((rates[r]||0) * scale * 10)/10);
-  }
-  renderAll();
-};
-
-/* copy helpers */
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(()=> {
-    alert("コピーしました");
-  }, ()=> {
-    alert("コピーに失敗しました。手動で選択してコピーしてください。");
-  });
-}
-document.getElementById("btnCopyGacha").onclick = ()=> copyText(outputGacha.textContent);
-document.getElementById("btnCopySummary").onclick = ()=> copyText(outputSummary.textContent);
-document.getElementById("btnCopyAll").onclick = ()=> copyText(outputGacha.textContent + "\n\n" + outputSummary.textContent);
-document.getElementById("btnShowGacha").onclick = ()=> alert(outputGacha.textContent || "出力が空です");
-document.getElementById("btnShowSummary").onclick = ()=> alert(outputSummary.textContent || "出力が空です");
-
-/* ratePercent input live update */
-ratePercentInput.oninput = (e)=> {
-  const v = parseFloat(e.target.value) || 0;
-  rateRawSpan.textContent = percentToRaw(v);
-  // update rates preview but don't save until Save pressed
-  rates[currentRarity] = v;
-  renderAllOutputs();
-};
-
-/* inputText auto-parse on paste/typing (auto reflect) */
-inputText.addEventListener("input", ()=> {
-  parseInputText();
-  renderAll();
-});
-
-/* initial setup */
-parseInputText();
-renderAll();
-
-</script>
+    window.onload = () => {
+      document.getElementById("inputText").oninput = parseInput;
+      renderAll();
+    };
+  </script>
+  <script src="secret.js"></script>
 </body>
 </html>
+

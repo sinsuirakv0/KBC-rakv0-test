@@ -1,463 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メタデータ解析</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC - メタデータ解析</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* 固有のスタイル調整 */
+    .analyzer-hero { text-align: left; padding: 30px; }
     
-    <style>
-        /* --- KBC Design CSS Start --- */
-        :root { 
-            --bg:#0b1220; 
-            --card:#071427; 
-            --muted:#9fb0c8; 
-            --accent:#3b82f6; 
-            --glass: rgba(255,255,255,0.03); 
-            --text:#e6f0fb; 
-        } 
-        *{
-            box-sizing:border-box;
-        } 
-        body{ 
-            margin:0; 
-            font-family:"Noto Sans JP",sans-serif; 
-            background:linear-gradient(180deg,#051026 0%,#081428 60%); 
-            color:var(--text); 
-            padding:20px; 
-            display:flex; 
-            justify-content:center; 
-            animation: fadeIn 1s ease forwards; 
-            opacity:0; 
-        } 
-        @keyframes fadeIn { 
-            from { opacity:0; transform: translateY(10px); } 
-            to { opacity:1; transform: translateY(0); } 
-        } 
-        .container{ 
-            width:1100px; 
-            max-width:100%; 
-            display:grid; 
-            gap:16px; 
-        } 
-        .header{ 
-            display:flex; 
-            justify-content:space-between; 
-            align-items:center; 
-            flex-wrap:wrap; 
-            padding:10px 0; 
-            border-bottom:1px solid rgba(255,255,255,0.1); 
-            animation: fadeIn 1s ease 0.2s forwards; 
-            opacity:0; 
-        } 
-        .logo{ 
-            display:flex; 
-            align-items:center; 
-            gap:10px; 
-        } 
-        .logo img{ 
-            width:40px; 
-            height:40px; 
-            border-radius:8px; 
-            box-shadow:0 0 10px rgba(59,130,246,0.4); 
-            animation: floatLogo 3s ease-in-out infinite; 
-        } 
-        @keyframes floatLogo { 
-            0%,100% { transform: translateY(0); } 
-            50% { transform: translateY(-4px); } 
-        } 
-        h1{
-            margin:0;
-            font-size:22px;
-        } 
-        .nav{ 
-            display:flex; 
-            gap:20px; 
-            flex-wrap:wrap; 
-        } 
-        .nav a{ 
-            color:var(--muted); 
-            text-decoration:none; 
-            font-size:14px; 
-            transition:0.2s; 
-        } 
-        .nav a:hover{ 
-            color:var(--accent); 
-        } 
-        .hero{ 
-            text-align:center; 
-            padding:60px 20px; 
-            background:var(--card); 
-            border-radius:12px; 
-            box-shadow:0 8px 30px rgba(2,6,23,0.6); 
-            animation: fadeIn 1s ease 0.4s forwards; 
-            opacity:0; 
-        } 
-        .hero h2{ 
-            font-size:28px; 
-            margin:0 0 10px; 
-        } 
-        .hero p{ 
-            color:var(--muted); 
-            font-size:15px; 
-            margin:0; 
-        } 
-        .grid{ 
-            display:grid; 
-            grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); 
-            gap:16px; 
-        } 
-        .card{ 
-            background:var(--card); 
-            border-radius:12px; 
-            padding:20px; 
-            box-shadow:0 8px 30px rgba(2,6,23,0.6); 
-            transition:transform 0.3s, box-shadow 0.3s; 
-            opacity:0; 
-            animation: fadeIn 1s ease forwards; 
-        } 
-        .card:nth-child(1){animation-delay:0.6s;} 
-        .card:nth-child(2){animation-delay:0.8s;} 
-        .card:nth-child(3){animation-delay:1s;} 
-        .card:nth-child(4){animation-delay:1.2s;} 
-        .card:nth-child(5){animation-delay:1.4s;} 
-        .card:hover{ 
-            transform:translateY(-6px); 
-            box-shadow:0 10px 40px rgba(59,130,246,0.3); 
-        } 
-        .card h3{ 
-            margin-top:0; 
-            font-size:18px; 
-            color:var(--accent); 
-        } 
-        .card p{ 
-            font-size:14px; 
-            color:var(--muted); 
-        } 
-        footer{ 
-            text-align:center; 
-            color:var(--muted); 
-            font-size:13px; 
-            margin-top:30px; 
-            border-top:1px solid rgba(255,255,255,0.05); 
-            padding-top:10px; 
-            animation: fadeIn 1s ease 1.2s forwards; 
-            opacity:0; 
-        } 
-        /* --- KBC Design CSS End --- */
+    .input-area { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+    #jsonFile { flex: 1; min-width: 200px; padding: 10px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+    
+    .summary-block { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+    .summary-item { flex: 1; min-width: 180px; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; text-align: center; }
+    .summary-item h4 { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+    .summary-item strong { display: block; font-size: 24px; color: var(--text); text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+    .summary-item .sub-text { font-size: 11px; color: var(--muted); display: block; margin-top: 5px; }
 
-        /* --- Custom Styles for Analyzer --- */
-        
-        /* 共通の見出しスタイルを調整 */
-        .card h2 {
-            font-size: 20px;
-            color: var(--accent);
-            margin-top: 0;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 5px;
-        }
+    .analyzer-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+    .analyzer-table th, .analyzer-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .analyzer-table th { background: var(--accent); color: white; font-weight: bold; }
+    .analyzer-table tr:hover { background: rgba(255,255,255,0.02); }
 
-        /* ファイル入力グループ */
-        .input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        input[type="file"] {
-            padding: 10px;
-            border: 1px solid var(--glass);
-            border-radius: 8px;
-            flex-grow: 1;
-            background-color: var(--glass);
-            color: var(--text);
-            font-size: 14px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: var(--accent);
-            color: var(--text);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #5b9bf9;
-        }
-
-        /* テーブルスタイル */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            text-align: left;
-            font-size: 14px;
-        }
-        th {
-            background-color: var(--accent);
-            color: var(--bg);
-            font-weight: bold;
-            border: 1px solid var(--accent);
-        }
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        /* ランクと時間の並列表示 */
-        .summary-block {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            margin-top: 15px;
-        }
-        .summary-item {
-            flex: 1;
-            padding: 15px;
-            border-radius: 8px;
-            background-color: var(--glass);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        .summary-item h4 {
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            color: var(--muted);
-        }
-        .summary-item strong {
-            display: block;
-            font-size: 24px;
-            color: var(--text);
-            text-shadow: 0 0 5px var(--accent);
-        }
-        .summary-item .sub-text {
-            font-size: 11px;
-            color: var(--muted);
-            margin-top: 5px;
-            display: block;
-        }
-
-        /* エラーメッセージ */
-        .error {
-            color: #ff6b6b;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-    </style>
+    .error { color: #fca5a5; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,0,0,0.2); margin-top: 20px; }
+  </style>
 </head>
-<body>
+<body class="fade-in">
 
-<div class="container">
-    
+  <div class="container">
     <header class="header">
-        <div class="logo">
-            <img src="logo.png" alt="Logo Placeholder">
-            <h1>KBC</h1>
-        </div>
-        <nav class="nav">
-            <a href="#">ホーム</a>
-            <a href="#">仮</a>
-            <a href="#">仮</a>
-        </nav>
+      <div class="logo">
+        <img src="logo.png" alt="Logo">
+        <h1>KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+      </nav>
     </header>
-    <section class="hero" style="text-align: left; padding: 30px;">
-        <h2>📊メタデータ解析ツール</h2>
-        <p>BACKUP_META_DATAを選択し、「ファイルを読み込む」ボタンを押してください。ファイルの内容が自動的に解析され、アイテムの利用状況とプレイ時間が表示されます。</p>
-        
-        <div class="input-group">
-            <input type="file" id="jsonFile" accept="*/*" title="拡張子のないファイルも選択可能です">
-            <button id="readFileButton">ファイルを読み込む</button>
+
+    <section class="card analyzer-hero">
+      <h2>📊 メタデータ解析ツール</h2>
+      <p class="muted">BACKUP_META_DATA 等のJSONファイルを選択してください。</p>
+      
+      <div class="input-area">
+        <input type="file" id="jsonFile" accept="*/*">
+        <button id="readFileButton" class="blue-input" style="background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; height:auto; padding:0 25px;">解析実行</button>
+      </div>
+      
+      <div id="results">
         </div>
-        
-        <div id="results">
-            </div>
     </section>
+
     <footer>
-        <p>何見てんだよ</p>
+      <p>KBC Metadata Analyzer ver 1.1</p>
     </footer>
+  </div>
 
-</div>
-
-<script>
-    // プレイタイムの換算レート (ユーザー指定: 1秒で30増加)
-    const PLAYTIME_RATE = 30;
-
-    // HTML要素の取得
-    const fileInput = document.getElementById('jsonFile');
-    const readFileButton = document.getElementById('readFileButton');
-    const resultsDiv = document.getElementById('results');
-
-    // ファイル読み込みボタンのイベントリスナー
-    readFileButton.addEventListener('click', handleFileRead);
-
-    /**
-     * ファイルを読み込み、解析を開始する関数
-     */
-    function handleFileRead() {
-        const file = fileInput.files[0];
-        if (!file) {
-            resultsDiv.innerHTML = '<p class="error">ファイルが選択されていません。ファイルを指定してください。</p>';
-            return;
-        }
-
-        // 読み込み中はアニメーションをリセット
-        resultsDiv.innerHTML = `<p style="color:var(--accent);">ファイルを読み込み中... (${file.name})</p>`;
-        
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-            try {
-                const jsonText = e.target.result;
-                const data = JSON.parse(jsonText);
-                
-                const summary = analyzeData(data);
-                displayResults(summary, data);
-
-            } catch (error) {
-                // JSON解析エラーが発生した場合
-                resultsDiv.innerHTML = `<p class="error">ファイルの解析中にエラーが発生しました。ファイルが有効なJSON形式であることを確認してください。<br>エラー詳細: ${error.message}</p>`;
-                console.error("Parsing error:", error);
-            }
-        };
-
-        reader.readAsText(file);
-    }
-
-    /**
-     * JSONデータを分析し、アイテムの集計を行う
-     */
-    function analyzeData(data) {
-        let itemSummary = {}; 
-
-        if (data.managedItemDetails && Array.isArray(data.managedItemDetails)) {
-            data.managedItemDetails.forEach(detail => {
-                const type = detail.managedItemType;
-                const amount = detail.amount || 0; 
-                const action = detail.detailType; 
-
-                if (!itemSummary[type]) {
-                    itemSummary[type] = { get: 0, use: 0, net: 0 };
-                }
-
-                if (action === 'get') {
-                    itemSummary[type].get += amount;
-                } else if (action === 'use') {
-                    itemSummary[type].use += amount;
-                }
-            });
-        }
-        
-        for (const type in itemSummary) {
-            itemSummary[type].net = itemSummary[type].get - itemSummary[type].use;
-        }
-
-        return itemSummary;
-    }
-
-    /**
-     * 秒を「時間、分、秒」の形式に変換するヘルパー関数 (日を除く)
-     * ユーザー指定により、最大単位は「時間」とする
-     * @param {number} totalSeconds - 合計秒数
-     * @returns {string} フォーマットされた時間文字列
-     */
-    function formatTimeHours(totalSeconds) {
-        // 秒を四捨五入して整数にする
-        totalSeconds = Math.round(totalSeconds);
-
-        const hours = Math.floor(totalSeconds / 3600);
-        totalSeconds %= 3600;
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-
-        let parts = [];
-        if (hours > 0) parts.push(`${hours.toLocaleString()}時間`);
-        // 時間が0でも分が0でなければ表示、または時間が1以上なら分を表示
-        if (minutes > 0 || hours > 0) parts.push(`${minutes}分`); 
-        parts.push(`${seconds}秒`); // 秒は常に表示
-
-        return parts.join('');
-    }
-
-    /**
-     * 解析結果をHTMLに表示する関数
-     */
-    function displayResults(summary, data) {
-        let html = '';
-
-        // 1. プレイ時間とランクのサマリー
-        html += '<h3 style="color:var(--muted); margin-top:20px; border-bottom:1px solid var(--glass); padding-bottom:10px;">ユーザー情報</h3>';
-
-        let rankHtml = `
-            <div class="summary-item">
-                <h4>ユーザーランク</h4>
-                <strong>${data.rank !== undefined ? data.rank.toLocaleString() : 'N/A'}</strong>
-                <span class="sub-text">${data.rank !== undefined ? 'データが見つかりました' : 'ランク情報なし'}</span>
-            </div>
-        `;
-
-        let timeHtml = `
-            <div class="summary-item">
-                <h4>総プレイ時間 (${PLAYTIME_RATE}倍換算)</h4>
-                <strong>${data.playTime !== undefined ? formatTimeHours(data.playTime / PLAYTIME_RATE) : 'N/A'}</strong>
-                <span class="sub-text">${data.playTime !== undefined ? `生データ: ${data.playTime.toLocaleString()}` : 'プレイタイム情報なし'}</span>
-            </div>
-        `;
-
-        // 総プレイ時間とランクを並べて表示する
-        html += `<div class="summary-block">${timeHtml}${rankHtml}</div>`;
-
-
-        // 2. アイテム集計結果の表示
-        html += '<h3 style="color:var(--muted); margin-top:30px; border-bottom:1px solid var(--glass); padding-bottom:10px;">アイテム別 取得量/使用量</h3>';
-        
-        const itemTypes = Object.keys(summary).sort();
-        if (itemTypes.length > 0) {
-            html += `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>アイテム名</th>
-                            <th>合計取得量 (GET)</th>
-                            <th>合計使用量 (USE)</th>
-                            <th>純増減量 (GET - USE)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            itemTypes.forEach(type => {
-                const item = summary[type];
-                html += `
-                    <tr>
-                        <td>${type}</td>
-                        <td>${item.get.toLocaleString()}</td>
-                        <td>${item.use.toLocaleString()}</td>
-                        <td style="color: ${item.net >= 0 ? 'var(--accent)' : '#ff6b6b'}; font-weight: bold;">${item.net.toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-        } else {
-            html += '<p class="card" style="margin-top:20px; animation-delay:0s;">アイテムの取得/使用履歴 (managedItemDetails) が見つかりませんでした。</p>';
-        }
-
-        // 3. その他メタデータ（署名）
-        if (data.signature_v1 !== undefined) {
-            html += '<h3 style="color:var(--muted); margin-top:30px; border-bottom:1px solid var(--glass); padding-bottom:10px;">その他情報</h3>';
-            html += `<p style="font-size:12px; color:var(--muted);">データの署名 (signature_v1): <span style="word-break: break-all; color: var(--text);">${data.signature_v1}</span></p>`;
-        }
-        
-        resultsDiv.innerHTML = html;
-    }
-</script>
-
+  <script src="js/metadata-logic.js"></script>
+  <script src="secret.js"></script>
 </body>
 </html>
 

@@ -1,0 +1,159 @@
+:root {
+  --bg: #051026;
+  --card: #0a1931;
+  --text: #ffffff;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle at top right, #0d2550, #051026);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  width: 900px;
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* --- ヘッダー（横並び） --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: transform 0.3s;
+}
+
+.site-title {
+  font-size: 22px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.nav {
+  display: flex;
+  gap: 20px;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.nav a:hover { color: var(--accent); }
+
+/* --- グリッドとカード --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card h3 { margin: 0; font-size: 18px; }
+
+.tag {
+  font-size: 10px;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+/* --- リンク集のボタン化 --- */
+.links { list-style: none; padding: 0; margin: 0; }
+
+.links li { margin-bottom: 10px; }
+
+.links a {
+  display: block;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.links a:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.02);
+}
+
+footer {
+  margin-top: 50px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* フェードイン */
+.fade-in { animation: fadeIn 0.8s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+input[type="text"], input[type="number"], select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+label {
+  font-size: 12px;
+  color: var(--muted);
+}

@@ -1,226 +1,148 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBC 周回計算機</title>
-<style>
-:root {
-  --bg:#0b1220; --card:#071427; --muted:#9fb0c8; --accent:#3b82f6;
-  --glass: rgba(255,255,255,0.03); --text:#e6f0fb;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin:0;
-  font-family:"Noto Sans JP",sans-serif;
-  background: linear-gradient(180deg,#051026 0%,#081428 60%);
-  color: var(--text);
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  animation: fadeIn 1s ease forwards;
-  opacity: 0;
-}
-
-@keyframes fadeIn {
-  from { opacity:0; transform: translateY(10px); }
-  to { opacity:1; transform: translateY(0); }
-}
-
-.container {
-  width: 100%;
-  max-width: 500px; /* スマホでも見やすい */
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-}
-
-.logo {
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.logo img {
-  width:40px;
-  height:40px;
-  border-radius:8px;
-  box-shadow:0 0 10px rgba(59,130,246,0.4);
-  animation: floatLogo 3s ease-in-out infinite;
-}
-
-@keyframes floatLogo {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-h1 { margin:0;font-size:22px; }
-.nav { display:flex; gap:20px; flex-wrap:wrap; }
-.nav a { color:var(--muted); text-decoration:none; font-size:14px; transition:0.2s; }
-.nav a:hover { color:var(--accent); }
-
-.card {
-  background: var(--card);
-  border-radius:12px;
-  padding:20px;
-  box-shadow:0 8px 30px rgba(2,6,23,0.6);
-  transition: transform 0.3s, box-shadow 0.3s;
-  animation: fadeIn 1s ease forwards;
-}
-
-.card h3 {
-  margin-top:0;
-  font-size:18px;
-  color: var(--accent);
-}
-
-.card dt { margin-top:10px; font-weight:bold; }
-.card dd { margin-left:0; margin-bottom:10px; }
-
-.item { position: relative; bottom: 5px; left: 10px; width: 60px; }
-
-input[type="number"], .blue-input {
-  background-color: rgba(59,130,246,0.1);
-  border: 1px solid #3b82f6;
-  color: #e6f0fb;
-  border-radius: 6px;
-  padding: 4px 6px;
-  width: 80px;
-}
-
-input[type="number"]:focus, .blue-input:focus {
-  outline: none;
-  box-shadow: 0 0 8px #3b82f6;
-  background-color: rgba(59,130,246,0.2);
-}
-
-input[type="button"] {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #3b82f6;
-  color: #fff;
-  cursor: pointer;
-}
-
-img { vertical-align: middle; }
-
-img {
-  width: 40px;
-  height: 40px;
-}
-
-@media (max-width: 500px) {
-  .container { padding: 10px; }
-  .card { padding: 16px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC 周回計算機</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* UIバグ修正 & スマホ対応 */
+    .input-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+    .input-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-item label {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .blue-input {
+      width: 100% !important; /* 親要素に合わせて伸縮 */
+      padding: 10px !important;
+      font-size: 16px !important; /* スマホでズームされないサイズ */
+    }
+    .result-area {
+      background: var(--glass);
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 10px;
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+    .primary-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    .icon-small { width: 24px; height: 24px; object-fit: contain; }
+    
+    /* PC表示の調整 */
+    @media (min-width: 600px) {
+      .container { max-width: 500px; }
+    }
+  </style>
 </head>
-<body>
-<div class="container">
+<body class="fade-in">
 
-  <!-- ヘッダー -->
-  <header class="header">
-    <div class="logo">
-      <img src="logo.png" alt="ロゴ">
-      <h1>KBC</h1>
-    </div>
-    <nav class="nav">
-      <a href="https://kbc-rakv0.vercel.app">ホーム</a>
-      <a href="#">仮</a>
-      <a href="#">仮</a>
-      <a href="#">仮</a>
-    </nav>
-  </header>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo">
+        <h1 class="site-title">KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+      </nav>
+    </header>
 
- <!-- 消費量計算カード -->
-<div class="card">
-  <h3>消費量計算</h3>
-  <div class="input-row">
-    <label>消費量<input type="number" id="use" class="blue-input"></label>
-    <label>周回数<input type="number" id="count" class="blue-input"></label>
-    <label>統率回復単位<input type="number" id="unit" value="1150" class="blue-input"></label>
-    <input type="button" onclick="calc()" value="算出">
+    <section class="card">
+      <h3>消費量計算</h3>
+      <div class="input-group">
+        <div class="input-item">
+          <label>1回の消費量</label>
+          <input type="number" id="use" class="blue-input" placeholder="0">
+        </div>
+        <div class="input-item">
+          <label>周回数</label>
+          <input type="number" id="count" class="blue-input" placeholder="0">
+        </div>
+        <div class="input-item">
+          <label>統率回復単位</label>
+          <input type="number" id="unit" value="1150" class="blue-input">
+        </div>
+      </div>
+      
+      <button id="calcBtn1" class="primary-btn">算出する</button>
+
+      <div class="result-area">
+        <div class="input-group" style="margin-bottom:0;">
+          <div class="input-item">
+            <label>合計消費量</label>
+            <input id="ene" readonly class="blue-input">
+          </div>
+          <div class="input-item">
+            <label><img src="ship.png" class="icon-small"> 必要旗数</label>
+            <input id="ship" readonly class="blue-input">
+          </div>
+          <div class="input-item">
+            <label><img src="cat_food.png" class="icon-small"> 必要ネコカン</label>
+            <input id="cats" readonly class="blue-input">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>周回可能回数計算</h3>
+      <div class="input-group">
+        <div class="input-item">
+          <label><img src="ship.png" class="icon-small"> 所持旗数</label>
+          <input type="number" id="s1" class="blue-input" placeholder="0">
+        </div>
+        <div class="input-item">
+          <label><img src="cat_food.png" class="icon-small"> 所持ネコカン</label>
+          <input type="number" id="food" class="blue-input" placeholder="0">
+        </div>
+        <div class="input-item">
+          <label>1回の消費量</label>
+          <input type="number" id="use_en" class="blue-input" placeholder="0">
+        </div>
+        <div class="input-item">
+          <label>統率回復単位</label>
+          <input type="number" id="unit2" value="1150" class="blue-input">
+        </div>
+      </div>
+
+      <button id="calcBtn2" class="primary-btn">算出する</button>
+
+      <div class="result-area" style="text-align: center;">
+        <label style="font-size: 14px; color: var(--muted);">周回可能回数</label>
+        <input id="how" readonly class="blue-input" style="font-size: 24px !important; text-align: center; color: var(--accent); border:none; background:transparent;">
+      </div>
+    </section>
+
+    <footer style="text-align:center; padding:20px; opacity:0.5; font-size:12px;">
+      &copy; KBC 周回計算機
+    </footer>
   </div>
-  <div class="input-row">
-    <label>合計消費量<input id="ene" readonly class="blue-input"></label>
-    <label><img src="ship.png" width="40" height="40"> <input id="ship" readonly class="blue-input"></label>
-    <label><img src="cat_food.png" width="40" height="30"> <input id="cats" readonly class="blue-input"></label>
-  </div>
-</div>
 
-<!-- 周回可能回数計算カード -->
-<div class="card">
-  <h3>周回可能回数計算</h3>
-  <div class="input-row">
-    <label><img src="ship.png" width="40" height="40"> <input type="number" id="s1" class="blue-input"></label>
-    <label><img src="cat_food.png" width="40" height="30"> <input type="number" id="food" class="blue-input"></label>
-    <label>消費量<input type="number" id="use_en" class="blue-input"></label>
-    <label>統率回復単位<input type="number" id="unit2" value="1150" class="blue-input"></label>
-    <input type="button" onclick="X()" value="算出">
-  </div>
-  <div class="input-row">
-    <label>周回可能回数<input id="how" readonly class="blue-input"></label>
-  </div>
-</div>
-
-<style>
-.input-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.input-row label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.input-row input[type="button"] {
-  flex-shrink: 0;
-}
-</style>
-<script>
-function calc() {
-  const use = parseFloat(document.getElementById('use').value);
-  const count = parseFloat(document.getElementById('count').value);
-  const unit = parseInt(document.getElementById('unit').value);
-
-  const ene_value = Math.round(use * count);
-  const ship_value = Math.trunc(ene_value / unit);
-  const cats_value = Math.trunc(ship_value * 30);
-
-  document.getElementById('ene').value = ene_value;
-  document.getElementById('ship').value = ship_value;
-  document.getElementById('cats').value = cats_value;
-}
-
-function X() {
-  const food = parseInt(document.getElementById('food').value);
-  const ships = parseInt(document.getElementById('s1').value);
-  const use_en = parseFloat(document.getElementById('use_en').value);
-  const unit = parseInt(document.getElementById('unit2').value);
-
-  const food2 = Math.trunc(food / 30);
-  const totalShips = food2 + ships + 1;
-  const how_value = Math.trunc(totalShips * unit / use_en);
-
-  document.getElementById('how').value = how_value;
-}
-</script>
+  <script src="js/cir-logic.js"></script>
+  <script src="secret.js"></script>
 </body>
 </html>
+
