@@ -6,37 +6,20 @@
   <title>KBC メタデータ解析</title>
   <script src="js/ogp-loader.js"></script>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* 固有のスタイル調整 */
-    .analyzer-hero { text-align: left; padding: 30px; }
-    
-    .input-area { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
-    #jsonFile { flex: 1; min-width: 200px; padding: 10px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
-    
-    .summary-block { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
-    .summary-item { flex: 1; min-width: 180px; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; text-align: center; }
-    .summary-item h4 { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
-    .summary-item strong { display: block; font-size: 24px; color: var(--text); text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
-    .summary-item .sub-text { font-size: 11px; color: var(--muted); display: block; margin-top: 5px; }
 
-    .analyzer-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
-    .analyzer-table th, .analyzer-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
-    .analyzer-table th { background: var(--accent); color: white; font-weight: bold; }
-    .analyzer-table tr:hover { background: rgba(255,255,255,0.02); }
-
-    .error { color: #fca5a5; background: rgba(255,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,0,0,0.2); margin-top: 20px; }
-  </style>
 </head>
 <body class="fade-in">
 
   <div class="container">
     <header class="header">
-      <div class="logo">
-        <img src="logo.png" alt="Logo">
-        <h1>KBC</h1>
+      <div class="header-left">
+        <img src="logo.png" alt="ロゴ" id="logo" style="cursor: pointer;"> 
+        <h1 class="site-title">KBC</h1>
       </div>
       <nav class="nav">
         <a href="index.html">Home</a>
+        <a href="https://kbc-rakv0-announce.vercel.app/"></a>
+        <a href="#"></a>
       </nav>
     </header>
 
