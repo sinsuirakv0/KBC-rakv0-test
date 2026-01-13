@@ -31,7 +31,7 @@
     </header>
 
     <section class="card">
-      <h3>1. 解析データを貼り付け</h3>
+      <h3>1. Gacha informatiomを貼り付け</h3>
       <p class="muted">Rare: 69.7%... などのデータを貼り付けると即座に反映されます</p>
       <textarea id="inputText" placeholder="ここに貼り付け..."></textarea>
       <div style="margin-top:10px; display:flex; gap:10px;">
@@ -41,7 +41,7 @@
     </section>
 
     <section class="card">
-      <h3>2. レアリティ編集</h3>
+      <h3>2. gacha info作成/編集</h3>
       <div id="tabs" class="tabs"></div>
       
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
@@ -62,12 +62,12 @@
     <section class="card">
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
         <div>
-          <div class="muted">Gacha information 形式</div>
+          <div class="muted">Gacha information</div>
           <div id="outputGacha" class="output-box"></div>
           <button onclick="copyTxt('outputGacha')" class="blue-input" style="width:100%; margin-top:10px; cursor:pointer;">コピー</button>
         </div>
         <div>
-          <div class="muted">レア度順まとめ 形式</div>
+          <div class="muted">レア度順まとめ</div>
           <div id="outputSummary" class="output-box"></div>
           <button onclick="copyTxt('outputSummary')" class="blue-input" style="width:100%; margin-top:10px; cursor:pointer;">コピー</button>
         </div>
@@ -164,7 +164,7 @@
       updateOutputs();
     }
 
-    function addChar() { gacha[currentRarity].unshift("新キャラ"); renderAll(); }
+    function addChar() { gacha[currentRarity].unshift("キャラ"); renderAll(); }
     function delChar(i) { gacha[currentRarity].splice(i,1); renderAll(); }
     function moveChar(i, dir) {
       const arr = gacha[currentRarity];
