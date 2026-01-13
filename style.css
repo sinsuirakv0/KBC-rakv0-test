@@ -182,3 +182,42 @@ label {
     height: 100%;
     border: none;
 }
+
+.gacha-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-top: 1px solid #ddd;
+}
+
+.search-controls {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#gachaNumber {
+    padding: 8px;
+    font-size: 16px;
+    width: 100px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-controls button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-controls button:hover {
+    background-color: #0056b3;
+}
+
+.gacha-view {
+    height: 60vh; /* ガチャ画面は少し小さめに設定 */
+}
