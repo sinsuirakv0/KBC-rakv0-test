@@ -38,7 +38,7 @@
         <h3>ガチャページ</h3>
         <div class="search-controls">
             <span>R</span>
-            <input type="number" id="gachaNumber" value="1000" min="1000" step="1">
+           <input type="number" id="gachaNumber" value="1000" min="1" max="2000" step="1">
             <button onclick="updateGachaIframe()">表示を更新</button>
         </div>
 
@@ -52,10 +52,23 @@
     </section>
 </main>
 
-</div> <script>
+</div> 
+  <script>
 function updateGachaIframe() {
-    const num = document.getElementById('gachaNumber').value;
-    const newUrl = `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${num}.html`;
+    const inputVal = document.getElementById('gachaNumber').value;
+    let numStr;
+
+    if (inputVal < 1000) {
+        // 1000未満の場合は、3桁になるようにゼロで埋める（例: 99 -> 099, 5 -> 005）
+        numStr = inputVal.toString().padStart(3, '0');
+    } else {
+        // 1000以上の場合は、そのままの数字を使う
+        numStr = inputVal.toString();
+    }
+
+    const newUrl = `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${numStr}.html`;
+    
+    console.log("生成されたURL:", newUrl);
     document.getElementById('gachaIframe').src = newUrl;
 }
 </script>
