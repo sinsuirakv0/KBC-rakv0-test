@@ -3,7 +3,7 @@
 function calc() {
   const use = parseFloat(document.getElementById('use').value) || 0;
   const count = parseFloat(document.getElementById('count').value) || 0;
-  const unit = parseInt(document.getElementById('unit').value) || 1150;
+  const unit = parseInt(document.getElementById('unit').value) || 1200;
 
   const ene_value = Math.round(use * count);
   const ship_value = Math.trunc(ene_value / unit);
@@ -18,7 +18,7 @@ function X() {
   const food = parseInt(document.getElementById('food').value) || 0;
   const ships = parseInt(document.getElementById('s1').value) || 0;
   const use_en = parseFloat(document.getElementById('use_en').value) || 0;
-  const unit = parseInt(document.getElementById('unit2').value) || 1150;
+  const unit = parseInt(document.getElementById('unit2').value) || 1200;
 
   if (use_en <= 0) {
     document.getElementById('how').value = 0;
