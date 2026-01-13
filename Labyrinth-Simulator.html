@@ -38,6 +38,7 @@
       <section class="card" style="grid-column: 1 / -1;">
         <h3>グランドアビス シミュレーター</h3>
         <p class="muted">残キャラ数と勝率から、どこまで到達できるかを算出します。</p>
+        <p class="muted">残キャラ数の値は編成を埋めてから入力してください。</p>
         
         <form id="simForm" style="margin-top:20px;">
           <div class="sim-grid">
@@ -46,7 +47,7 @@
               <input type="number" id="chars" class="blue-input" value="20">
             </div>
             <div class="input-item">
-              <label>開始階層</label>
+              <label>現在階層</label>
               <input type="number" id="floor" class="blue-input" value="1" max="99">
             </div>
             <div class="input-item">
@@ -79,7 +80,7 @@
         <h3>詳細データ</h3>
         <table id="summaryTable">
           <thead>
-            <tr><th>到達階層</th><th>回数</th></tr>
+            <tr><th>階層</th><th>到達回数</th></tr>
           </thead>
           <tbody>
             <tr><td colspan="2" class="muted">データなし</td></tr>
