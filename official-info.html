@@ -30,6 +30,22 @@
                 frameborder="0"
                 allowfullscreen>
             </iframe>
+          <hr> <section class="gacha-section">
+    <h3>ガチャページ</h3>
+    <div class="search-controls">
+        <span>R</span>
+        <input type="number" id="gachaNumber" value="1000" min="1000" step="1">
+        <button onclick="updateGachaIframe()">表示を更新</button>
+    </div>
+
+    <div class="iframe-wrapper gacha-view">
+        <iframe 
+            id="gachaIframe"
+            src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1000.html" 
+            frameborder="0">
+        </iframe>
+    </div>
+</section>
         </div>
     </main>
 
