@@ -48,7 +48,16 @@
 </section>
         </div>
     </main>
-
+<script>
+function updateGachaIframe() {
+    // 入力された数字を取得
+    const num = document.getElementById('gachaNumber').value;
+    // URLを組み立てる
+    const newUrl = `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${num}.html`;
+    // iframeのsrcを更新
+    document.getElementById('gachaIframe').src = newUrl;
+}
+</script>
 </body>
 
 
