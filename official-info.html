@@ -23,43 +23,46 @@
       </nav>
 </header>
 
-    <main class="content-area">
-        <div class="iframe-wrapper">
-            <iframe 
-                src="https://nyanko-announcement.ponosgames.com/v1/notices?clientVersion=999999&countryCode=ja&clearedStageJapan=300&clearedStageFuture=300&clearedUniverse=99999&timeDifference=840&page=" 
-                frameborder="0"
-                allowfullscreen>
-            </iframe>
-          <hr> <section class="gacha-section">
-    <h3>ガチャページ</h3>
-    <div class="search-controls">
-        <span>R</span>
-        <input type="number" id="gachaNumber" value="1000" min="1000" step="1">
-        <button onclick="updateGachaIframe()">表示を更新</button>
-    </div>
-
-    <div class="iframe-wrapper gacha-view">
+<main class="content-area">
+    <div class="iframe-wrapper">
         <iframe 
-            id="gachaIframe"
-            src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1000.html" 
-            frameborder="0">
+            src="https://nyanko-announcement.ponosgames.com/v1/notices?clientVersion=999999&countryCode=ja&clearedStageJapan=300&clearedStageFuture=300&clearedUniverse=99999&timeDifference=840&page=" 
+            frameborder="0"
+            allowfullscreen>
         </iframe>
     </div>
-</section>
+
+    <hr>
+
+    <section class="gacha-section">
+        <h3>ガチャページ</h3>
+        <div class="search-controls">
+            <span>R</span>
+            <input type="number" id="gachaNumber" value="1000" min="1000" step="1">
+            <button onclick="updateGachaIframe()">表示を更新</button>
         </div>
-    </main>
-<script>
+
+        <div class="iframe-wrapper gacha-view">
+            <iframe 
+                id="gachaIframe"
+                src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1000.html" 
+                frameborder="0">
+            </iframe>
+        </div>
+    </section>
+</main>
+
+</div> <script>
 function updateGachaIframe() {
-    // 入力された数字を取得
     const num = document.getElementById('gachaNumber').value;
-    // URLを組み立てる
     const newUrl = `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${num}.html`;
-    // iframeのsrcを更新
     document.getElementById('gachaIframe').src = newUrl;
 }
 </script>
-</body>
 
+<script src="js/secret.js"></script>
+</body>
+</html>
 
 <script src="js/secret.js"></script>
 
