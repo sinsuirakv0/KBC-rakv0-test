@@ -23,14 +23,24 @@
       </nav>
 </header>
 <h3>公式情報</h3>
-<main class="content-area">
-    <div class="iframe-wrapper">
-        <iframe 
-            src="https://nyanko-announcement.ponosgames.com/v1/notices?clientVersion=999999&countryCode=ja&clearedStageJapan=300&clearedStageFuture=300&clearedUniverse=99999&timeDifference=840&page=" 
-            frameborder="0"
-            allowfullscreen>
-        </iframe>
+<div class="lang-selector">
+    <p>お知らせ言語切り替え:</p>
+    <div class="lang-buttons">
+        <button onclick="updateLang('ja')">日本語</button>
+        <button onclick="updateLang('en')">English</button>
+        <button onclick="updateLang('ko')">한국어</button>
+        <button onclick="updateLang('tw')">繁體中文</button>
     </div>
+</div>
+
+<div class="iframe-wrapper">
+    <iframe 
+        id="announcementIframe"
+        src="https://nyanko-announcement.ponosgames.com/v1/notices?clientVersion=999999&countryCode=ja&clearedStageJapan=300&clearedStageFuture=300&clearedUniverse=99999&timeDifference=840&page=" 
+        frameborder="0"
+        allowfullscreen>
+    </iframe>
+</div>
 
     <hr>
 <div class="external-search-controls">
@@ -50,6 +60,19 @@
 </main>
 </div> 
   <script>
+
+  function updateLang(langCode) {
+    const iframe = document.getElementById('announcementIframe');
+    // 現在のURLを取得
+    let currentUrl = iframe.src;
+    
+    // URLの中の countryCode= の後の2〜5文字(ja, en, zh-twなど)を置換
+    // 正規表現を使って countryCode=... の部分を書き換えます
+    const newUrl = currentUrl.replace(/countryCode=[a-z-]{2,5}/, `countryCode=${langCode}`);
+    
+    iframe.src = newUrl;
+}
+    
 function updateGachaIframe() {
     const inputVal = document.getElementById('gachaNumber').value;
     let numStr;
