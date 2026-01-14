@@ -221,3 +221,37 @@ label {
 .gacha-view {
     height: 60vh; /* ガチャ画面は少し小さめに設定 */
 }
+
+.lang-selector {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+}
+
+.lang-selector p {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.lang-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.lang-buttons button {
+    padding: 5px 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.lang-buttons button:hover {
+    background: #e0e0e0;
+    border-color: #999;
+}
