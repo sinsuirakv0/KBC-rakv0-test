@@ -298,3 +298,53 @@ label {
     display: flex;
     justify-content: center;
 }
+
+/* 入力エリアの背景を透明にする */
+.external-search-controls {
+    margin: 10px 0;
+    padding: 10px;
+    background: transparent; /* 背景を透明に設定 */
+    box-shadow: none;        /* 影も消してフラットにする */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 「R」の文字と入力欄、ボタンの並び */
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent; /* ここも透明に */
+}
+
+/* R の文字色（背景に合わせて調整してください） */
+.prefix {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #ffffff; /* 白文字に。背景が白い場合は #333 にしてください */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8); /* 透明背景でも文字が見えるように影を付ける */
+}
+
+/* 入力欄のデザイン */
+#gachaNumber {
+    padding: 8px;
+    font-size: 16px;
+    width: 80px;
+    background: rgba(255, 255, 255, 0.2); /* 入力欄自体を半透明にするとオシャレです */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* ボタンのデザイン */
+.input-group button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
