@@ -258,3 +258,43 @@ label {
     background: rgba(255,255,255,0.4);
     border-color: white;
 }
+
+/* 折りたたみ全体の設定 */
+.gacha-details {
+    margin: 20px 0;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* クリックする見出し部分 */
+.gacha-details summary {
+    background-color: rgba(0, 123, 255, 0.8); /* 青色の半透明 */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    list-style: none; /* デフォルトの三角形を消す（ブラウザによる） */
+    text-align: center;
+    transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.gacha-details summary:hover {
+    background-color: rgba(0, 123, 255, 1);
+}
+
+/* 三角形アイコンを自作する場合（任意） */
+.gacha-details summary::before {
+    content: "🔍 ";
+}
+
+/* 開いている時の検索入力エリアの調整 */
+.gacha-details[open] .external-search-controls {
+    margin-top: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
