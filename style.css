@@ -319,3 +319,19 @@ label {
     background: transparent !important;
     border: none !important;
 }
+
+/* プルダウンメニューのデザイン */
+#stageType {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#stageType option {
+    background-color: #0a1931; /* 背景色に合わせる */
+    color: white;
+}
