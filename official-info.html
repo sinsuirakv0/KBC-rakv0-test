@@ -43,20 +43,23 @@
 </div>
 
     <hr>
-<div class="external-search-controls">
-        <h3>ガチャページ検索</h3>
+<details class="gacha-details">
+    <summary>ガチャページ検索</summary>
+    
+    <div class="external-search-controls">
         <div class="input-group">
             <span class="prefix">R</span>
             <input type="number" id="gachaNumber" value="1034" min="1" max="2000">
             <button onclick="updateGachaIframe()">表示を更新</button>
         </div>
     </div>
+</details>
 
-    <section class="gacha-section">
-        <div class="iframe-wrapper gacha-view">
-            <iframe id="gachaIframe" src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1034.html" frameborder="0"></iframe>
-        </div>
-    </section>
+<section class="gacha-section">
+    <div class="iframe-wrapper gacha-view">
+        <iframe id="gachaIframe" src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1034.html" frameborder="0"></iframe>
+    </div>
+</section>
 </main>
 </div> 
   <script>
