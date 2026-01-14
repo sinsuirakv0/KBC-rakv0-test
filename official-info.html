@@ -90,7 +90,7 @@
             </div>
             <section class="gacha-section">
                 <div class="iframe-wrapper gacha-view">
-                    <iframe id="stageIframe" src="javascript:setCurrentStageIndex(120);for(let i = 0; i < 120; i++){enableData('stage'+i+'_enemy_list');enableData('stage'+i+'_enemy_list_1');enableData('stage'+i+'_no_continue');};https://ponosgames.com/information/appli/battlecats/stage/ND000.html" frameborder="0"></iframe>
+                    <iframe id="stageIframe" src="https://ponosgames.com/information/appli/battlecats/stage/ND000.html" frameborder="0"></iframe>
                 </div>
             </section>
         </div>
@@ -108,7 +108,7 @@ function updateStageIframe() {
     const numStr = num.toString().padStart(3, '0');
     
     // URLを組み立て
-    const newUrl = `javascript:setCurrentStageIndex(120);for(let i = 0; i < 120; i++){enableData('stage'+i+'_enemy_list');enableData('stage'+i+'_enemy_list_1');enableData('stage'+i+'_no_continue');};https://ponosgames.com/information/appli/battlecats/stage/${type}${numStr}.html`;
+    const newUrl = `https://ponosgames.com/information/appli/battlecats/stage/${type}${numStr}.html`;
     
     console.log("ステージURL生成:", newUrl);
     
