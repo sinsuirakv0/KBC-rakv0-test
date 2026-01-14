@@ -63,13 +63,68 @@
                     frameborder="0">
                 </iframe>
             </div>
+
+          <hr>
+
+<details class="gacha-details">
+    <summary>ステージ情報を表示する</summary>
+    
+    <div class="gacha-container-inner">
+        <div class="external-search-controls">
+            <div class="input-group">
+                <select id="stageType">
+                    <option value="S">S イベントステージ</option>
+                    <option value="A">A 強襲</option>
+                    <option value="C">C コラボ</option>
+                    <option value="CA">CA コラボ強襲</option>
+                    <option value="N">N 旧レジェ</option>
+                    <option value="NA">NA 真レジェ</option>
+                    <option value="ND" selected>ND 0レジェ</option>
+                    <option value="H">H 地図</option>
+                    <option value="V">V 塔</option>
+                    <option value="R">R 道場</option>
+                    <option value="Q">Q 超獣</option>
+                    <option value="SR">SR スペシャルルール</option>
+                </select>
+
+                <input type="number" id="stageNumber" value="0" min="0" max="999" style="width: 80px;">
+                
+                <button onclick="updateStageIframe()">ステージページ表示</button>
+            </div>
+        </div>
+
+        <section class="gacha-section">
+            <div class="iframe-wrapper gacha-view">
+                <iframe 
+                    id="stageIframe" 
+                    src="https://ponosgames.com/information/appli/battlecats/stage/ND000.html" 
+                    frameborder="0">
+                </iframe>
+            </div>
         </section>
     </div>
 </details>
 </main>
 </div> 
   <script>
-
+function updateStageIframe() {
+    // 選択されたカテゴリ（S, NA, NDなど）を取得
+    const type = document.getElementById('stageType').value;
+    // 入力された数値を取得
+    const num = document.getElementById('stageNumber').value;
+    
+    // 数字を必ず3桁の文字列に変換（例: 1 -> 001, 99 -> 099）
+    const numStr = num.toString().padStart(3, '0');
+    
+    // URLを組み立て
+    const newUrl = `https://ponosgames.com/information/appli/battlecats/stage/${type}${numStr}.html`;
+    
+    console.log("ステージURL生成:", newUrl);
+    
+    // iframeを更新
+    document.getElementById('stageIframe').src = newUrl;
+}
+    
   function updateLang(langCode) {
     const iframe = document.getElementById('announcementIframe');
     // 現在のURLを取得
