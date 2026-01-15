@@ -1,10 +1,7 @@
-/* * KBC DatFileCrypter - Logic Pro (Layout Optimized)
- * 依存関係: CryptoJS (MD5, AES, enc-Utf8, lib-WordArray, mode-ECB, pad-Pkcs7)
- */
+/* * KBC DatFileCrypter - Logic Pro (Enhanced with Edit & Re-Encrypt) */
 
 const KEY_BASE = "battlecats";
 
-// 特定のファイル名のマッピング定義
 const FILE_MAP = {
     "002a4b18244f32d7833fd81bc833b97f.dat": "sale.tsv",
     "09b1058188348630d98a08e0f731f6bd.dat": "gatya.tsv",
@@ -16,7 +13,6 @@ const FILE_MAP = {
     "ad.tsv": "523af537946b79c4f8369ed39ba78605.dat"
 };
 
-// 国別のソルト定義
 const SALTS = { 
     "jp": "battlecats", 
     "kr": "battlecatskr", 
@@ -24,17 +20,14 @@ const SALTS = {
     "tw": "battlecatstw" 
 };
 
-/**
- * 共通鍵の生成 (MD5ハッシュの先頭16文字を使用)
- */
+// 復号したテキストを保持するためのメモリ
+let previewMemory = {};
+
 function getSecretKey() {
     const hash = CryptoJS.MD5(KEY_BASE).toString();
     return CryptoJS.enc.Utf8.parse(hash.substring(0, 16));
 }
 
-/**
- * CryptoJSのWordArrayをバイナリ(Uint8Array)に変換
- */
 function wordToUint8Array(wordArray) {
     const l = wordArray.sigBytes;
     const words = wordArray.words;
@@ -46,8 +39,7 @@ function wordToUint8Array(wordArray) {
 }
 
 /**
- * ファイルの一括処理（暗号化/復号）
- * @param {string} mode - 'encrypt' または 'decrypt'
+ * ファイルの一括処理
  */
 async function processAll(mode) {
     const fileInput = document.getElementById('fileInput');
@@ -68,7 +60,6 @@ async function processAll(mode) {
             let outputName = FILE_MAP[file.name] || (mode === 'decrypt' ? file.name + ".tsv" : file.name + ".dat");
 
             if (mode === 'decrypt') {
-                // 復号処理: 末尾32バイト（署名）を除いた部分をAES復号
                 const encryptedSize = arrayBuffer.byteLength - 32;
                 if (encryptedSize <= 0) throw new Error("File too small");
                 const encryptedPart = CryptoJS.lib.WordArray.create(arrayBuffer.slice(0, encryptedSize));
@@ -78,7 +69,6 @@ async function processAll(mode) {
                 });
                 resultUint8 = wordToUint8Array(decrypted);
             } else {
-                // 暗号化処理: AES暗号化後、ソルトを用いたMD5署名を末尾に付与
                 const wordArrays = CryptoJS.lib.WordArray.create(arrayBuffer);
                 const encrypted = CryptoJS.AES.encrypt(wordArrays, key, { 
                     mode: CryptoJS.mode.ECB, 
@@ -93,13 +83,13 @@ async function processAll(mode) {
             addResultRow(file.name, outputName, resultUint8, mode);
         } catch (e) {
             console.error("Processing error:", e);
-            alert(`${file.name} の処理に失敗しました。ファイル形式やモードを確認してください。`);
+            alert(`${file.name} の処理に失敗しました。`);
         }
     }
 }
 
 /**
- * 結果リストに行を追加 (三点リーダー省略レイアウト対応)
+ * 結果リストに行を追加
  */
 function addResultRow(oldName, newName, uint8Data, mode) {
     const tbody = document.getElementById('resultList');
@@ -110,12 +100,13 @@ function addResultRow(oldName, newName, uint8Data, mode) {
     let actionButtons = "";
     if (mode === 'decrypt') {
         try {
-            // テキストとしてデコードし、Base64で一時保存（特殊文字対策）
+            // テキストをメモリに保存（引数での破壊を防止）
             const textContent = new TextDecoder().decode(uint8Data);
-            const safeText = btoa(unescape(encodeURIComponent(textContent))); 
+            previewMemory[newName] = textContent;
+
             actionButtons = `
-                <button class="btn-action view" onclick="showPreview('${newName}', '${safeText}')">表示</button>
-                <button class="btn-action copy" onclick="copyFromBase64('${safeText}')">コピー</button>
+                <button class="btn-action view" onclick="initPreview('${newName}')">表示</button>
+                <button class="btn-action copy" onclick="copyFromMemory('${newName}')">コピー</button>
             `;
         } catch (e) {
             actionButtons = `<span class="muted" style="font-size:10px;">プレビュー不可</span>`;
@@ -135,141 +126,95 @@ function addResultRow(oldName, newName, uint8Data, mode) {
 }
 
 /**
- * プレビューエリアに内容を表示
+ * プレビュー表示（初期化）
  */
-function showPreview(name, base64Content) {
+let currentEditingKey = "";
+function initPreview(name) {
+    currentEditingKey = name;
     const container = document.getElementById('previewContainer');
     const area = document.getElementById('previewArea');
-    const content = decodeURIComponent(escape(atob(base64Content)));
-    
+    const editBtn = document.getElementById('editToggleBtn');
+    const saveBtn = document.getElementById('reEncryptBtn');
+
+    // 状態をリセット
+    area.readOnly = true;
+    area.value = previewMemory[name];
+    area.style.background = "transparent";
+    if (editBtn) editBtn.textContent = "編集する";
+    if (saveBtn) saveBtn.style.display = "none";
+
     document.getElementById('previewTitle').textContent = `Preview: ${name}`;
     container.style.display = 'block';
-    area.value = content;
     container.scrollIntoView({ behavior: 'smooth' });
 }
 
 /**
- * 内容をクリップボードにコピー
- */
-function copyFromBase64(base64Content) {
-    const content = decodeURIComponent(escape(atob(base64Content)));
-    navigator.clipboard.writeText(content).then(() => {
-        alert("クリップボードにコピーしました");
-    }).catch(err => {
-        alert("コピーに失敗しました: " + err);
-    });
-}
-
-/**
- * 初期化処理
- */
-window.addEventListener('DOMContentLoaded', () => {
-    // ボタン等への動的なイベント割り当てが必要な場合はここに記述
-});
-
-// 現在プレビューしているファイル名を保持する変数
-let currentPreviewFileName = "";
-
-/**
- * プレビューを表示（既存の関数を少し拡張）
- */
-function showPreview(name, content) {
-    currentPreviewFileName = name; // 元のファイル名を記憶
-    const container = document.getElementById('previewContainer');
-    const area = document.getElementById('previewArea');
-    const title = document.getElementById('previewTitle');
-    
-    // 編集モードをリセット
-    area.readOnly = true;
-    document.getElementById('editStatus').style.display = 'none';
-    document.getElementById('reEncryptBtn').style.display = 'none';
-    document.getElementById('editToggleBtn').textContent = "編集する";
-    
-    container.style.display = 'block';
-    title.textContent = `内容プレビュー: ${name}`;
-    area.value = content;
-    container.scrollIntoView({ behavior: 'smooth' });
-}
-
-/**
- * 編集モードの切り替え
+ * プレビュー内の編集モード切り替え
  */
 function toggleEditMode() {
     const area = document.getElementById('previewArea');
-    const status = document.getElementById('editStatus');
-    const reEncryptBtn = document.getElementById('reEncryptBtn');
-    const toggleBtn = document.getElementById('editToggleBtn');
+    const editBtn = document.getElementById('editToggleBtn');
+    const saveBtn = document.getElementById('reEncryptBtn');
 
     if (area.readOnly) {
-        // 編集開始
         area.readOnly = false;
-        area.style.background = "rgba(255,255,255,0.05)"; // 編集中の見た目
-        status.style.display = 'inline';
-        reEncryptBtn.style.display = 'inline-block';
-        toggleBtn.textContent = "閲覧モードに戻る";
+        area.style.background = "rgba(255,255,255,0.05)";
+        editBtn.textContent = "戻る";
+        if (saveBtn) saveBtn.style.display = "inline-block";
     } else {
-        // 閲覧モードに戻る
         area.readOnly = true;
         area.style.background = "transparent";
-        status.style.display = 'none';
-        reEncryptBtn.style.display = 'none';
-        toggleBtn.textContent = "編集する";
+        editBtn.textContent = "編集する";
+        if (saveBtn) saveBtn.style.display = "none";
     }
 }
 
 /**
- * プレビュー内のテキストを再暗号化してダウンロード
+ * 編集されたテキストを再暗号化してダウンロード
  */
-async function saveAndReEncrypt() {
+function saveAndReEncrypt() {
     const content = document.getElementById('previewArea').value;
     const locale = document.getElementById('locale').value;
     
-    // 現在のファイル名が .tsv の場合、.dat に戻す名前を推測（または既存のFILE_MAPを利用）
-    let targetName = currentPreviewFileName;
-    if (targetName.endsWith('.tsv')) {
-        // FILE_MAPを逆引きするか、簡易的に置換
-        // ここでは FILE_MAP に定義されている前提、なければ拡張子変更
-        targetName = getOutputName(currentPreviewFileName); 
-    }
+    // 出力名の決定 (sale.tsv -> 002a...dat)
+    let targetName = FILE_MAP[currentEditingKey] || currentEditingKey.replace(".tsv", ".dat");
+    if (!targetName.endsWith(".dat")) targetName += ".dat";
 
-    if (!confirm(`${targetName} として再暗号化してダウンロードしますか？`)) return;
+    if (!confirm(`${targetName} として再暗号化して保存しますか？`)) return;
 
     try {
-        // テキストをUint8Arrayに変換
         const uint8Data = new TextEncoder().encode(content);
-        
-        // 暗号化処理 (既存の暗号化ロジックを流用)
-        // keyの生成などは既存の processAll 内にあるものと同じロジックを使ってください
-        const key = getSecretKey(); // あなたのコードにある関数
+        const key = getSecretKey();
         const wordArrays = CryptoJS.lib.WordArray.create(uint8Data);
-        const encrypted = CryptoJS.AES.encrypt(wordArrays, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-        });
         
+        const encrypted = CryptoJS.AES.encrypt(wordArrays, key, { 
+            mode: CryptoJS.mode.ECB, 
+            padding: CryptoJS.pad.Pkcs7 
+        });
+
         const salt = SALTS[locale] || "battlecats";
         const saltWords = CryptoJS.enc.Utf8.parse(salt);
         const hash = CryptoJS.MD5(saltWords.concat(encrypted.ciphertext)).toString();
         const finalData = encrypted.ciphertext.concat(CryptoJS.enc.Utf8.parse(hash));
         
-        const resultUint8 = wordToUint8Array(finalData); // WordArray変換関数
-        const blob = new Blob([resultUint8], { type: "application/octet-stream" });
+        const resultUint8 = wordToUint8Array(finalData);
+        const blob = new Blob([resultUint8], { type: 'application/octet-stream' });
         
-        // ダウンロード実行
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = targetName;
         a.click();
-        URL.revokeObjectURL(url);
-        
-        alert("再暗号化が完了しました。");
     } catch (e) {
-        console.error(e);
-        alert("再暗号化に失敗しました。");
+        alert("再暗号化エラー: " + e.message);
     }
 }
 
-function closePreview() {
-    document.getElementById('previewContainer').style.display = 'none';
+function copyFromMemory(name) {
+    const content = previewMemory[name];
+    navigator.clipboard.writeText(content).then(() => {
+        alert("コピーしました");
+    }).catch(err => {
+        alert("コピー失敗: " + err);
+    });
 }
