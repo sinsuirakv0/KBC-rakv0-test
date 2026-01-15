@@ -167,3 +167,109 @@ window.addEventListener('DOMContentLoaded', () => {
     // ボタン等への動的なイベント割り当てが必要な場合はここに記述
 });
 
+// 現在プレビューしているファイル名を保持する変数
+let currentPreviewFileName = "";
+
+/**
+ * プレビューを表示（既存の関数を少し拡張）
+ */
+function showPreview(name, content) {
+    currentPreviewFileName = name; // 元のファイル名を記憶
+    const container = document.getElementById('previewContainer');
+    const area = document.getElementById('previewArea');
+    const title = document.getElementById('previewTitle');
+    
+    // 編集モードをリセット
+    area.readOnly = true;
+    document.getElementById('editStatus').style.display = 'none';
+    document.getElementById('reEncryptBtn').style.display = 'none';
+    document.getElementById('editToggleBtn').textContent = "編集する";
+    
+    container.style.display = 'block';
+    title.textContent = `内容プレビュー: ${name}`;
+    area.value = content;
+    container.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * 編集モードの切り替え
+ */
+function toggleEditMode() {
+    const area = document.getElementById('previewArea');
+    const status = document.getElementById('editStatus');
+    const reEncryptBtn = document.getElementById('reEncryptBtn');
+    const toggleBtn = document.getElementById('editToggleBtn');
+
+    if (area.readOnly) {
+        // 編集開始
+        area.readOnly = false;
+        area.style.background = "rgba(255,255,255,0.05)"; // 編集中の見た目
+        status.style.display = 'inline';
+        reEncryptBtn.style.display = 'inline-block';
+        toggleBtn.textContent = "閲覧モードに戻る";
+    } else {
+        // 閲覧モードに戻る
+        area.readOnly = true;
+        area.style.background = "transparent";
+        status.style.display = 'none';
+        reEncryptBtn.style.display = 'none';
+        toggleBtn.textContent = "編集する";
+    }
+}
+
+/**
+ * プレビュー内のテキストを再暗号化してダウンロード
+ */
+async function saveAndReEncrypt() {
+    const content = document.getElementById('previewArea').value;
+    const locale = document.getElementById('locale').value;
+    
+    // 現在のファイル名が .tsv の場合、.dat に戻す名前を推測（または既存のFILE_MAPを利用）
+    let targetName = currentPreviewFileName;
+    if (targetName.endsWith('.tsv')) {
+        // FILE_MAPを逆引きするか、簡易的に置換
+        // ここでは FILE_MAP に定義されている前提、なければ拡張子変更
+        targetName = getOutputName(currentPreviewFileName); 
+    }
+
+    if (!confirm(`${targetName} として再暗号化してダウンロードしますか？`)) return;
+
+    try {
+        // テキストをUint8Arrayに変換
+        const uint8Data = new TextEncoder().encode(content);
+        
+        // 暗号化処理 (既存の暗号化ロジックを流用)
+        // keyの生成などは既存の processAll 内にあるものと同じロジックを使ってください
+        const key = getSecretKey(); // あなたのコードにある関数
+        const wordArrays = CryptoJS.lib.WordArray.create(uint8Data);
+        const encrypted = CryptoJS.AES.encrypt(wordArrays, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        
+        const salt = SALTS[locale] || "battlecats";
+        const saltWords = CryptoJS.enc.Utf8.parse(salt);
+        const hash = CryptoJS.MD5(saltWords.concat(encrypted.ciphertext)).toString();
+        const finalData = encrypted.ciphertext.concat(CryptoJS.enc.Utf8.parse(hash));
+        
+        const resultUint8 = wordToUint8Array(finalData); // WordArray変換関数
+        const blob = new Blob([resultUint8], { type: "application/octet-stream" });
+        
+        // ダウンロード実行
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = targetName;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert("再暗号化が完了しました。");
+    } catch (e) {
+        console.error(e);
+        alert("再暗号化に失敗しました。");
+    }
+}
+
+function closePreview() {
+    document.getElementById('previewContainer').style.display = 'none';
+}
