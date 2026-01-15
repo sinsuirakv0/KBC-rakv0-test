@@ -182,12 +182,19 @@
       </div>
 
       <div id="previewContainer">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span id="previewTitle" class="muted" style="font-size:12px;">プレビューエリア</span>
-          <button onclick="document.getElementById('previewContainer').style.display='none'" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px;">&times;</button>
-        </div>
-        <textarea id="previewArea" readonly spellcheck="false"></textarea>
-      </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+    <div>
+      <span id="previewTitle" class="muted" style="font-size:12px;">プレビューエリア</span>
+      <span id="editStatus" style="font-size:10px; color:var(--accent); margin-left:10px; display:none;">● 編集モード</span>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button id="editToggleBtn" class="btn-action view" onclick="toggleEditMode()" style="margin:0;">編集する</button>
+      <button id="reEncryptBtn" class="btn-action" style="background:var(--accent); display:none; margin:0;" onclick="saveAndReEncrypt()">編集内容を暗号化して保存</button>
+      <button onclick="closePreview()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1;">&times;</button>
+    </div>
+  </div>
+  <textarea id="previewArea" readonly spellcheck="false" placeholder="ここにファイルの内容が表示されます"></textarea>
+</div>
     </section>
 
     <footer>
