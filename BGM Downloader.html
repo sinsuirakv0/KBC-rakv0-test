@@ -6,40 +6,25 @@
   <title>BGM Library - KBC</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* 追加の簡易スタイル（style.cssに統合推奨） */
-    .tab-container {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+    /* スクリーンショットに近いダークなスタイル */
+    .bgm-list { list-style: none; padding: 0; margin: 0; background: #1a1a2e; border-radius: 8px; }
+    .bgm-item {
+      display: flex; align-items: center; padding: 12px 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .tab-button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background: #eee;
-      cursor: pointer;
-      font-weight: bold;
+    .bgm-icon {
+      width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px; display: flex; align-items: center;
+      justify-content: center; margin-right: 15px; color: #fff;
     }
-    .tab-button.active {
-      background: #f39800; /* にゃんこっぽいオレンジ */
-      color: white;
-    }
-    .audio-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    .play-btn {
-      background: #007bff;
-      color: white;
-      text-decoration: none;
-      padding: 5px 12px;
-      border-radius: 4px;
-      font-size: 0.8em;
-    }
+    .bgm-info { flex-grow: 1; display: flex; flex-direction: column; }
+    .bgm-title { font-size: 0.95rem; font-weight: bold; color: #ffffff; }
+    .bgm-meta { font-size: 0.75rem; color: #999; }
+    .bgm-actions { display: flex; gap: 15px; align-items: center; }
+    .action-link { color: #ffffff; text-decoration: none; opacity: 0.7; transition: 0.2s; cursor: pointer; }
+    .action-link:hover { opacity: 1; color: #f39800; }
   </style>
 </head>
 <body class="fade-in">
@@ -50,68 +35,57 @@
         <img src="logo.png" alt="ロゴ" id="logo" style="cursor: pointer;" onclick="location.href='index.html'"> 
         <h1 class="site-title">KBC Music</h1>
       </div>
-      <nav class="nav">
-        <a href="index.html">Home</a>
-        <a href="bgm-list.html" class="active">BGM Library</a>
-      </nav>
     </header>
 
-    <div class="tab-container">
-      <button class="tab-button active" onclick="showSection('all-bgm')">BGM一覧</button>
-      <button class="tab-button" onclick="showSection('playlists')">プレイリスト</button>
-    </div>
-
-    <div class="grid">
-      <section id="all-bgm" class="card">
-        <div class="card-header">
-          <h3>全BGMリスト</h3>
-          <span class="tag">Tracks</span>
-        </div>
-        <ul class="links">
-          <li class="audio-item">
-            <span>01. 日本侵略！</span>
-            <a href="player.html?id=01" class="play-btn">再生</a>
-          </li>
-          <li class="audio-item">
-            <span>02. 集まれ！にゃんこ軍団</span>
-            <a href="player.html?id=02" class="play-btn">再生</a>
-          </li>
-          <li class="audio-item">
-            <span>03. 狂乱のステージ</span>
-            <a href="player.html?id=03" class="play-btn">再生</a>
-          </li>
-        </ul>
-      </section>
-
-      <section id="playlists" class="card" style="display:none;">
-        <div class="card-header">
-          <h3>テーマ別プレイリスト</h3>
-          <span class="tag">Album</span>
-        </div>
-        <ul class="links">
-          <li><a href="player.html?playlist=eoc">日本編・未来編・宇宙編メドレー</a></li>
-          <li><a href="player.html?playlist=boss">歴代ボス戦BGM集</a></li>
-          <li><a href="player.html?playlist=collabo">期間限定コラボ曲</a></li>
-        </ul>
-      </section>
-    </div>
+    <section class="card">
+      <div class="card-header">
+        <h3 id="track-count">BGMリスト (Loading...)</h3>
+        <span class="tag">OGG Library</span>
+      </div>
+      
+      <ul id="music-list" class="bgm-list"></ul>
+    </section>
   </div>
 
   <script>
-    function showSection(sectionId) {
-      // 両方のセクションを隠す
-      document.getElementById('all-bgm').style.display = 'none';
-      document.getElementById('playlists').style.display = 'none';
-      
-      // 選択されたセクションを表示
-      document.getElementById(sectionId).style.display = 'block';
+    // 180曲のデータをここに配列として定義します
+    const musicData = [
+      { id: "001", title: "The Wrath of God in All its Fury", file: "bgm001.ogg", time: "03:40" },
+      { id: "002", title: "From Beethoven 9_Evangelion_3.0", file: "bgm002.ogg", time: "02:56" },
+      { id: "003", title: "Beautiful World", file: "bgm003.ogg", time: "05:02" },
+      // ... ここに180曲分追加していく
+    ];
 
-      // ボタンのActive状態を切り替え
-      const buttons = document.querySelectorAll('.tab-button');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+    const listContainer = document.getElementById('music-list');
+    const countText = document.getElementById('track-count');
+
+    function renderList() {
+      countText.innerText = `BGMリスト (${musicData.length}曲)`;
+      
+      musicData.forEach(track => {
+        const li = document.createElement('li');
+        li.className = 'bgm-item';
+        li.innerHTML = `
+          <div class="bgm-icon"><span class="material-icons">music_note</span></div>
+          <div class="bgm-info">
+            <span class="bgm-title">${track.title}</span>
+            <span class="bgm-meta">${track.time} <unknown></span>
+          </div>
+          <div class="bgm-actions">
+            <a href="player.html?file=${track.file}&title=${encodeURIComponent(track.title)}" class="action-link" title="再生">
+              <span class="material-icons">play_circle_outline</span>
+            </a>
+            <a href="audio/${track.file}" download="${track.title}.ogg" class="action-link" title="ダウンロード">
+              <span class="material-icons">file_download</span>
+            </a>
+          </div>
+        `;
+        listContainer.appendChild(li);
+      });
     }
+
+    // 実行
+    renderList();
   </script>
-  <script src="js/secret.js"></script>
 </body>
 </html>
