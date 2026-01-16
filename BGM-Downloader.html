@@ -88,6 +88,61 @@
     </section>
   </div>
 
+<div id="mini-player" class="mini-player" onclick="openFullPlayer()">
+  <img id="mini-album-art" src="logo.png" alt="">
+  <div class="mini-info">
+    <div id="mini-title">未選択</div>
+    <div id="mini-artist">にゃんこ大戦争</div>
+  </div>
+  <div class="mini-controls">
+    <button onclick="event.stopPropagation(); togglePlay();"><span class="material-icons" id="mini-play-icon">play_arrow</span></button>
+  </div>
+</div>
+
+<div id="full-player" class="full-player">
+  <div class="player-header">
+    <span class="material-icons" onclick="closeFullPlayer()">expand_more</span>
+    <span id="player-track-index">#0/180</span>
+    <span class="material-icons">more_vert</span>
+  </div>
+
+  <div class="player-main">
+    <div class="album-art-circle">
+      <span class="material-icons" style="font-size: 80px; color: #fff;">music_note</span>
+    </div>
+    
+    <div class="track-details">
+      <h2 id="player-title">曲を選択してください</h2>
+      <p id="player-artist">Unknown</p>
+    </div>
+
+    <div class="sub-controls">
+      <button onclick="setTimer()"><span class="material-icons">timer</span></button>
+      <button onclick="toggleFavorite()"><span class="material-icons" id="fav-icon">favorite_border</span></button>
+      <button onclick="addToPlaylist()"><span class="material-icons">playlist_add</span></button>
+      <button><span class="material-icons">volume_up</span></button>
+    </div>
+
+    <div class="seek-container">
+      <span id="current-time">00:00</span>
+      <input type="range" id="seek-bar" value="0" max="100">
+      <span id="duration-time">00:00</span>
+    </div>
+
+    <div class="main-controls">
+      <button id="shuffle-btn"><span class="material-icons">shuffle</span></button>
+      <button id="prev-btn"><span class="material-icons">skip_previous</span></button>
+      <button id="play-pause-btn" class="play-main-btn" onclick="togglePlay()">
+        <span class="material-icons" id="main-play-icon">play_arrow</span>
+      </button>
+      <button id="next-btn"><span class="material-icons">skip_next</span></button>
+      <button id="repeat-btn"><span class="material-icons">repeat</span></button>
+    </div>
+  </div>
+</div>
+
+<audio id="main-audio"></audio>
+  
   <script>
     // 【ここを編集】180曲分、番号と曲名、時間を追加していきます
     const tracks = [
@@ -126,5 +181,6 @@
       listContainer.appendChild(li);
     });
   </script>
+  
 </body>
 </html>
