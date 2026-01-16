@@ -8,23 +8,63 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* スクリーンショットに近いダークなスタイル */
-    .bgm-list { list-style: none; padding: 0; margin: 0; background: #1a1a2e; border-radius: 8px; }
+    /* 全体背景とリストのスタイル */
+    body { background-color: #12122b; color: white; }
+    .bgm-list { list-style: none; padding: 0; margin: 0; }
+    
     .bgm-item {
-      display: flex; align-items: center; padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 15px;
     }
-    .bgm-icon {
-      width: 40px; height: 40px; background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px; display: flex; align-items: center;
-      justify-content: center; margin-right: 15px; color: #fff;
+
+    /* 番号部分 */
+    .bgm-number {
+      font-family: monospace;
+      color: #999;
+      width: 30px;
+      font-size: 0.9rem;
     }
-    .bgm-info { flex-grow: 1; display: flex; flex-direction: column; }
-    .bgm-title { font-size: 0.95rem; font-weight: bold; color: #ffffff; }
-    .bgm-meta { font-size: 0.75rem; color: #999; }
-    .bgm-actions { display: flex; gap: 15px; align-items: center; }
-    .action-link { color: #ffffff; text-decoration: none; opacity: 0.7; transition: 0.2s; cursor: pointer; }
-    .action-link:hover { opacity: 1; color: #f39800; }
+
+    /* 曲情報（メイン） */
+    .bgm-info {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bgm-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #eee;
+    }
+
+    .bgm-time {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    /* アクションボタン */
+    .bgm-actions {
+      display: flex;
+      gap: 20px;
+    }
+
+    .action-btn {
+      color: #fff;
+      text-decoration: none;
+      opacity: 0.6;
+      transition: 0.2s;
+    }
+
+    .action-btn:hover {
+      opacity: 1;
+      color: #f39800; /* にゃんこオレンジ */
+    }
+
+    .material-icons { font-size: 24px; }
   </style>
 </head>
 <body class="fade-in">
@@ -39,53 +79,52 @@
 
     <section class="card">
       <div class="card-header">
-        <h3 id="track-count">BGMリスト (Loading...)</h3>
-        <span class="tag">OGG Library</span>
+        <h3 id="counter">BGM Library</h3>
+        <span class="tag">OGG format</span>
       </div>
       
-      <ul id="music-list" class="bgm-list"></ul>
+      <ul id="music-list" class="bgm-list">
+        </ul>
     </section>
   </div>
 
   <script>
-    // 180曲のデータをここに配列として定義します
-    const musicData = [
-      { id: "001", title: "The Wrath of God in All its Fury", file: "bgm001.ogg", time: "03:40" },
-      { id: "002", title: "From Beethoven 9_Evangelion_3.0", file: "bgm002.ogg", time: "02:56" },
-      { id: "003", title: "Beautiful World", file: "bgm003.ogg", time: "05:02" },
-      // ... ここに180曲分追加していく
+    // 【ここを編集】180曲分、番号と曲名、時間を追加していきます
+    const tracks = [
+      { id: "000", title: "日本侵略！", time: "02:15" },
+      { id: "001", title: "集まれ！にゃんこ軍団", time: "01:45" },
+      { id: "002", title: "チャレンジステージ", time: "02:30" },
+      { id: "003", title: "狂乱のテーマ", time: "03:10" },
+      // ... 180番まで続く
     ];
 
     const listContainer = document.getElementById('music-list');
-    const countText = document.getElementById('track-count');
+    document.getElementById('counter').innerText = `BGM Library (${tracks.length}曲)`;
 
-    function renderList() {
-      countText.innerText = `BGMリスト (${musicData.length}曲)`;
+    tracks.forEach(track => {
+      const li = document.createElement('li');
+      li.className = 'bgm-item';
       
-      musicData.forEach(track => {
-        const li = document.createElement('li');
-        li.className = 'bgm-item';
-        li.innerHTML = `
-          <div class="bgm-icon"><span class="material-icons">music_note</span></div>
-          <div class="bgm-info">
-            <span class="bgm-title">${track.title}</span>
-            <span class="bgm-meta">${track.time} <unknown></span>
-          </div>
-          <div class="bgm-actions">
-            <a href="player.html?file=${track.file}&title=${encodeURIComponent(track.title)}" class="action-link" title="再生">
-              <span class="material-icons">play_circle_outline</span>
-            </a>
-            <a href="audio/${track.file}" download="${track.title}.ogg" class="action-link" title="ダウンロード">
-              <span class="material-icons">file_download</span>
-            </a>
-          </div>
-        `;
-        listContainer.appendChild(li);
-      });
-    }
+      // Oggファイルへのパス（audioフォルダ内を想定）
+      const filePath = `audio/${track.id}.ogg`;
 
-    // 実行
-    renderList();
+      li.innerHTML = `
+        <div class="bgm-number">${track.id}</div>
+        <div class="bgm-info">
+          <span class="bgm-title">${track.title}</span>
+          <span class="bgm-time">${track.time}</span>
+        </div>
+        <div class="bgm-actions">
+          <a href="player.html?id=${track.id}" class="action-btn" title="再生">
+            <span class="material-icons">play_arrow</span>
+          </a>
+          <a href="${filePath}" download="${track.id}_${track.title}.ogg" class="action-btn" title="ダウンロード">
+            <span class="material-icons">download</span>
+          </a>
+        </div>
+      `;
+      listContainer.appendChild(li);
+    });
   </script>
 </body>
 </html>
