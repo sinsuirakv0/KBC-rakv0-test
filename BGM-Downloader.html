@@ -7,65 +7,6 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    /* 全体背景とリストのスタイル */
-    body { background-color: #12122b; color: white; }
-    .bgm-list { list-style: none; padding: 0; margin: 0; }
-    
-    .bgm-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 15px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      gap: 15px;
-    }
-
-    /* 番号部分 */
-    .bgm-number {
-      font-family: monospace;
-      color: #999;
-      width: 30px;
-      font-size: 0.9rem;
-    }
-
-    /* 曲情報（メイン） */
-    .bgm-info {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .bgm-title {
-      font-size: 1rem;
-      font-weight: bold;
-      color: #eee;
-    }
-
-    .bgm-time {
-      font-size: 0.8rem;
-      color: #888;
-    }
-
-    /* アクションボタン */
-    .bgm-actions {
-      display: flex;
-      gap: 20px;
-    }
-
-    .action-btn {
-      color: #fff;
-      text-decoration: none;
-      opacity: 0.6;
-      transition: 0.2s;
-    }
-
-    .action-btn:hover {
-      opacity: 1;
-      color: #f39800; /* にゃんこオレンジ */
-    }
-
-    .material-icons { font-size: 24px; }
-  </style>
 </head>
 <body class="fade-in">
 
@@ -79,144 +20,59 @@
 
     <section class="card">
       <div class="card-header">
-        <h3 id="counter">BGM Library</h3>
-        <span class="tag">OGG format</span>
+        <h3 id="track-count">BGMリスト</h3>
+        <span class="tag">OGG Library</span>
       </div>
-      
       <ul id="music-list" class="bgm-list">
         </ul>
     </section>
   </div>
 
-<div id="mini-player" class="mini-player" onclick="openFullPlayer()">
-  <img id="mini-album-art" src="logo.png" alt="">
-  <div class="mini-info">
-    <div id="mini-title">未選択</div>
-    <div id="mini-artist">にゃんこ大戦争</div>
-  </div>
-  <div class="mini-controls">
-    <button onclick="event.stopPropagation(); togglePlay();"><span class="material-icons" id="mini-play-icon">play_arrow</span></button>
-  </div>
-</div>
-
-<div id="full-player" class="full-player">
-  <div class="player-header">
-    <span class="material-icons" onclick="closeFullPlayer()">expand_more</span>
-    <span id="player-track-index">#0/180</span>
-    <span class="material-icons">more_vert</span>
-  </div>
-
-  <div class="player-main">
-    <div class="album-art-circle">
-      <span class="material-icons" style="font-size: 80px; color: #fff;">music_note</span>
+  <div id="mini-player" class="mini-player">
+    <img id="mini-album-art" src="logo.png">
+    <div class="mini-info">
+      <div id="mini-title">未選択</div>
+      <div id="mini-artist">にゃんこ大戦争</div>
     </div>
-    
-    <div class="track-details">
-      <h2 id="player-title">曲を選択してください</h2>
-      <p id="player-artist">Unknown</p>
-    </div>
-
-    <div class="sub-controls">
-      <button onclick="setTimer()"><span class="material-icons">timer</span></button>
-      <button onclick="toggleFavorite()"><span class="material-icons" id="fav-icon">favorite_border</span></button>
-      <button onclick="addToPlaylist()"><span class="material-icons">playlist_add</span></button>
-      <button><span class="material-icons">volume_up</span></button>
-    </div>
-
-    <div class="seek-container">
-      <span id="current-time">00:00</span>
-      <input type="range" id="seek-bar" value="0" max="100">
-      <span id="duration-time">00:00</span>
-    </div>
-
-    <div class="main-controls">
-      <button id="shuffle-btn"><span class="material-icons">shuffle</span></button>
-      <button id="prev-btn"><span class="material-icons">skip_previous</span></button>
-      <button id="play-pause-btn" class="play-main-btn" onclick="togglePlay()">
-        <span class="material-icons" id="main-play-icon">play_arrow</span>
-      </button>
-      <button id="next-btn"><span class="material-icons">skip_next</span></button>
-      <button id="repeat-btn"><span class="material-icons">repeat</span></button>
+    <div class="mini-controls">
+      <button id="mini-play-btn"><span class="material-icons">play_arrow</span></button>
     </div>
   </div>
-</div>
 
-<audio id="main-audio"></audio>
-  
-  <script>
-    // 【ここを編集】180曲分、番号と曲名、時間を追加していきます
-    const tracks = [
-      { id: "000", title: "日本侵略！", time: "02:15" },
-      { id: "001", title: "集まれ！にゃんこ軍団", time: "01:45" },
-      { id: "002", title: "チャレンジステージ", time: "02:30" },
-      { id: "003", title: "狂乱のテーマ", time: "03:10" },
-      // ... 180番まで続く
-    ];
+  <div id="full-player" class="full-player">
+    <div class="player-header">
+      <span class="material-icons" id="close-player">expand_more</span>
+      <span id="player-track-index">#0/0</span>
+      <span class="material-icons">more_vert</span>
+    </div>
+    <div class="player-main">
+      <div class="album-art-circle"><span class="material-icons" style="font-size: 80px;">music_note</span></div>
+      <div class="track-details">
+        <h2 id="player-title">曲を選択してください</h2>
+        <p id="player-artist">Unknown</p>
+      </div>
+      <div class="sub-controls">
+        <button id="timer-btn"><span class="material-icons">timer</span></button>
+        <button id="fav-btn"><span class="material-icons">favorite_border</span></button>
+        <button id="add-playlist-btn"><span class="material-icons">playlist_add</span></button>
+        <button><span class="material-icons">volume_up</span></button>
+      </div>
+      <div class="seek-container">
+        <span id="current-time">00:00</span>
+        <input type="range" id="seek-bar" value="0" step="1" min="0" max="100">
+        <span id="duration-time">00:00</span>
+      </div>
+      <div class="main-controls">
+        <button id="shuffle-btn"><span class="material-icons">shuffle</span></button>
+        <button id="prev-btn"><span class="material-icons">skip_previous</span></button>
+        <button id="main-play-btn" class="play-main-btn"><span class="material-icons">play_arrow</span></button>
+        <button id="next-btn"><span class="material-icons">skip_next</span></button>
+        <button id="repeat-btn"><span class="material-icons">repeat</span></button>
+      </div>
+    </div>
+  </div>
 
-    const listContainer = document.getElementById('music-list');
-    document.getElementById('counter').innerText = `BGM Library (${tracks.length}曲)`;
-
-    tracks.forEach(track => {
-      const li = document.createElement('li');
-      li.className = 'bgm-item';
-      
-      // Oggファイルへのパス（audioフォルダ内を想定）
-      const filePath = `audio/${track.id}.ogg`;
-
-      li.innerHTML = `
-        <div class="bgm-number">${track.id}</div>
-        <div class="bgm-info">
-          <span class="bgm-title">${track.title}</span>
-          <span class="bgm-time">${track.time}</span>
-        </div>
-        <div class="bgm-actions">
-          <a href="player.html?id=${track.id}" class="action-btn" title="再生">
-            <span class="material-icons">play_arrow</span>
-          </a>
-          <a href="${filePath}" download="${track.id}_${track.title}.ogg" class="action-btn" title="ダウンロード">
-            <span class="material-icons">download</span>
-          </a>
-        </div>
-      `;
-      listContainer.appendChild(li);
-    });
-
-    let audio = document.getElementById('main-audio');
-let sleepTimer = null;
-
-// お気に入り切り替え
-function toggleFavorite() {
-  const currentTitle = document.getElementById('player-title').innerText;
-  let favorites = JSON.parse(localStorage.getItem('kbc_favs')) || [];
-
-  if (favorites.includes(currentTitle)) {
-    favorites = favorites.filter(t => t !== currentTitle);
-    document.getElementById('fav-icon').innerText = 'favorite_border';
-  } else {
-    favorites.push(currentTitle);
-    document.getElementById('fav-icon').innerText = 'favorite';
-  }
-  localStorage.setItem('kbc_favs', JSON.stringify(favorites));
-}
-
-// タイマー設定 (例: 15分後に停止)
-function setTimer() {
-  const minutes = prompt("何分後に停止しますか？", "15");
-  if (minutes) {
-    if (sleepTimer) clearTimeout(sleepTimer);
-    const ms = parseInt(minutes) * 60 * 1000;
-    sleepTimer = setTimeout(() => {
-      audio.pause();
-      alert("タイマーにより再生を停止しました");
-    }, ms);
-    alert(`${minutes}分後に停止予約しました`);
-  }
-}
-
-// フルプレイヤー開閉
-function openFullPlayer() { document.getElementById('full-player').classList.add('active'); }
-function closeFullPlayer() { document.getElementById('full-player').classList.remove('active'); }
-  </script>
-  
+  <audio id="main-audio"></audio>
+  <script src="js/player.js"></script>
 </body>
 </html>
