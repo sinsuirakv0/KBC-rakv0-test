@@ -180,6 +180,42 @@
       `;
       listContainer.appendChild(li);
     });
+
+    let audio = document.getElementById('main-audio');
+let sleepTimer = null;
+
+// お気に入り切り替え
+function toggleFavorite() {
+  const currentTitle = document.getElementById('player-title').innerText;
+  let favorites = JSON.parse(localStorage.getItem('kbc_favs')) || [];
+
+  if (favorites.includes(currentTitle)) {
+    favorites = favorites.filter(t => t !== currentTitle);
+    document.getElementById('fav-icon').innerText = 'favorite_border';
+  } else {
+    favorites.push(currentTitle);
+    document.getElementById('fav-icon').innerText = 'favorite';
+  }
+  localStorage.setItem('kbc_favs', JSON.stringify(favorites));
+}
+
+// タイマー設定 (例: 15分後に停止)
+function setTimer() {
+  const minutes = prompt("何分後に停止しますか？", "15");
+  if (minutes) {
+    if (sleepTimer) clearTimeout(sleepTimer);
+    const ms = parseInt(minutes) * 60 * 1000;
+    sleepTimer = setTimeout(() => {
+      audio.pause();
+      alert("タイマーにより再生を停止しました");
+    }, ms);
+    alert(`${minutes}分後に停止予約しました`);
+  }
+}
+
+// フルプレイヤー開閉
+function openFullPlayer() { document.getElementById('full-player').classList.add('active'); }
+function closeFullPlayer() { document.getElementById('full-player').classList.remove('active'); }
   </script>
   
 </body>
