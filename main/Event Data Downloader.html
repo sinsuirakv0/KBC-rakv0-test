@@ -2,38 +2,155 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>にゃんこイベントデータ取得</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBC EventData Viewer</title>
+
+  <script src="../js/ogp-loader.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    select, button { font-size: 16px; padding: 8px; margin-right: 10px; }
-    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+    .config-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+      gap: 15px; 
+      margin-bottom: 20px; 
+    }
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    .input-group label { font-size: 12px; color: var(--muted); }
+
+    .btn-main-group { display: flex; gap: 10px; margin: 20px 0; }
+    .btn-main { 
+      flex: 1; 
+      height: 50px; 
+      border-radius: 8px; 
+      border: none; 
+      font-weight: bold; 
+      cursor: pointer; 
+      color: white; 
+      transition: 0.2s; 
+      font-size: 16px;
+    }
+    .btn-main.view { background: #28a745; }
+    .btn-main.download { background: var(--accent); }
+    .btn-main:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+    #previewContainer { 
+      margin-top: 20px; 
+      padding: 15px; 
+      background: rgba(0,0,0,0.2); 
+      border-radius: 10px; 
+      border: 1px solid var(--border); 
+      display: none; 
+    }
+    #previewArea { 
+      width: 100%; 
+      height: 350px; 
+      background: transparent; 
+      color: var(--text); 
+      border: 1px solid var(--border); 
+      border-radius: 5px; 
+      padding: 10px; 
+      font-family: monospace; 
+      font-size: 12px; 
+      margin-top: 10px; 
+      resize: vertical; 
+      outline: none;
+    }
   </style>
 </head>
-<body>
 
-  <h1>にゃんこ大戦争 イベントデータ取得</h1>
+<body class="fade-in">
 
-  <label>取得するデータ：</label>
-  <select id="fileType">
-    <option value="gatya">gatya.tsv（ガチャ）</option>
-    <option value="sale">sale.tsv（セール）</option>
-    <option value="item">item.tsv（アイテム）</option>
-  </select>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <img src="../assets/logo.png" alt="Logo" id="logo">
+        <h1 class="site-title">KBC</h1>
+      </div>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../secret/index.html">secret home</a>
+      </nav>
+    </header>
 
-  <br><br>
+    <section class="card">
+      <h2 style="margin:0 0 10px;">EventData Viewer</h2>
+      <p class="muted">gatya / sale / item の TSV を取得して表示します。</p>
 
-  <button onclick="fetchData()">内容を表示</button>
-  <button onclick="downloadTSV()">TSV をダウンロード</button>
+      <div class="config-grid">
+        <div class="input-group">
+          <label>取得するデータ</label>
+          <select id="fileType" class="blue-input">
+            <option value="gatya">gatya.tsv（ガチャ）</option>
+            <option value="sale">sale.tsv（セール）</option>
+            <option value="item">item.tsv（アイテム）</option>
+          </select>
+        </div>
+      </div>
 
-  <h2>結果</h2>
-  <pre id="output"></pre>
+      <div class="btn-main-group">
+        <button class="btn-main view" onclick="fetchData()">内容を表示</button>
+        <button class="btn-main download" onclick="downloadTSV()">TSV をダウンロード</button>
+      </div>
+
+      <div id="previewContainer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+          <span id="previewTitle" class="muted" style="font-size:12px;">プレビューエリア</span>
+          <button onclick="closePreview()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1;">&times;</button>
+        </div>
+        <textarea id="previewArea" readonly spellcheck="false"></textarea>
+      </div>
+
+    </section>
+
+    <footer>
+      <p></p>
+    </footer>
+  </div>
 
   <script>
-    let lastTSV = ""; // 取得したTSVを保存しておく
+    let lastTSV = "";
 
-    // 内容を表示
     async function fetchData() {
       const type = document.getElementById("fileType").value;
+      const preview = document.getElementById("previewArea");
+      const container = document.getElementById("previewContainer");
+
+      preview.value = "取得中…";
+      container.style.display = "block";
+
+      const res = await fetch(`../api/getData?type=${type}`);
+      const text = await res.text();
+
+      lastTSV = text;
+      preview.value = text;
+    }
+
+    function downloadTSV() {
+      if (!lastTSV) {
+        alert("先に『内容を表示』でデータを取得してください。");
+        return;
+      }
+
+      const type = document.getElementById("fileType").value;
+      const blob = new Blob([lastTSV], { type: "text/tab-separated-values" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}.tsv`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function closePreview() {
+      document.getElementById("previewContainer").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>
       const output = document.getElementById("output");
       output.textContent = "取得中…";
 
