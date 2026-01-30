@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KBC World Time</title>
-  <script src="js/ogp-loader.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <script src="../js/ogp-loader.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
     /* ページ固有の高度なスタイル */
@@ -30,11 +30,11 @@
   <div class="container">
     <header class="header">
       <div class="header-left">
-        <img src="logo.png" alt="ロゴ" id="logo">
+        <img src="../assets/logo.png" alt="ロゴ" id="logo">
         <h1 class="site-title">KBC</h1>
       </div>
       <nav class="nav">
-        <a href="index.html">Home</a>
+        <a href="../index.html">Home</a>
       </nav>
     </header>
 
@@ -69,7 +69,7 @@
       </div>
 
       <div class="card" style="grid-column: span 1;">
-        <h3>Custom Cards</h3>
+        <h3>カスタムカード</h3>
         <div id="changeablesContainer"></div>
         <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
           <button id="addCard" class="btn-action">＋ 追加</button>
@@ -85,7 +85,7 @@
       </div>
 
       <div class="card">
-        <h3>Timezone Selector</h3>
+        <h3>タイムゾーンセレクター</h3>
         <input id="tzSearch" placeholder="都市・地域を検索..." style="width:100%; margin-bottom:10px;">
         <div class="tz-list" id="tzList"></div>
       </div>
@@ -95,8 +95,8 @@
     </footer>
   </div>
 
-  <script src="js/tz-logic.js"></script>
-  <script src="secret.js"></script>
+  <script src="../js/tz-logic.js"></script>
+
 </body>
 </html>
 
