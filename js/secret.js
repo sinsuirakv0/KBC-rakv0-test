@@ -175,7 +175,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 showMsg("認証成功！移動します…", true);
                 setTimeout(() => {
                     closeOverlay();
-                    window.location.href = "secret-index.html";
+                    window.location.href = "secret/index.html";
                 }, 600);
             } else {
                 showMsg("コードが違いますよ笑。");
