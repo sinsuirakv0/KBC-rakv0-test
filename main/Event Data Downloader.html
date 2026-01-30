@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>にゃんこイベントデータ取得</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    select, button { font-size: 16px; padding: 8px; }
+    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h1>にゃんこ大戦争 イベントデータ取得</h1>
+
+  <label>取得するデータ：</label>
+  <select id="fileType">
+    <option value="gatya">gatya.tsv（ガチャ）</option>
+    <option value="sale">sale.tsv（セール）</option>
+    <option value="item">item.tsv（アイテム）</option>
+  </select>
+
+  <br><br>
+
+  <button onclick="fetchData()">取得する</button>
+
+  <h2>結果</h2>
+  <pre id="output"></pre>
+
+  <script>
+    async function fetchData() {
+      const type = document.getElementById("fileType").value;
+      const output = document.getElementById("output");
+      output.textContent = "取得中…";
+
+      const res = await fetch(`../api/getData?type=${type}`);
+      const text = await res.text();
+
+      output.textContent = text;
+    }
+  </script>
+
+</body>
+</html>
