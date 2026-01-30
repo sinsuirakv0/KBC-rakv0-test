@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KBC Gacha Info Editor</title>
-  <script src="js/ogp-loader.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <script src="../js/ogp-loader.js"></script>
+  <link rel="stylesheet" href="../assets/style.css">
   <style>
     /* ページ固有の調整 */
     textarea { width: 100%; min-height: 150px; font-family: monospace; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; margin-top: 10px; }
@@ -22,11 +22,11 @@
   <div class="container">
     <header class="header">
       <div class="header-left">
-        <img src="logo.png" alt="ロゴ" id="logo">
+        <img src="../assets/logo.png" alt="ロゴ" id="logo">
         <h1 class="site-title">KBC</h1>
       </div>
       <nav class="nav">
-        <a href="index.html">Home</a>
+        <a href="../index.html">Home</a>
       </nav>
     </header>
 
@@ -35,7 +35,7 @@
       <p class="muted">Rare: 69.7%... などのデータを貼り付けると即座に反映されます</p>
       <textarea id="inputText" placeholder="ここに貼り付け..."></textarea>
       <div style="margin-top:10px; display:flex; gap:10px;">
-        <button onclick="parseInput()" class="blue-input" style="background:var(--accent); color:white; border:none; cursor:pointer;">手動解析</button>
+        <button onclick="parseInput()" class="blue-input" style="background:var(--accent); color:white; border:none; cursor:pointer;">解析</button>
         <button onclick="clearAll()" class="blue-input" style="cursor:pointer;">クリア</button>
       </div>
     </section>
@@ -187,7 +187,6 @@
       renderAll();
     };
   </script>
-  <script src="secret.js"></script>
-</body>
+ </body>
 </html>
 
