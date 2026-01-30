@@ -1,5 +1,4 @@
-import { getJWT } from "../../jwt.js"; // さっき作った JWT 取得コード
-import fetch from "node-fetch";
+import { getJWT } from "../js/jwt.js";
 
 export default async function handler(req, res) {
   try {
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
     res.status(200).send(text);
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send("エラーが発生しました");
+    console.error("API ERROR:", err);
+    res.status(500).send("Internal Server Error: " + err.message);
   }
 }
