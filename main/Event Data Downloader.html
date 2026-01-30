@@ -5,7 +5,7 @@
   <title>にゃんこイベントデータ取得</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    select, button { font-size: 16px; padding: 8px; }
+    select, button { font-size: 16px; padding: 8px; margin-right: 10px; }
     pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
   </style>
 </head>
@@ -22,18 +22,50 @@
 
   <br><br>
 
-  <button onclick="fetchData()">取得する</button>
+  <button onclick="fetchData()">内容を表示</button>
+  <button onclick="downloadTSV()">TSV をダウンロード</button>
 
   <h2>結果</h2>
   <pre id="output"></pre>
 
   <script>
+    let lastTSV = ""; // 取得したTSVを保存しておく
+
+    // 内容を表示
     async function fetchData() {
       const type = document.getElementById("fileType").value;
       const output = document.getElementById("output");
       output.textContent = "取得中…";
 
-      const res = await fetch(`../api/getData?type=${type}`);
+      const res = await fetch(`/api/getData?type=${type}`);
+      const text = await res.text();
+
+      lastTSV = text; // 保存
+      output.textContent = text;
+    }
+
+    // TSV をダウンロード
+    function downloadTSV() {
+      if (!lastTSV) {
+        alert("先に『内容を表示』でデータを取得してください。");
+        return;
+      }
+
+      const type = document.getElementById("fileType").value;
+      const blob = new Blob([lastTSV], { type: "text/tab-separated-values" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}.tsv`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+  </script>
+
+</body>
+</html>
       const text = await res.text();
 
       output.textContent = text;
