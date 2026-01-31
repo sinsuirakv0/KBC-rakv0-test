@@ -3,9 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KBC グランドシミュレーター</title>
+  <title>KBC グランドアビスシミュレーター</title>
   <script src="../js/ogp-loader.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
+<link rel="icon" href="../assets/favicon.ico">
+<meta property="og:title" content="KBC グランドアビスシミュレーター">
+<meta property="og:description" content="残キャラ数と勝率から到達階層をシュミレーションします。">
+<meta property="og:image" content="../assets/preview.png">
+<meta property="og:url" content="https://kbc-rakv0.vercel.app/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KBC グランドアビスシミュレーター">
+<meta name="twitter:description" content="残キャラ数と勝率から到達階層をシュミレーションします。">
+<meta name="twitter:image" content="../assets/preview.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -34,6 +44,13 @@
       </nav>
     </header>
 
+   <div class="grid">
+      <section class="card" style="grid-column: 1 / -1;">
+        <h3>はじめに</h3>
+        <p class="muted">このページに使われているJava Scriptは友人のS氏が提供してくださいました。</p>
+        <p class="muted">大変感謝しております。</p>
+        <a href="https://labyrinth-simulation.vercel.app/" target="_blank" rel="noopener">S氏作成の本家アビスシュミレーター</a>
+    
     <div class="grid">
       <section class="card" style="grid-column: 1 / -1;">
         <h3>グランドアビス シミュレーター</h3>
