@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KBC アドレス計算機</title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/Address.css">
 <link rel="icon" href="../assets/favicon.ico">
 <meta property="og:title" content="KBC アドレス計算機">
 <meta property="og:description" content="HEXアドレスを計算します。">
@@ -15,30 +16,7 @@
 <meta name="twitter:title" content="KBC アドレス計算機">
 <meta name="twitter:description" content="HEXアドレスを計算します。">
 <meta name="twitter:image" content="../assets/preview.png">
-  
-  <style>
-    /* 固有の調整 */
-    .ac-header { margin-bottom: 20px; }
-    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    
-    label { display: block; margin-top: 15px; color: var(--muted); font-size: 13px; font-weight: 600; }
-    .blue-input { width: 100% !important; margin-top: 6px; font-family: monospace; }
 
-    .btn-group { display: flex; gap: 10px; margin-top: 25px; }
-    .btn-calc { flex: 1; height: 50px; cursor: pointer; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
-    .btn-calc:hover { filter: brightness(1.2); transform: translateY(-2px); }
-    .btn-calc.back { background: var(--glass); border: 1px solid var(--border); color: var(--text); }
-
-    #result {
-      margin-top: 25px; min-height: 80px; position: relative;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
-    }
-    .copy-btn {
-      position: absolute; top: 10px; right: 10px; padding: 4px 12px; font-size: 11px;
-      border-radius: 6px; background: rgba(255,255,255,0.1); color: var(--muted); border: none; cursor: pointer;
-    }
-  </style>
 </head>
 <body class="fade-in">
 
