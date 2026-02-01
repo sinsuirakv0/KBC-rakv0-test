@@ -6,6 +6,7 @@
   <title>KBC 缶効率計算機</title>
   <script src="../js/ogp-loader.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/CF-Calculator.css">
 <link rel="icon" href="../assets/favicon.ico">
 <meta property="og:title" content="KBC 缶効率計算機">
 <meta property="og:description" content="ネコカンの取得量から効率を計算します。用途は様々です。">
@@ -16,22 +17,7 @@
 <meta name="twitter:title" content="KBC 缶効率計算機">
 <meta name="twitter:description" content="ネコカンの取得量から効率を計算します。用途は様々です。">
 <meta name="twitter:image" content="../assets/preview.png">
-  <style>
-    /* 固有レイアウト：入力グリッド */
-    .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
-    .input-item { display: flex; flex-direction: column; gap: 4px; }
-    .input-item label { font-size: 12px; color: var(--muted); }
-    .blue-input { width: 100% !important; }
 
-    /* 電卓デザイン */
-    #calculator { display: none; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-top: 20px; border: 1px solid var(--border); max-width: 320px; margin-inline: auto; }
-    .calc-display { background: #000; color: var(--accent); font-size: 1.5rem; padding: 12px; border-radius: 6px; margin-bottom: 10px; text-align: right; font-family: monospace; border: 1px solid var(--border); min-height: 54px; }
-    .calc-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .calc-btns button { padding: 15px 0; font-size: 1.2rem; background: var(--glass); border: 1px solid var(--border); color: var(--text); border-radius: 6px; cursor: pointer; transition: 0.2s; }
-    .calc-btns button:active { background: var(--accent); transform: scale(0.95); }
-
-    .result-area { margin: 15px 0; padding: 15px; background: var(--glass); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; min-height: 100px; }
-  </style>
 </head>
 <body class="fade-in">
 
