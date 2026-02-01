@@ -6,6 +6,7 @@
   <title>KBC グランドアビスシミュレーター</title>
   <script src="../js/ogp-loader.js"></script>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="stylesheet" href="../assets/Labyrinth-Simulator.css">
 <link rel="icon" href="../assets/favicon.ico">
 <meta property="og:title" content="KBC グランドアビスシミュレーター">
 <meta property="og:description" content="残キャラ数と勝率から到達階層をシュミレーションします。">
@@ -17,19 +18,7 @@
 <meta name="twitter:description" content="残キャラ数と勝率から到達階層をシュミレーションします。">
 <meta name="twitter:image" content="../assets/preview.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .input-item { display: flex; flex-direction: column; gap: 4px; }
-    .input-item label { font-size: 12px; color: var(--muted); }
-    .blue-input { width: 100% !important; }
 
-    #summaryTable { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 20px; }
-    #summaryTable th, #summaryTable td { border-bottom: 1px solid var(--border); padding: 8px; text-align: center; }
-    #summaryTable th { color: var(--accent); background: rgba(255,255,255,0.02); }
-
-    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
-    #result { text-align: center; padding: 15px; background: var(--glass); border-radius: 8px; margin: 15px 0; }
-  </style>
 </head>
 <body class="fade-in">
 
