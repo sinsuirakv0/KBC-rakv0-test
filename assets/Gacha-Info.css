@@ -1,0 +1,7 @@
+    textarea { width: 100%; min-height: 150px; font-family: monospace; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .tab { padding: 8px 15px; background: var(--glass); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; color: var(--muted); }
+    .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .char-item { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; margin-bottom: 6px; }
+    .output-box { background: #000; color: #a7f3d0; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 8px; height: 200px; overflow-y: auto; border: 1px solid var(--border); white-space: pre-wrap; }
+    .btn-mini { padding: 4px 10px; cursor: pointer; background: var(--glass); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
