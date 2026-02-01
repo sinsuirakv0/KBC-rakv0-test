@@ -1,0 +1,6 @@
+    .sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; }
+    .out { font-family: monospace; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 14px; min-height: 40px; }
+    progress { width: 100%; height: 8px; border-radius: 4px; overflow: hidden; }
+    .small { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .controls { display: flex; gap: 8px; margin-top: 10px; }
+    .controls button { flex: 1; font-size: 12px; padding: 8px 4px; }
