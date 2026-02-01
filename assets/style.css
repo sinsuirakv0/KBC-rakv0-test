@@ -42,8 +42,8 @@ body {
 }
 
 #logo {
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 60px;
   border-radius: 8px;
   transition: transform 0.3s;
 }
