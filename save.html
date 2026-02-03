@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Save Upload & Download</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP"; padding: 24px; max-width: 900px; margin: auto; }
+    .box { border: 1px solid #ddd; padding: 16px; margin-bottom: 18px; border-radius: 8px; background:#fff; }
+    h1 { margin-bottom: 12px; }
+    label { display:block; margin:8px 0; }
+    button { padding: 8px 12px; margin-top:8px; }
+    pre { background:#f7f7f7; padding:8px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
+    .codes { margin-top:12px; padding:10px; background:#f0f8ff; border-radius:6px; }
+    .small { font-size:0.9rem; color:#555; }
+  </style>
+</head>
+<body>
+  <h1>Save Upload & Download</h1>
+
+  <div class="box" id="uploadBox">
+    <h2>Upload Save</h2>
+    <label>セーブファイルを選択
+      <input id="fileInput" type="file" accept=".sav,.bin,*/*" />
+    </label>
+    <button id="uploadBtn">Upload</button>
+    <div id="uploadStatus" class="small"></div>
+    <pre id="uploadResult"></pre>
+  </div>
+
+  <div class="box" id="downloadBox">
+    <h2>Download Save</h2>
+    <label>Transfer Code
+      <input id="transferCode" type="text" style="width:100%" />
+    </label>
+    <label>Confirmation Code (PIN)
+      <input id="pin" type="text" style="width:100%" />
+    </label>
+    <button id="downloadBtn">Download</button>
+    <div id="downloadStatus" class="small"></div>
+  </div>
+
+  <script>
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const uploadResult = document.getElementById('uploadResult');
+
+    const transferCodeInput = document.getElementById('transferCode');
+    const pinInput = document.getElementById('pin');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadStatus = document.getElementById('downloadStatus');
+
+    // Upload handler
+    uploadBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      uploadResult.textContent = '';
+      uploadStatus.textContent = '';
+
+      if (!file) {
+        uploadStatus.textContent = 'ファイルを選択してください';
+        return;
+      }
+
+      uploadStatus.textContent = 'Uploading...';
+
+      try {
+        const form = new FormData();
+        form.append('file', file, file.name);
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: form
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          uploadStatus.textContent = `Upload failed: ${res.status}`;
+          uploadResult.textContent = text;
+          return;
+        }
+
+        const json = await res.json();
+        uploadStatus.textContent = 'Upload succeeded';
+        uploadResult.textContent = JSON.stringify(json, null, 2);
+
+        // show codes in a friendly block
+        const codesBlock = document.createElement('div');
+        codesBlock.className = 'codes';
+        const transfer = json.transferCode || json.transfer_code || json.transfer || '';
+        const pin = json.pin || json.confirmationCode || json.confirmation_code || json.confirmation || '';
+        codesBlock.innerHTML = `<strong>Transfer Code</strong><div>${transfer}</div><strong>Confirmation Code</strong><div>${pin}</div>`;
+        uploadResult.appendChild(document.createElement('hr'));
+        uploadResult.appendChild(codesBlock);
+
+        // autofill download inputs
+        if (transfer) transferCodeInput.value = transfer;
+        if (pin) pinInput.value = pin;
+
+      } catch (err) {
+        uploadStatus.textContent = 'Upload error: ' + String(err);
+      }
+    });
+
+    // Download handler
+    downloadBtn.addEventListener('click', async () => {
+      const transferCode = transferCodeInput.value.trim();
+      const pin = pinInput.value.trim();
+      downloadStatus.textContent = '';
+
+      if (!transferCode || !pin) {
+        downloadStatus.textContent = 'Transfer Code と Confirmation Code を入力してください';
+        return;
+      }
+
+      downloadStatus.textContent = 'Downloading...';
+
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transferCode, pin })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          downloadStatus.textContent = `Download failed: ${res.status}`;
+          console.error(text);
+          return;
+        }
+
+        const blob = await res.blob();
+        // Suggest filename using transferCode
+        const filename = `downloaded_save_${transferCode}.sav`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        downloadStatus.textContent = 'Download complete. ファイルを保存しました。';
+      } catch (err) {
+        downloadStatus.textContent = 'Download error: ' + String(err);
+      }
+    });
+
+    // Optional: keyboard shortcut to trigger upload (Ctrl+U)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
+        uploadBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
