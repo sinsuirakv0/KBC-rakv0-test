@@ -9,7 +9,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Vercel は通常 req.body をパース済みで渡すが、念のためチェック
     let body = req.body;
     if (!body || Object.keys(body).length === 0) {
       try {
@@ -43,7 +42,6 @@ export default async function handler(req, res) {
         return;
       }
       const savedPath = meta.savedPath;
-      // 存在確認
       await fs.access(savedPath);
       const stream = await fs.readFile(savedPath);
       res.setHeader('Content-Type', 'application/octet-stream');
@@ -55,4 +53,6 @@ export default async function handler(req, res) {
   } catch (e) {
     res.status(500).json({ error: 'server error', detail: String(e) });
   }
+}
+
 }
