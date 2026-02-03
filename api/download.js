@@ -1,3 +1,4 @@
+// api/download.js
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,9 +9,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { transferCode, pin } = req.body;
+    // Vercel は通常 req.body をパース済みで渡すが、念のためチェック
+    let body = req.body;
+    if (!body || Object.keys(body).length === 0) {
+      try {
+        const raw = await new Promise((resolve, reject) => {
+          let data = '';
+          req.on('data', chunk => data += chunk);
+          req.on('end', () => resolve(data));
+          req.on('error', reject);
+        });
+        body = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+
+    const transferCode = body.transferCode || body.transfer_code;
+    const pin = body.pin || body.confirmationCode || body.confirmation_code;
+
     if (!transferCode || !pin) {
-      res.status(400).json({ error: 'missing params' });
+      res.status(400).json({ error: 'missing params', received: body });
       return;
     }
 
@@ -19,11 +38,13 @@ export default async function handler(req, res) {
     try {
       const metaRaw = await fs.readFile(metaPath, 'utf8');
       const meta = JSON.parse(metaRaw);
-      if (meta.pin !== pin) {
+      if (meta.pin !== String(pin)) {
         res.status(403).json({ error: 'invalid pin' });
         return;
       }
       const savedPath = meta.savedPath;
+      // 存在確認
+      await fs.access(savedPath);
       const stream = await fs.readFile(savedPath);
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename="${meta.filename}"`);
