@@ -49,4 +49,11 @@ export default async function handler(req, res) {
     console.error(err);
     res.status(500).json({ error: 'proxy error', detail: String(err) });
   }
+
+  // 既存: setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
+
+// 修正: 現在の debug テキストを取得して結合してから setDebug に渡す
+const currentDebug = document.getElementById('debug').textContent || '';
+setDebug(currentDebug + `\n\nRESPONSE BODY:\n${txt}`);
+
 }
