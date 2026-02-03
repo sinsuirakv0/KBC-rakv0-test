@@ -57,17 +57,38 @@ export default async function handler(req, res) {
     // コピー（または rename でも可）
     await fs.copyFile(srcPath, dest);
 
-    // モック: transferCode と pin を生成して保存情報をメモリに保持する（簡易）
-    const transferCode = randomBytes(6).toString('hex');
-    const pin = (Math.floor(Math.random() * 9000) + 1000).toString();
+// 置き換え用コード（transferCode を 9 桁の数字、pin を 4 桁にする）
+import { randomInt } from 'crypto';
 
-    const savedPath = path.join(tmpDir, `${transferCode}.sav`);
-    await fs.copyFile(dest, savedPath);
-    const meta = { pin, filename: path.basename(dest), savedPath, createdAt: Date.now() };
-    await fs.writeFile(path.join(tmpDir, `${transferCode}.meta.json`), JSON.stringify(meta));
+// ...（前略）...
 
-    res.status(200).json({ transferCode, pin, message: 'mock upload ok' });
-  } catch (e) {
-    res.status(500).json({ error: 'save error', detail: String(e) });
-  }
+// モック: transferCode と pin を生成して保存情報をメモリに保持する（簡易）
+function make9DigitCode() {
+  // 0 から 999,999,999 の範囲で乱数を作り、9 桁にゼロ埋め
+  const n = randomInt(0, 1_000_000_000);
+  return String(n).padStart(9, '0');
+}
+
+function make4DigitPin() {
+  const n = randomInt(0, 10_000); // 0..9999
+  return String(n).padStart(4, '0');
+}
+
+const transferCode = make9DigitCode(); // 例: "012345678"
+const pin = make4DigitPin();           // 例: "8512"
+
+// 保存先ファイル名は transferCode を使う（既存のロジックと整合）
+const savedPath = path.join(tmpDir, `${transferCode}.sav`);
+await fs.copyFile(dest, savedPath);
+
+const meta = {
+  pin,
+  filename: path.basename(dest),
+  savedPath,
+  createdAt: Date.now()
+};
+await fs.writeFile(path.join(tmpDir, `${transferCode}.meta.json`), JSON.stringify(meta));
+
+res.status(200).json({ transferCode, pin, message: 'mock upload ok' });
+
 }
