@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Save Upload & Download</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP"; padding: 24px; max-width: 900px; margin: auto; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP"; padding: 24px; max-width: 900px; margin: auto; background:#fafafa; }
     .box { border: 1px solid #ddd; padding: 16px; margin-bottom: 18px; border-radius: 8px; background:#fff; }
     h1 { margin-bottom: 12px; }
     label { display:block; margin:8px 0; }
@@ -41,7 +41,6 @@
   </div>
 
   <script>
-    // Elements
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadStatus = document.getElementById('uploadStatus');
@@ -52,7 +51,6 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadStatus = document.getElementById('downloadStatus');
 
-    // Upload handler
     uploadBtn.addEventListener('click', async () => {
       const file = fileInput.files[0];
       uploadResult.textContent = '';
@@ -85,16 +83,14 @@
         uploadStatus.textContent = 'Upload succeeded';
         uploadResult.textContent = JSON.stringify(json, null, 2);
 
-        // show codes in a friendly block
         const codesBlock = document.createElement('div');
         codesBlock.className = 'codes';
-        const transfer = json.transferCode || json.transfer_code || json.transfer || '';
-        const pin = json.pin || json.confirmationCode || json.confirmation_code || json.confirmation || '';
+        const transfer = json.transferCode || '';
+        const pin = json.pin || '';
         codesBlock.innerHTML = `<strong>Transfer Code</strong><div>${transfer}</div><strong>Confirmation Code</strong><div>${pin}</div>`;
         uploadResult.appendChild(document.createElement('hr'));
         uploadResult.appendChild(codesBlock);
 
-        // autofill download inputs
         if (transfer) transferCodeInput.value = transfer;
         if (pin) pinInput.value = pin;
 
@@ -103,7 +99,6 @@
       }
     });
 
-    // Download handler
     downloadBtn.addEventListener('click', async () => {
       const transferCode = transferCodeInput.value.trim();
       const pin = pinInput.value.trim();
@@ -131,7 +126,6 @@
         }
 
         const blob = await res.blob();
-        // Suggest filename using transferCode
         const filename = `downloaded_save_${transferCode}.sav`;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -145,13 +139,6 @@
         downloadStatus.textContent = 'Download complete. ファイルを保存しました。';
       } catch (err) {
         downloadStatus.textContent = 'Download error: ' + String(err);
-      }
-    });
-
-    // Optional: keyboard shortcut to trigger upload (Ctrl+U)
-    window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
-        uploadBtn.click();
       }
     });
   </script>
