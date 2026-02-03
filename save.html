@@ -3,142 +3,160 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Save Upload & Download</title>
+  <title>Transfer Download</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP"; padding: 24px; max-width: 900px; margin: auto; background:#fafafa; }
-    .box { border: 1px solid #ddd; padding: 16px; margin-bottom: 18px; border-radius: 8px; background:#fff; }
-    h1 { margin-bottom: 12px; }
-    label { display:block; margin:8px 0; }
-    button { padding: 8px 12px; margin-top:8px; }
-    pre { background:#f7f7f7; padding:8px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
-    .codes { margin-top:12px; padding:10px; background:#f0f8ff; border-radius:6px; }
-    .small { font-size:0.9rem; color:#555; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP"; max-width:900px; margin:24px auto; background:#fafafa; color:#111; }
+    .card { background:#fff; border:1px solid #e6e6e6; padding:16px; border-radius:8px; margin-bottom:16px; }
+    label { display:block; margin:8px 0 4px; font-weight:600; }
+    input[type="text"], input[type="number"] { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; }
+    button { padding:8px 12px; margin-top:10px; border-radius:6px; cursor:pointer; }
+    .row { display:flex; gap:8px; }
+    .small { font-size:0.9rem; color:#555; margin-top:8px; }
+    pre { background:#f7f7f7; padding:8px; border-radius:6px; overflow:auto; }
   </style>
 </head>
 <body>
-  <h1>Save Upload & Download</h1>
+  <h1>Transfer Download</h1>
 
-  <div class="box" id="uploadBox">
-    <h2>Upload Save</h2>
-    <label>セーブファイルを選択
-      <input id="fileInput" type="file" accept=".sav,.bin,*/*" />
-    </label>
-    <button id="uploadBtn">Upload</button>
-    <div id="uploadStatus" class="small"></div>
-    <pre id="uploadResult"></pre>
-  </div>
+  <div class="card">
+    <label>Transfer Code (URL の最後の部分)</label>
+    <input id="transferCode" type="text" placeholder="例: f43cd95c3" />
 
-  <div class="box" id="downloadBox">
-    <h2>Download Save</h2>
-    <label>Transfer Code
-      <input id="transferCode" type="text" style="width:100%" />
-    </label>
-    <label>Confirmation Code (PIN)
-      <input id="pin" type="text" style="width:100%" />
-    </label>
-    <button id="downloadBtn">Download</button>
-    <div id="downloadStatus" class="small"></div>
+    <div class="row" style="margin-top:8px;">
+      <div style="flex:1">
+        <label>Pin (Confirmation Code)</label>
+        <input id="pin" type="text" placeholder="例: 0706" />
+      </div>
+      <div style="flex:1">
+        <label>countryCode</label>
+        <input id="countryCode" type="text" value="ja" />
+      </div>
+    </div>
+
+    <label style="margin-top:8px">version (game version number)</label>
+    <input id="version" type="number" value="150101" />
+
+    <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+      <button id="genNonce">Generate Nonce</button>
+      <input id="nonce" type="text" placeholder="nonce (hex)" style="flex:1" />
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="downloadBtn">Download</button>
+      <button id="clearBtn" style="background:#eee">Clear</button>
+    </div>
+
+    <div id="status" class="small"></div>
+    <pre id="debug" style="display:none"></pre>
   </div>
 
   <script>
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const uploadResult = document.getElementById('uploadResult');
+    // utils
+    function hexRandom(bytes = 16) {
+      const arr = new Uint8Array(bytes);
+      crypto.getRandomValues(arr);
+      return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
 
-    const transferCodeInput = document.getElementById('transferCode');
+    const transferInput = document.getElementById('transferCode');
     const pinInput = document.getElementById('pin');
+    const ccInput = document.getElementById('countryCode');
+    const verInput = document.getElementById('version');
+    const nonceInput = document.getElementById('nonce');
+    const genBtn = document.getElementById('genNonce');
     const downloadBtn = document.getElementById('downloadBtn');
-    const downloadStatus = document.getElementById('downloadStatus');
+    const clearBtn = document.getElementById('clearBtn');
+    const status = document.getElementById('status');
+    const debug = document.getElementById('debug');
 
-    uploadBtn.addEventListener('click', async () => {
-      const file = fileInput.files[0];
-      uploadResult.textContent = '';
-      uploadStatus.textContent = '';
+    genBtn.addEventListener('click', () => {
+      // 16 bytes -> 32 hex chars (safe)
+      nonceInput.value = hexRandom(16);
+    });
 
-      if (!file) {
-        uploadStatus.textContent = 'ファイルを選択してください';
-        return;
-      }
-
-      uploadStatus.textContent = 'Uploading...';
-
-      try {
-        const form = new FormData();
-        form.append('file', file, file.name);
-
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: form
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          uploadStatus.textContent = `Upload failed: ${res.status}`;
-          uploadResult.textContent = text;
-          return;
-        }
-
-        const json = await res.json();
-        uploadStatus.textContent = 'Upload succeeded';
-        uploadResult.textContent = JSON.stringify(json, null, 2);
-
-        const codesBlock = document.createElement('div');
-        codesBlock.className = 'codes';
-        const transfer = json.transferCode || '';
-        const pin = json.pin || '';
-        codesBlock.innerHTML = `<strong>Transfer Code</strong><div>${transfer}</div><strong>Confirmation Code</strong><div>${pin}</div>`;
-        uploadResult.appendChild(document.createElement('hr'));
-        uploadResult.appendChild(codesBlock);
-
-        if (transfer) transferCodeInput.value = transfer;
-        if (pin) pinInput.value = pin;
-
-      } catch (err) {
-        uploadStatus.textContent = 'Upload error: ' + String(err);
-      }
+    clearBtn.addEventListener('click', () => {
+      transferInput.value = '';
+      pinInput.value = '';
+      nonceInput.value = '';
+      status.textContent = '';
+      debug.style.display = 'none';
+      debug.textContent = '';
     });
 
     downloadBtn.addEventListener('click', async () => {
-      const transferCode = transferCodeInput.value.trim();
-      const pin = pinInput.value.trim();
-      downloadStatus.textContent = '';
+      status.textContent = '';
+      debug.style.display = 'none';
+      debug.textContent = '';
 
-      if (!transferCode || !pin) {
-        downloadStatus.textContent = 'Transfer Code と Confirmation Code を入力してください';
-        return;
-      }
+      const transfer = (transferInput.value || '').trim();
+      const pin = (pinInput.value || '').trim();
+      const countryCode = (ccInput.value || '').trim();
+      const version = Number(verInput.value || 0);
+      const nonce = (nonceInput.value || '').trim() || hexRandom(16);
 
-      downloadStatus.textContent = 'Downloading...';
+      if (!transfer) { status.textContent = 'Transfer Code を入力してください'; return; }
+      if (!pin) { status.textContent = 'Pin を入力してください'; return; }
+      if (!countryCode) { status.textContent = 'countryCode を入力してください'; return; }
+      if (!version) { status.textContent = 'version を入力してください'; return; }
+
+      const url = `https://nyanko-save.ponosgames.com/v2/transfers/${encodeURIComponent(transfer)}/reception`;
+
+      const payload = {
+        clientInfo: {
+          client: { countryCode: countryCode, version: version },
+          device: { model: "SM-G955F" },
+          os: { type: "android", version: "9" }
+        },
+        nonce: nonce,
+        pin: String(pin)
+      };
+
+      status.textContent = 'Requesting...';
 
       try {
-        const res = await fetch('/api/download', {
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transferCode, pin })
+          body: JSON.stringify(payload),
         });
 
+        // debug info (toggle)
+        debug.style.display = 'block';
+        debug.textContent = `REQUEST URL: ${url}\n\nREQUEST BODY:\n${JSON.stringify(payload,null,2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n`;
+        for (const [k,v] of res.headers.entries()) debug.textContent += `${k}: ${v}\n`;
+
         if (!res.ok) {
-          const text = await res.text();
-          downloadStatus.textContent = `Download failed: ${res.status}`;
-          console.error(text);
+          // try to read JSON error
+          let txt = await res.text();
+          status.textContent = `Failed: ${res.status}`;
+          debug.textContent += `\nRESPONSE BODY:\n${txt}`;
+          return;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/octet-stream')) {
+          const txt = await res.text();
+          status.textContent = 'Response is not binary (error)';
+          debug.textContent += `\nRESPONSE BODY:\n${txt}`;
           return;
         }
 
         const blob = await res.blob();
-        const filename = `downloaded_save_${transferCode}.sav`;
-        const url = URL.createObjectURL(blob);
+        const filename = `downloaded_${transfer}.sav`;
         const a = document.createElement('a');
-        a.href = url;
+        const urlBlob = URL.createObjectURL(blob);
+        a.href = urlBlob;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(urlBlob);
 
-        downloadStatus.textContent = 'Download complete. ファイルを保存しました。';
+        status.textContent = `Download complete: ${filename} (${blob.size} bytes)`;
       } catch (err) {
-        downloadStatus.textContent = 'Download error: ' + String(err);
+        status.textContent = 'Request error: ' + String(err);
+        debug.textContent += '\nERROR: ' + String(err);
+        debug.style.display = 'block';
       }
     });
   </script>
