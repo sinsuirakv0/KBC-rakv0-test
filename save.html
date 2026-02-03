@@ -50,115 +50,157 @@
     <pre id="debug" style="display:none"></pre>
   </div>
 
-  <script>
-    // utils
-    function hexRandom(bytes = 16) {
-      const arr = new Uint8Array(bytes);
-      crypto.getRandomValues(arr);
-      return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+<script>
+/* ユーティリティ: 安全な hex nonce を生成（16 バイト -> 32 hex） */
+function generateNonceHex(bytes = 16) {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* 入力を検証して正規化する */
+function collectAndValidateInputs() {
+  const transfer = (document.getElementById('transferCode').value || '').trim();
+  const pin = (document.getElementById('pin').value || '').trim();
+  const countryCode = (document.getElementById('countryCode').value || '').trim();
+  const versionRaw = (document.getElementById('version').value || '').trim();
+  const nonceField = (document.getElementById('nonce').value || '').trim();
+
+  const errors = [];
+  if (!transfer) errors.push('Transfer Code を入力してください');
+  if (!pin) errors.push('Pin を入力してください');
+  if (!countryCode) errors.push('countryCode を入力してください');
+  if (!versionRaw || isNaN(Number(versionRaw))) errors.push('version は数値で入力してください');
+
+  if (errors.length) return { ok: false, errors };
+
+  const version = Number(versionRaw);
+  const nonce = nonceField || generateNonceHex(16);
+
+  return {
+    ok: true,
+    data: { transfer, pin: String(pin), countryCode, version, nonce }
+  };
+}
+
+/* UI ヘルパー */
+function setStatus(text, isError = false) {
+  const s = document.getElementById('status');
+  s.textContent = text;
+  s.style.color = isError ? '#b00020' : '#0a6';
+}
+function setDebug(text) {
+  const d = document.getElementById('debug');
+  d.style.display = text ? 'block' : 'none';
+  d.textContent = text || '';
+}
+
+/* ダウンロード処理（プロキシ経由） */
+async function downloadViaProxy() {
+  // ボタン無効化
+  const btn = document.getElementById('downloadBtn');
+  btn.disabled = true;
+
+  try {
+    setStatus('入力を検証中...');
+    setDebug('');
+
+    const collected = collectAndValidateInputs();
+    if (!collected.ok) {
+      setStatus(collected.errors.join(' / '), true);
+      return;
+    }
+    const { transfer, pin, countryCode, version, nonce } = collected.data;
+
+    setStatus('リクエスト送信中...');
+    // プロキシ URL（環境に合わせて変更）
+    const proxyUrl = '/api/proxy';
+
+    const payload = {
+      clientInfo: {
+        client: { countryCode, version },
+        device: { model: "SM-G955F" },
+        os: { type: "android", version: "9" }
+      },
+      nonce,
+      pin: String(pin),
+      // 追加で transfer をプロキシ側に渡すために top-level に含める
+      transfer
+    };
+
+    // fetch（タイムアウトを自前で実装）
+    const controller = new AbortController();
+    const timeoutMs = 30_000; // 30秒
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+
+    setDebug(`REQUEST PAYLOAD:\n${JSON.stringify(payload, null, 2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n${[...res.headers.entries()].map(([k,v])=>`${k}: ${v}`).join('\n')}`);
+
+    if (!res.ok) {
+      const txt = await safeReadText(res);
+      setStatus(`失敗: ${res.status} ${res.statusText}`, true);
+      setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
+      return;
     }
 
-    const transferInput = document.getElementById('transferCode');
-    const pinInput = document.getElementById('pin');
-    const ccInput = document.getElementById('countryCode');
-    const verInput = document.getElementById('version');
-    const nonceInput = document.getElementById('nonce');
-    const genBtn = document.getElementById('genNonce');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const status = document.getElementById('status');
-    const debug = document.getElementById('debug');
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('application/octet-stream')) {
+      const txt = await safeReadText(res);
+      setStatus('レスポンスがバイナリではありません（エラー）', true);
+      setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
+      return;
+    }
 
-    genBtn.addEventListener('click', () => {
-      // 16 bytes -> 32 hex chars (safe)
-      nonceInput.value = hexRandom(16);
-    });
+    // バイナリを受け取ってダウンロード
+    const blob = await res.blob();
+    const filename = `downloaded_${transfer}.sav`;
+    triggerDownload(blob, filename);
+    setStatus(`ダウンロード完了: ${filename} (${blob.size} bytes)`);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      setStatus('タイムアウトしました（ネットワークが遅い可能性があります）', true);
+    } else {
+      setStatus('リクエストエラー: ' + String(err), true);
+    }
+    setDebug(String(err));
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-    clearBtn.addEventListener('click', () => {
-      transferInput.value = '';
-      pinInput.value = '';
-      nonceInput.value = '';
-      status.textContent = '';
-      debug.style.display = 'none';
-      debug.textContent = '';
-    });
+/* ヘルパー: レスポンスを安全にテキスト化 */
+async function safeReadText(response) {
+  try {
+    return await response.text();
+  } catch (e) {
+    return `<failed to read body: ${e}>`;
+  }
+}
 
-    downloadBtn.addEventListener('click', async () => {
-      status.textContent = '';
-      debug.style.display = 'none';
-      debug.textContent = '';
+/* ヘルパー: ブラウザでダウンロードをトリガー */
+function triggerDownload(blob, filename) {
+  const a = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
 
-      const transfer = (transferInput.value || '').trim();
-      const pin = (pinInput.value || '').trim();
-      const countryCode = (ccInput.value || '').trim();
-      const version = Number(verInput.value || 0);
-      const nonce = (nonceInput.value || '').trim() || hexRandom(16);
-
-      if (!transfer) { status.textContent = 'Transfer Code を入力してください'; return; }
-      if (!pin) { status.textContent = 'Pin を入力してください'; return; }
-      if (!countryCode) { status.textContent = 'countryCode を入力してください'; return; }
-      if (!version) { status.textContent = 'version を入力してください'; return; }
-
-      const url = `https://nyanko-save.ponosgames.com/v2/transfers/${encodeURIComponent(transfer)}/reception`;
-
-      const payload = {
-        clientInfo: {
-          client: { countryCode: countryCode, version: version },
-          device: { model: "SM-G955F" },
-          os: { type: "android", version: "9" }
-        },
-        nonce: nonce,
-        pin: String(pin)
-      };
-
-      status.textContent = 'Requesting...';
-
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        // debug info (toggle)
-        debug.style.display = 'block';
-        debug.textContent = `REQUEST URL: ${url}\n\nREQUEST BODY:\n${JSON.stringify(payload,null,2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n`;
-        for (const [k,v] of res.headers.entries()) debug.textContent += `${k}: ${v}\n`;
-
-        if (!res.ok) {
-          // try to read JSON error
-          let txt = await res.text();
-          status.textContent = `Failed: ${res.status}`;
-          debug.textContent += `\nRESPONSE BODY:\n${txt}`;
-          return;
-        }
-
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/octet-stream')) {
-          const txt = await res.text();
-          status.textContent = 'Response is not binary (error)';
-          debug.textContent += `\nRESPONSE BODY:\n${txt}`;
-          return;
-        }
-
-        const blob = await res.blob();
-        const filename = `downloaded_${transfer}.sav`;
-        const a = document.createElement('a');
-        const urlBlob = URL.createObjectURL(blob);
-        a.href = urlBlob;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(urlBlob);
-
-        status.textContent = `Download complete: ${filename} (${blob.size} bytes)`;
-      } catch (err) {
-        status.textContent = 'Request error: ' + String(err);
-        debug.textContent += '\nERROR: ' + String(err);
-        debug.style.display = 'block';
-      }
-    });
-  </script>
+/* イベントバインド（既存のボタン id に合わせる） */
+document.getElementById('downloadBtn').addEventListener('click', downloadViaProxy);
+document.getElementById('genNonce').addEventListener('click', () => {
+  document.getElementById('nonce').value = generateNonceHex(16);
+});
+</script>
 </body>
 </html>
