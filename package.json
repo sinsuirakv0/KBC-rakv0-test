@@ -1,6 +1,13 @@
 {
   "name": "save-prototype",
+  "type": "module",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node ./api/proxy.js"
+  },
   "dependencies": {
     "formidable": "^3.0.0"
   }
