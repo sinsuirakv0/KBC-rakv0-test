@@ -33,13 +33,8 @@
       </div>
     </div>
 
-    <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
-      <button id="genNonce">Generate Nonce</button>
-      <input id="nonce" type="text" placeholder="nonce (hex)" style="flex:1" />
-    </div>
-
-    <label style="margin-top:8px">version (game version number)</label>
-    <input id="version" type="number" value="150101" />
+    <label style="margin-top:8px">version (例: 15.1.1 または 15.0 または 150101)</label>
+    <input id="version" type="text" value="15.1.1" />
 
     <div style="display:flex; gap:8px; margin-top:12px;">
       <button id="downloadBtn">Download</button>
@@ -47,21 +42,50 @@
     </div>
 
     <div id="status" class="small"></div>
-    <pre id="debug?" style="display:none"></pre>
+    <pre id="debug" style="display:none"></pre>
   </div>
 
 <script>
-//hituyouninarukamo?
-//    <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
-//      <button id="genNonce">Generate Nonce</button>
-//      <input id="nonce" type="text" placeholder="nonce (hex)" style="flex:1" />
-//    </div>
-  
 /* ユーティリティ: 安全な hex nonce を生成（16 バイト -> 32 hex） */
 function generateNonceHex(bytes = 16) {
   const arr = new Uint8Array(bytes);
   crypto.getRandomValues(arr);
   return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* version をパースして数値 (例: 150101) を返す
+   - "15.1.1" -> 150101
+   - "15.0"   -> 150100
+   - "150101" -> 150101 (そのまま)
+   - 不正な場合は NaN を返す
+*/
+function parseVersionInput(vRaw) {
+  if (!vRaw && vRaw !== 0) return NaN;
+  const s = String(vRaw).trim();
+  // すでに 6 桁の数字ならそのまま
+  if (/^\d{6}$/.test(s)) return Number(s);
+
+  // ドット区切りなら major.minor.patch を 2 桁ずつにして結合
+  if (s.includes('.')) {
+    const parts = s.split('.').map(p => p.trim());
+    const major = parts[0] || '0';
+    const minor = parts[1] || '0';
+    const patch = parts[2] || '0';
+    // 各パートを整数化して 2 桁にパディング（上限は 99）
+    const pad2 = (n) => {
+      const num = Number(n) || 0;
+      if (num < 0) return '00';
+      if (num > 99) return String(num).slice(-2); // 100 -> "00" (防御的)
+      return String(num).padStart(2, '0');
+    };
+    const combined = `${String(Number(major)).padStart(2,'0')}${pad2(minor)}${pad2(patch)}`;
+    return Number(combined);
+  }
+
+  // 数字のみ（例: "150101" 以外の桁数）なら数値化して返す（検証は上位で）
+  if (/^\d+$/.test(s)) return Number(s);
+
+  return NaN;
 }
 
 /* 入力を検証して正規化する */
@@ -70,22 +94,23 @@ function collectAndValidateInputs() {
   const pin = (document.getElementById('pin').value || '').trim();
   const countryCode = (document.getElementById('countryCode').value || '').trim();
   const versionRaw = (document.getElementById('version').value || '').trim();
-  const nonceField = (document.getElementById('nonce').value || '').trim();
 
   const errors = [];
   if (!transfer) errors.push('Transfer Code を入力してください');
   if (!pin) errors.push('Pin を入力してください');
   if (!countryCode) errors.push('countryCode を入力してください');
-  if (!versionRaw || isNaN(Number(versionRaw))) errors.push('version は数値で入力してください');
+
+  const parsedVersion = parseVersionInput(versionRaw);
+  if (isNaN(parsedVersion)) errors.push('version を正しく入力してください（例: 15.1.1 または 15.0 または 150101）');
 
   if (errors.length) return { ok: false, errors };
 
-  const version = Number(versionRaw);
-  const nonce = nonceField || generateNonceHex(16);
+  // nonce はユーザー入力させず、ここで自動生成
+  const nonce = generateNonceHex(16);
 
   return {
     ok: true,
-    data: { transfer, pin: String(pin), countryCode, version, nonce }
+    data: { transfer, pin: String(pin), countryCode, version: parsedVersion, nonce }
   };
 }
 
@@ -128,21 +153,19 @@ async function downloadViaProxy() {
     setStatus('リクエスト送信中...');
     const proxyUrl = '/api/proxy';
 
-    // 変更後（トップレベルに countryCode と version を追加）
-const payload = {
-  clientInfo: {
-    client: { countryCode, version },
-    device: { model: "SM-G955F" },
-    os: { type: "android", version: "9" }
-  },
-  // ここを追加
-  countryCode: countryCode,
-  version: version,
-  nonce,
-  pin: String(pin),
-  transfer
-};
-
+    const payload = {
+      clientInfo: {
+        client: { countryCode, version },
+        device: { model: "SM-G955F" },
+        os: { type: "android", version: "9" }
+      },
+      // トップレベルにも明示的に入れておく（サーバー互換性のため）
+      countryCode: countryCode,
+      version: version,
+      nonce,
+      pin: String(pin),
+      transfer
+    };
 
     // fetch（タイムアウトを自前で実装）
     const controller = new AbortController();
@@ -216,13 +239,10 @@ function triggerDownload(blob, filename) {
 
 /* イベントバインド */
 document.getElementById('downloadBtn').addEventListener('click', downloadViaProxy);
-document.getElementById('genNonce').addEventListener('click', () => {
-  document.getElementById('nonce').value = generateNonceHex(16);
-});
 document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('transferCode').value = '';
   document.getElementById('pin').value = '';
-  document.getElementById('nonce').value = '';
+  document.getElementById('version').value = '';
   setStatus('');
   setDebug('', false);
 });
