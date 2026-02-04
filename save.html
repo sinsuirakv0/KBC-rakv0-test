@@ -1,251 +1,45 @@
 <!doctype html>
-<html lang="ja">
+<html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Transfer Download</title>
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP"; max-width:900px; margin:24px auto; background:#fafafa; color:#111; }
-    .card { background:#fff; border:1px solid #e6e6e6; padding:16px; border-radius:8px; margin-bottom:16px; }
-    label { display:block; margin:8px 0 4px; font-weight:600; }
-    input[type="text"], input[type="number"] { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; }
-    button { padding:8px 12px; margin-top:10px; border-radius:6px; cursor:pointer; }
-    .row { display:flex; gap:8px; }
-    .small { font-size:0.9rem; color:#555; margin-top:8px; }
-    pre { background:#f7f7f7; padding:8px; border-radius:6px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
-  </style>
+  <title>Save Upload</title>
 </head>
 <body>
-  <h1>Transfer Download</h1>
+  <h1>セーブファイル送信テスト</h1>
+  <form id="uploadForm">
+    <label>セーブファイル: <input type="file" id="file" name="file" /></label><br/>
+    <label>inquiryCode: <input type="text" id="inquiryCode" name="inquiryCode" /></label><br/>
+    <label>password: <input type="password" id="password" name="password" /></label><br/>
+    <label>playTime: <input type="number" id="playTime" name="playTime" value="0" /></label><br/>
+    <label>rank: <input type="number" id="rank" name="rank" value="0" /></label><br/>
+    <button type="submit">送信</button>
+  </form>
 
-  <div class="card">
-    <label>Transfer Code (URL の最後の部分)</label>
-    <input id="transferCode" type="text" placeholder="例: f43cd95c3" />
+  <pre id="result"></pre>
 
-    <div class="row" style="margin-top:8px;">
-      <div style="flex:1">
-        <label>Pin (Confirmation Code)</label>
-        <input id="pin" type="text" placeholder="例: 0706" />
-      </div>
-      <div style="flex:1">
-        <label>countryCode</label>
-        <input id="countryCode" type="text" value="ja" />
-      </div>
-    </div>
+  <script>
+    const form = document.getElementById("uploadForm");
+    const result = document.getElementById("result");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = document.getElementById("file").files[0];
+      if (!f) { result.textContent = "ファイルを選択してください"; return; }
+      const fd = new FormData();
+      fd.append("file", f);
+      fd.append("inquiryCode", document.getElementById("inquiryCode").value);
+      fd.append("password", document.getElementById("password").value);
+      fd.append("playTime", document.getElementById("playTime").value);
+      fd.append("rank", document.getElementById("rank").value);
 
-    <label style="margin-top:8px">version (例: 15.1.1 または 15.0 または 150101)</label>
-    <input id="version" type="text" value="15.1.1" />
-
-    <div style="display:flex; gap:8px; margin-top:12px;">
-      <button id="downloadBtn">Download</button>
-      <button id="clearBtn" style="background:#eee">Clear</button>
-    </div>
-
-    <div id="status" class="small"></div>
-    <pre id="debug" style="display:none"></pre>
-  </div>
-
-<script>
-/* ユーティリティ: 安全な hex nonce を生成（16 バイト -> 32 hex） */
-function generateNonceHex(bytes = 16) {
-  const arr = new Uint8Array(bytes);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/* version をパースして数値 (例: 150101) を返す
-   - "15.1.1" -> 150101
-   - "15.0"   -> 150100
-   - "150101" -> 150101 (そのまま)
-   - 不正な場合は NaN を返す
-*/
-function parseVersionInput(vRaw) {
-  if (!vRaw && vRaw !== 0) return NaN;
-  const s = String(vRaw).trim();
-  // すでに 6 桁の数字ならそのまま
-  if (/^\d{6}$/.test(s)) return Number(s);
-
-  // ドット区切りなら major.minor.patch を 2 桁ずつにして結合
-  if (s.includes('.')) {
-    const parts = s.split('.').map(p => p.trim());
-    const major = parts[0] || '0';
-    const minor = parts[1] || '0';
-    const patch = parts[2] || '0';
-    // 各パートを整数化して 2 桁にパディング（上限は 99）
-    const pad2 = (n) => {
-      const num = Number(n) || 0;
-      if (num < 0) return '00';
-      if (num > 99) return String(num).slice(-2); // 100 -> "00" (防御的)
-      return String(num).padStart(2, '0');
-    };
-    const combined = `${String(Number(major)).padStart(2,'0')}${pad2(minor)}${pad2(patch)}`;
-    return Number(combined);
-  }
-
-  // 数字のみ（例: "150101" 以外の桁数）なら数値化して返す（検証は上位で）
-  if (/^\d+$/.test(s)) return Number(s);
-
-  return NaN;
-}
-
-/* 入力を検証して正規化する */
-function collectAndValidateInputs() {
-  const transfer = (document.getElementById('transferCode').value || '').trim();
-  const pin = (document.getElementById('pin').value || '').trim();
-  const countryCode = (document.getElementById('countryCode').value || '').trim();
-  const versionRaw = (document.getElementById('version').value || '').trim();
-
-  const errors = [];
-  if (!transfer) errors.push('Transfer Code を入力してください');
-  if (!pin) errors.push('Pin を入力してください');
-  if (!countryCode) errors.push('countryCode を入力してください');
-
-  const parsedVersion = parseVersionInput(versionRaw);
-  if (isNaN(parsedVersion)) errors.push('version を正しく入力してください（例: 15.1.1 または 15.0 または 150101）');
-
-  if (errors.length) return { ok: false, errors };
-
-  // nonce はユーザー入力させず、ここで自動生成
-  const nonce = generateNonceHex(16);
-
-  return {
-    ok: true,
-    data: { transfer, pin: String(pin), countryCode, version: parsedVersion, nonce }
-  };
-}
-
-/* UI ヘルパー */
-function setStatus(text, isError = false) {
-  const s = document.getElementById('status');
-  s.textContent = text;
-  s.style.color = isError ? '#b00020' : '#0a6';
-}
-
-/* デバッグ表示ユーティリティ（append オプションあり） */
-function setDebug(text, append = false) {
-  const d = document.getElementById('debug');
-  if (!d) return;
-  if (append) {
-    d.textContent = (d.textContent || '') + text;
-  } else {
-    d.textContent = text || '';
-  }
-  d.style.display = d.textContent ? 'block' : 'none';
-}
-
-/* ダウンロード処理（プロキシ経由） */
-async function downloadViaProxy() {
-  const btn = document.getElementById('downloadBtn');
-  btn.disabled = true;
-
-  try {
-    setStatus('入力を検証中...');
-    setDebug('', false);
-
-    const collected = collectAndValidateInputs();
-    if (!collected.ok) {
-      setStatus(collected.errors.join(' / '), true);
-      btn.disabled = false;
-      return;
-    }
-    const { transfer, pin, countryCode, version, nonce } = collected.data;
-
-    setStatus('リクエスト送信中...');
-    const proxyUrl = '/api/proxy';
-
-    const payload = {
-      clientInfo: {
-        client: { countryCode, version },
-        device: { model: "SM-G955F" },
-        os: { type: "android", version: "9" }
-      },
-      // トップレベルにも明示的に入れておく（サーバー互換性のため）
-      countryCode: countryCode,
-      version: version,
-      nonce,
-      pin: String(pin),
-      transfer
-    };
-
-    // fetch（タイムアウトを自前で実装）
-    const controller = new AbortController();
-    const timeoutMs = 30_000; // 30秒
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-    const res = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller.signal
+      result.textContent = "送信中...";
+      try {
+        const resp = await fetch("/api/upload", { method: "POST", body: fd });
+        const json = await resp.json();
+        result.textContent = JSON.stringify(json, null, 2);
+      } catch (err) {
+        result.textContent = "エラー: " + err;
+      }
     });
-    clearTimeout(timeout);
-
-    setDebug(`REQUEST PAYLOAD:\n${JSON.stringify(payload, null, 2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n${[...res.headers.entries()].map(([k,v])=>`${k}: ${v}`).join('\n')}`, false);
-
-    if (!res.ok) {
-      const txt = await safeReadText(res);
-      setStatus(`失敗: ${res.status} ${res.statusText}`, true);
-      setDebug(`\n\nRESPONSE BODY:\n${txt}`, true);
-      btn.disabled = false;
-      return;
-    }
-
-    const contentType = (res.headers.get('content-type') || '').toLowerCase();
-    if (!contentType.includes('application/octet-stream')) {
-      const txt = await safeReadText(res);
-      setStatus('レスポンスがバイナリではありません（エラー）', true);
-      setDebug(`\n\nRESPONSE BODY:\n${txt}`, true);
-      btn.disabled = false;
-      return;
-    }
-
-    // バイナリを受け取ってダウンロード
-    const blob = await res.blob();
-    const filename = `downloaded_${transfer}.sav`;
-    triggerDownload(blob, filename);
-    setStatus(`ダウンロード完了: ${filename} (${blob.size} bytes)`);
-  } catch (err) {
-    if (err && err.name === 'AbortError') {
-      setStatus('タイムアウトしました（ネットワークが遅い可能性があります）', true);
-    } else {
-      setStatus('リクエストエラー: ' + String(err), true);
-    }
-    setDebug(`\n\nERROR:\n${String(err)}`, true);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-/* ヘルパー: レスポンスを安全にテキスト化 */
-async function safeReadText(response) {
-  try {
-    return await response.text();
-  } catch (e) {
-    return `<failed to read body: ${e}>`;
-  }
-}
-
-/* ヘルパー: ブラウザでダウンロードをトリガー */
-function triggerDownload(blob, filename) {
-  const a = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
-/* イベントバインド */
-document.getElementById('downloadBtn').addEventListener('click', downloadViaProxy);
-document.getElementById('clearBtn').addEventListener('click', () => {
-  document.getElementById('transferCode').value = '';
-  document.getElementById('pin').value = '';
-  document.getElementById('version').value = '';
-  setStatus('');
-  setDebug('', false);
-});
-</script>
+  </script>
 </body>
 </html>
