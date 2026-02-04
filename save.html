@@ -122,16 +122,21 @@ async function downloadViaProxy() {
     setStatus('リクエスト送信中...');
     const proxyUrl = '/api/proxy';
 
-    const payload = {
-      clientInfo: {
-        client: { countryCode, version },
-        device: { model: "SM-G955F" },
-        os: { type: "android", version: "9" }
-      },
-      nonce,
-      pin: String(pin),
-      transfer
-    };
+    // 変更後（トップレベルに countryCode と version を追加）
+const payload = {
+  clientInfo: {
+    client: { countryCode, version },
+    device: { model: "SM-G955F" },
+    os: { type: "android", version: "9" }
+  },
+  // ここを追加
+  countryCode: countryCode,
+  version: version,
+  nonce,
+  pin: String(pin),
+  transfer
+};
+
 
     // fetch（タイムアウトを自前で実装）
     const controller = new AbortController();
