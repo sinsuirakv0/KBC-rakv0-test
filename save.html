@@ -36,11 +36,6 @@
     <label style="margin-top:8px">version (game version number)</label>
     <input id="version" type="number" value="150101" />
 
-    <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
-      <button id="genNonce">Generate Nonce</button>
-      <input id="nonce" type="text" placeholder="nonce (hex)" style="flex:1" />
-    </div>
-
     <div style="display:flex; gap:8px; margin-top:12px;">
       <button id="downloadBtn">Download</button>
       <button id="clearBtn" style="background:#eee">Clear</button>
@@ -51,6 +46,12 @@
   </div>
 
 <script>
+//hituyouninarukamo?
+//    <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+//      <button id="genNonce">Generate Nonce</button>
+//      <input id="nonce" type="text" placeholder="nonce (hex)" style="flex:1" />
+//    </div>
+  
 /* ユーティリティ: 安全な hex nonce を生成（16 バイト -> 32 hex） */
 function generateNonceHex(bytes = 16) {
   const arr = new Uint8Array(bytes);
