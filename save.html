@@ -12,11 +12,11 @@
     button { padding:8px 12px; margin-top:10px; border-radius:6px; cursor:pointer; }
     .row { display:flex; gap:8px; }
     .small { font-size:0.9rem; color:#555; margin-top:8px; }
-    pre { background:#f7f7f7; padding:8px; border-radius:6px; overflow:auto; }
+    pre { background:#f7f7f7; padding:8px; border-radius:6px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
   </style>
 </head>
 <body>
-  <h1>Transfer Download3</h1>
+  <h1>Transfer Download4</h1>
 
   <div class="card">
     <label>Transfer Code (URL の最後の部分)</label>
@@ -89,31 +89,37 @@ function setStatus(text, isError = false) {
   s.textContent = text;
   s.style.color = isError ? '#b00020' : '#0a6';
 }
-function setDebug(text) {
+
+/* デバッグ表示ユーティリティ（append オプションあり） */
+function setDebug(text, append = false) {
   const d = document.getElementById('debug');
-  d.style.display = text ? 'block' : 'none';
-  d.textContent = text || '';
+  if (!d) return;
+  if (append) {
+    d.textContent = (d.textContent || '') + text;
+  } else {
+    d.textContent = text || '';
+  }
+  d.style.display = d.textContent ? 'block' : 'none';
 }
 
 /* ダウンロード処理（プロキシ経由） */
 async function downloadViaProxy() {
-  // ボタン無効化
   const btn = document.getElementById('downloadBtn');
   btn.disabled = true;
 
   try {
     setStatus('入力を検証中...');
-    setDebug('');
+    setDebug('', false);
 
     const collected = collectAndValidateInputs();
     if (!collected.ok) {
       setStatus(collected.errors.join(' / '), true);
+      btn.disabled = false;
       return;
     }
     const { transfer, pin, countryCode, version, nonce } = collected.data;
 
     setStatus('リクエスト送信中...');
-    // プロキシ URL（環境に合わせて変更）
     const proxyUrl = '/api/proxy';
 
     const payload = {
@@ -124,7 +130,6 @@ async function downloadViaProxy() {
       },
       nonce,
       pin: String(pin),
-      // 追加で transfer をプロキシ側に渡すために top-level に含める
       transfer
     };
 
@@ -141,12 +146,13 @@ async function downloadViaProxy() {
     });
     clearTimeout(timeout);
 
-    setDebug(`REQUEST PAYLOAD:\n${JSON.stringify(payload, null, 2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n${[...res.headers.entries()].map(([k,v])=>`${k}: ${v}`).join('\n')}`);
+    setDebug(`REQUEST PAYLOAD:\n${JSON.stringify(payload, null, 2)}\n\nRESPONSE STATUS: ${res.status} ${res.statusText}\nRESPONSE HEADERS:\n${[...res.headers.entries()].map(([k,v])=>`${k}: ${v}`).join('\n')}`, false);
 
     if (!res.ok) {
       const txt = await safeReadText(res);
       setStatus(`失敗: ${res.status} ${res.statusText}`, true);
-      setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
+      setDebug(`\n\nRESPONSE BODY:\n${txt}`, true);
+      btn.disabled = false;
       return;
     }
 
@@ -154,7 +160,8 @@ async function downloadViaProxy() {
     if (!contentType.includes('application/octet-stream')) {
       const txt = await safeReadText(res);
       setStatus('レスポンスがバイナリではありません（エラー）', true);
-      setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
+      setDebug(`\n\nRESPONSE BODY:\n${txt}`, true);
+      btn.disabled = false;
       return;
     }
 
@@ -164,12 +171,12 @@ async function downloadViaProxy() {
     triggerDownload(blob, filename);
     setStatus(`ダウンロード完了: ${filename} (${blob.size} bytes)`);
   } catch (err) {
-    if (err.name === 'AbortError') {
+    if (err && err.name === 'AbortError') {
       setStatus('タイムアウトしました（ネットワークが遅い可能性があります）', true);
     } else {
       setStatus('リクエストエラー: ' + String(err), true);
     }
-    setDebug(String(err));
+    setDebug(`\n\nERROR:\n${String(err)}`, true);
   } finally {
     btn.disabled = false;
   }
@@ -196,10 +203,17 @@ function triggerDownload(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-/* イベントバインド（既存のボタン id に合わせる） */
+/* イベントバインド */
 document.getElementById('downloadBtn').addEventListener('click', downloadViaProxy);
 document.getElementById('genNonce').addEventListener('click', () => {
   document.getElementById('nonce').value = generateNonceHex(16);
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('transferCode').value = '';
+  document.getElementById('pin').value = '';
+  document.getElementById('nonce').value = '';
+  setStatus('');
+  setDebug('', false);
 });
 </script>
 </body>
