@@ -1,5 +1,6 @@
 // api/proxy.js
-import fetch from 'node-fetch';
+import fetch from 'node-fetch'; // 環境により不要（Node 18+ や Vercel の fetch を使う場合は削除）
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -23,7 +24,8 @@ export default async function handler(req, res) {
         device: { model: "SM-G955F" },
         os: { type: "android", version: "9" }
       },
-      nonce: nonce || (Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('')),
+      // Node での安全なランダム生成（16 バイト -> 32 hex）
+      nonce: nonce || crypto.randomBytes(16).toString('hex'),
       pin: String(pin)
     };
 
@@ -33,27 +35,22 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload),
     });
 
-    // pass through status and headers (but avoid exposing sensitive headers if needed)
+    // ステータスを透過
     res.status(r.status);
+
+    // 必要なヘッダーだけ転送（機密ヘッダーは除外するか検討）
+    const allowed = ['content-type', 'content-length', 'nyanko-nonce', 'nyanko-timestamp'];
     r.headers.forEach((v, k) => {
-      // allow CORS-safe headers to be forwarded
-      res.setHeader(k, v);
+      if (allowed.includes(k.toLowerCase())) res.setHeader(k, v);
     });
 
-    // stream body
-    const buffer = await r.arrayBuffer();
-    const buf = Buffer.from(buffer);
+    // ボディをバッファ化して返す
+    const arrayBuf = await r.arrayBuffer();
+    const buf = Buffer.from(arrayBuf);
     res.setHeader('Content-Length', buf.length);
     res.send(buf);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'proxy error', detail: String(err) });
   }
-
-  // 既存: setDebug(prev => prev + `\n\nRESPONSE BODY:\n${txt}`);
-
-// 修正: 現在の debug テキストを取得して結合してから setDebug に渡す
-const currentDebug = document.getElementById('debug').textContent || '';
-setDebug(currentDebug + `\n\nRESPONSE BODY:\n${txt}`);
-
 }
