@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
 </head>
 <body>
-  <h2>Battle Cats Pack 復号ツール</h2>
+  <h2>Battle Cats Pack 復号ツール１</h2>
   <label>listファイル: <input type="file" id="listFile" /></label><br />
   <label>packファイル: <input type="file" id="packFile" /></label><br />
   <label><input type="checkbox" id="isJP" /> 日本版 (v10.8+)</label><br />
@@ -41,9 +41,31 @@
           key,
           { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
         );
-        const utf8 = CryptoJS.enc.Utf8.stringify(decrypted);
-        log("✅ listファイルの復号に成功");
-        return utf8;
+        const u8 = wordArrayToUint8Array(decrypted);
+
+        // バイナリを改行で分割し、各行をUTF-8でデコード
+        const lines = [];
+        let current = [];
+        for (let i = 0; i < u8.length; i++) {
+          const byte = u8[i];
+          if (byte === 0x0a || byte === 0x0d) {
+            if (current.length > 0) {
+              const line = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(current));
+              if (line.includes(",")) lines.push(line);
+              current = [];
+            }
+            if (byte === 0x0d && u8[i + 1] === 0x0a) i++;
+          } else {
+            current.push(byte);
+          }
+        }
+        if (current.length > 0) {
+          const line = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(current));
+          if (line.includes(",")) lines.push(line);
+        }
+
+        log("✅ listファイルの復号とCSV分解に成功");
+        return lines;
       } catch (e) {
         log("❌ listファイルの復号に失敗: " + e);
         throw e;
@@ -69,17 +91,15 @@
       const listBuffer = await listInput.arrayBuffer();
       const packBuffer = await packInput.arrayBuffer();
 
-      let listText;
+      let lines;
       try {
-        listText = decryptListFile(listBuffer);
+        lines = decryptListFile(listBuffer);
       } catch {
         status.textContent = "listファイルの復号に失敗しました。";
         return;
       }
 
-      const lines = listText.trim().split("\n").filter(line => line.includes(","));
       log(`📄 list内のファイル数: ${lines.length}`);
-
       const packBytes = new Uint8Array(packBuffer);
       const zip = new JSZip();
 
@@ -126,7 +146,7 @@
 
         progressBar.value = ((i + 1) / lines.length) * 100;
         status.textContent = `復号中: ${i + 1} / ${lines.length}`;
-        await new Promise(r => setTimeout(r, 10)); // UI更新のため
+        await new Promise(r => setTimeout(r, 10));
       }
 
       const blob = await zip.generateAsync({ type: "blob" });
