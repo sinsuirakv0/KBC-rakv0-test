@@ -2,162 +2,72 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Battle Cats Pack 復号ツール</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <title>SAVE_DATA パーサー</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background: #f9f9f9;
+    }
+    input[type="file"] {
+      margin-bottom: 1em;
+    }
+    pre {
+      background: #eee;
+      padding: 1em;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Battle Cats Pack 復号ツール１</h2>
-  <label>listファイル: <input type="file" id="listFile" /></label><br />
-  <label>packファイル: <input type="file" id="packFile" /></label><br />
-  <label><input type="checkbox" id="isJP" /> 日本版 (v10.8+)</label><br />
-  <button onclick="decrypt()">復号化</button>
-  <br /><br />
-  <progress id="progressBar" value="0" max="100" style="width: 300px;"></progress>
-  <div id="status"></div>
-  <pre id="log" style="background:#f0f0f0; padding:10px; max-height:300px; overflow:auto;"></pre>
+  <h1>SAVE_DATA 読み取りテスト</h1>
+  <input type="file" id="fileInput" accept=".sav,.bin" />
+  <pre id="output">ファイルを選択してください</pre>
 
   <script>
-    function log(msg) {
-      const logBox = document.getElementById("log");
-      logBox.textContent += msg + "\n";
+    function readInt(buffer, offset) {
+      return buffer.getInt32(offset, true); // little-endian
     }
 
-    function wordArrayToUint8Array(wordArray) {
-      const { words, sigBytes } = wordArray;
-      const u8 = new Uint8Array(sigBytes);
-      for (let i = 0; i < sigBytes; i++) {
-        u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-      }
-      return u8;
+    function readString(buffer, offset) {
+      const length = readInt(buffer, offset);
+      const start = offset + 4;
+      const end = start + length;
+      const bytes = new Uint8Array(buffer.buffer, start, length);
+      const value = new TextDecoder("utf-8").decode(bytes);
+      return { value, nextOffset: end };
     }
 
-    function decryptListFile(buffer) {
-      try {
-        const key = CryptoJS.MD5("pack");
-        const wordArray = CryptoJS.lib.WordArray.create(new Uint8Array(buffer));
-        const decrypted = CryptoJS.AES.decrypt(
-          { ciphertext: wordArray },
-          key,
-          { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
-        );
-        const u8 = wordArrayToUint8Array(decrypted);
+    function parseSaveFile(arrayBuffer) {
+      const buffer = new DataView(arrayBuffer);
+      let offset = 0x2C0; // 仮の位置（必要に応じて調整）
 
-        // バイナリを改行で分割し、各行をUTF-8でデコード
-        const lines = [];
-        let current = [];
-        for (let i = 0; i < u8.length; i++) {
-          const byte = u8[i];
-          if (byte === 0x0a || byte === 0x0d) {
-            if (current.length > 0) {
-              const line = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(current));
-              if (line.includes(",")) lines.push(line);
-              current = [];
-            }
-            if (byte === 0x0d && u8[i + 1] === 0x0a) i++;
-          } else {
-            current.push(byte);
-          }
-        }
-        if (current.length > 0) {
-          const line = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(current));
-          if (line.includes(",")) lines.push(line);
-        }
+      const { value: inquiryCode, nextOffset } = readString(buffer, offset);
+      offset = nextOffset;
 
-        log("✅ listファイルの復号とCSV分解に成功");
-        return lines;
-      } catch (e) {
-        log("❌ listファイルの復号に失敗: " + e);
-        throw e;
-      }
+      const playTime = readInt(buffer, offset);
+      offset += 4;
+
+      const userRank = 9999; // 仮の固定値
+
+      return { inquiryCode, playTime, userRank };
     }
 
-    async function decrypt() {
-      const listInput = document.getElementById("listFile").files[0];
-      const packInput = document.getElementById("packFile").files[0];
-      const isJP = document.getElementById("isJP").checked;
-      const progressBar = document.getElementById("progressBar");
-      const status = document.getElementById("status");
-      const logBox = document.getElementById("log");
-      logBox.textContent = "";
-      status.textContent = "";
-      progressBar.value = 0;
+    document.getElementById("fileInput").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-      if (!listInput || !packInput) {
-        alert("両方のファイルを選択してください！");
-        return;
-      }
-
-      const listBuffer = await listInput.arrayBuffer();
-      const packBuffer = await packInput.arrayBuffer();
-
-      let lines;
-      try {
-        lines = decryptListFile(listBuffer);
-      } catch {
-        status.textContent = "listファイルの復号に失敗しました。";
-        return;
-      }
-
-      log(`📄 list内のファイル数: ${lines.length}`);
-      const packBytes = new Uint8Array(packBuffer);
-      const zip = new JSZip();
-
-      for (let i = 0; i < lines.length; i++) {
-        const [name, offsetStr, lengthStr] = lines[i].split(",");
-        const offset = parseInt(offsetStr);
-        const length = parseInt(lengthStr);
-        let chunk = packBytes.slice(offset, offset + length);
-
+      const reader = new FileReader();
+      reader.onload = () => {
         try {
-          const pkName = packInput.name.toLowerCase();
-          let key, iv, mode;
-
-          if (pkName.includes("server")) {
-            key = CryptoJS.MD5("battlecats");
-            mode = CryptoJS.mode.ECB;
-            iv = null;
-          } else {
-            key = CryptoJS.enc.Hex.parse(isJP
-              ? "d754868de89d717fa9e7b06da45ae9e3"
-              : "0ad39e4aeaf55aa717feb1825edef521");
-            iv = CryptoJS.enc.Hex.parse(isJP
-              ? "40b2131a9f388ad4e5002a98118f6128"
-              : "d1d7e708091941d90cdf8aa5f30bb0c2");
-            mode = CryptoJS.mode.CBC;
-          }
-
-          if (!pkName.includes("imagedatalocal")) {
-            const wordArray = CryptoJS.lib.WordArray.create(chunk);
-            const decrypted = CryptoJS.AES.decrypt(
-              { ciphertext: wordArray },
-              key,
-              { mode, iv, padding: CryptoJS.pad.Pkcs7 }
-            );
-            chunk = wordArrayToUint8Array(decrypted);
-          }
-
-          zip.file(name, chunk);
-          log(`✅ 復号成功: ${name}`);
+          const result = parseSaveFile(reader.result);
+          document.getElementById("output").textContent = JSON.stringify(result, null, 2);
         } catch (e) {
-          log(`⚠️ 復号失敗: ${name} - ${e}`);
-          continue;
+          document.getElementById("output").textContent = "読み取りエラー: " + e.message;
         }
-
-        progressBar.value = ((i + 1) / lines.length) * 100;
-        status.textContent = `復号中: ${i + 1} / ${lines.length}`;
-        await new Promise(r => setTimeout(r, 10));
-      }
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "decrypted_files.zip";
-      a.textContent = "⬇️ 復号完了！ここをクリックしてダウンロード";
-      status.innerHTML = "";
-      status.appendChild(a);
-      log("🎉 全ファイルの復号が完了しました！");
-    }
+      };
+      reader.readAsArrayBuffer(file);
+    });
   </script>
 </body>
 </html>
