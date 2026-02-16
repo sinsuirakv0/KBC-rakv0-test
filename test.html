@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pack Decryptor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+</head>
+<body>
+  <h2>Battle Cats Pack 復号ツール</h2>
+  <label>listファイル: <input type="file" id="listFile" /></label><br />
+  <label>packファイル: <input type="file" id="packFile" /></label><br />
+  <label><input type="checkbox" id="isJP" /> 日本版 (v10.8+)</label><br />
+  <button onclick="decrypt()">復号化</button>
+  <progress id="progressBar" value="0" max="100" style="width: 300px;"></progress>
+  <div id="status"></div>
+  <script>
+    async function decrypt() {
+      const listInput = document.getElementById("listFile").files[0];
+      const packInput = document.getElementById("packFile").files[0];
+      const isJP = document.getElementById("isJP").checked;
+      const progressBar = document.getElementById("progressBar");
+      const status = document.getElementById("status");
+
+      if (!listInput || !packInput) {
+        alert("両方のファイルを選択してください！");
+        return;
+      }
+
+      const listBuffer = await listInput.arrayBuffer();
+      const packBuffer = await packInput.arrayBuffer();
+
+      // list復号 (AES-ECB, key = MD5("pack"))
+      const listKey = CryptoJS.MD5("pack");
+      const listWordArray = CryptoJS.lib.WordArray.create(listBuffer);
+      const decryptedList = CryptoJS.AES.decrypt(
+        { ciphertext: listWordArray },
+        listKey,
+        { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
+      );
+      const listText = decryptedList.toString(CryptoJS.enc.Utf8);
+      const lines = listText.trim().split("\n").filter(line => line.includes(","));
+
+      const packBytes = new Uint8Array(packBuffer);
+      const zip = new JSZip();
+
+      for (let i = 0; i < lines.length; i++) {
+        const [name, offsetStr, lengthStr] = lines[i].split(",");
+        const offset = parseInt(offsetStr);
+        const length = parseInt(lengthStr);
+        let chunk = packBytes.slice(offset, offset + length);
+
+        // decrypt chunk
+        let key, iv, mode;
+        const pkName = packInput.name.toLowerCase();
+        if (pkName.includes("server")) {
+          key = CryptoJS.MD5("battlecats");
+          mode = CryptoJS.mode.ECB;
+          iv = null;
+        } else {
+          key = CryptoJS.enc.Hex.parse(isJP
+            ? "d754868de89d717fa9e7b06da45ae9e3"
+            : "0ad39e4aeaf55aa717feb1825edef521");
+          iv = CryptoJS.enc.Hex.parse(isJP
+            ? "40b2131a9f388ad4e5002a98118f6128"
+            : "d1d7e708091941d90cdf8aa5f30bb0c2");
+          mode = CryptoJS.mode.CBC;
+        }
+
+        if (!pkName.includes("imagedatalocal")) {
+          const wordArray = CryptoJS.lib.WordArray.create(chunk);
+          const decrypted = CryptoJS.AES.decrypt(
+            { ciphertext: wordArray },
+            key,
+            { mode, iv, padding: CryptoJS.pad.Pkcs7 }
+          );
+          chunk = new Uint8Array(decrypted.words.map(w => [
+            (w >> 24) & 0xff,
+            (w >> 16) & 0xff,
+            (w >> 8) & 0xff,
+            w & 0xff
+          ]).flat().slice(0, decrypted.sigBytes));
+        }
+
+        zip.file(name, chunk);
+        progressBar.value = ((i + 1) / lines.length) * 100;
+        status.textContent = `復号中: ${i + 1} / ${lines.length}`;
+        await new Promise(r => setTimeout(r, 10)); // UI更新のため
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "decrypted_files.zip";
+      a.textContent = "復号完了！ここをクリックしてダウンロード";
+      status.innerHTML = "";
+      status.appendChild(a);
+    }
+  </script>
+</body>
+</html>
