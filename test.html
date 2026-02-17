@@ -2,55 +2,50 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>SAVE_DATA パーサー</title>
+  <title>inquiryCode 抽出テスト</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 2em;
-      background: #f9f9f9;
-    }
-    input[type="file"] {
-      margin-bottom: 1em;
-    }
-    pre {
-      background: #eee;
-      padding: 1em;
-      border-radius: 5px;
-    }
+    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
+    input[type="file"] { margin-bottom: 1em; }
+    pre { background: #eee; padding: 1em; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <h1>SAVE_DATA 読み取りテスト</h1>
-  <input type="file" id="fileInput" accept=".sav,.bin" />
+  <h1>SAVE_DATA から inquiryCode を抽出</h1>
+  <input type="file" id="fileInput" accept=".bin,.sav" />
   <pre id="output">ファイルを選択してください</pre>
 
   <script>
-    function readInt(buffer, offset) {
-      return buffer.getInt32(offset, true); // little-endian
+    function readInt(view, offset) {
+      return view.getInt32(offset, true); // little-endian
     }
 
-    function readString(buffer, offset) {
-      const length = readInt(buffer, offset);
+    function readString(view, offset) {
+      const length = readInt(view, offset);
       const start = offset + 4;
       const end = start + length;
-      const bytes = new Uint8Array(buffer.buffer, start, length);
+      const bytes = new Uint8Array(view.buffer, start, length);
       const value = new TextDecoder("utf-8").decode(bytes);
       return { value, nextOffset: end };
     }
 
-    function parseSaveFile(arrayBuffer) {
-      const buffer = new DataView(arrayBuffer);
-      let offset = 0x2C0; // 仮の位置（必要に応じて調整）
+    function findInquiryCode(arrayBuffer) {
+      const view = new DataView(arrayBuffer);
+      let offset = 0;
 
-      const { value: inquiryCode, nextOffset } = readString(buffer, offset);
-      offset = nextOffset;
+      // 1. transfer_code
+      const s1 = readString(view, offset);
+      offset = s1.nextOffset;
 
-      const playTime = readInt(buffer, offset);
-      offset += 4;
+      // 2. confirmation_code
+      const s2 = readString(view, offset);
+      offset = s2.nextOffset;
 
-      const userRank = 9999; // 仮の固定値
+      // 3. transfer_flag (1 byte)
+      offset += 1;
 
-      return { inquiryCode, playTime, userRank };
+      // 4. inquiryCode
+      const s3 = readString(view, offset);
+      return s3.value;
     }
 
     document.getElementById("fileInput").addEventListener("change", (event) => {
@@ -60,8 +55,8 @@
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          const result = parseSaveFile(reader.result);
-          document.getElementById("output").textContent = JSON.stringify(result, null, 2);
+          const inquiryCode = findInquiryCode(reader.result);
+          document.getElementById("output").textContent = `inquiryCode: ${inquiryCode}`;
         } catch (e) {
           document.getElementById("output").textContent = "読み取りエラー: " + e.message;
         }
