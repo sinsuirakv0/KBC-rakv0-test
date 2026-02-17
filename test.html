@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>inquiryCode 抽出テスト</title>
+  <title>inquiryCode 抽出テスト（復号付き）</title>
   <style>
     body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
     input[type="file"] { margin-bottom: 1em; }
@@ -10,13 +10,27 @@
   </style>
 </head>
 <body>
-  <h1>SAVE_DATA から inquiryCode を抽出</h1>
+  <h1>SAVE_DATA から inquiryCode を抽出（復号付き）</h1>
   <input type="file" id="fileInput" accept=".bin,.sav" />
   <pre id="output">ファイルを選択してください</pre>
 
   <script>
+    function decryptSaveData(encrypted) {
+      const seed = encrypted[0] | (encrypted[1] << 8) | (encrypted[2] << 16) | (encrypted[3] << 24);
+      let key = seed >>> 0;
+      const decrypted = new Uint8Array(encrypted.length - 4);
+
+      for (let i = 0; i < decrypted.length; i++) {
+        key = (key * 0x41C64E6D + 0x6073) >>> 0;
+        const xorByte = (key >>> 16) & 0xFF;
+        decrypted[i] = encrypted[i + 4] ^ xorByte;
+      }
+
+      return decrypted.buffer;
+    }
+
     function readInt(view, offset) {
-      return view.getInt32(offset, true); // little-endian
+      return view.getInt32(offset, true);
     }
 
     function readString(view, offset) {
@@ -28,23 +42,15 @@
       return { value, nextOffset: end };
     }
 
-    function findInquiryCode(arrayBuffer) {
-      const view = new DataView(arrayBuffer);
+    function extractInquiryCode(buffer) {
+      const view = new DataView(buffer);
       let offset = 0;
 
-      // 1. transfer_code
-      const s1 = readString(view, offset);
-      offset = s1.nextOffset;
+      const s1 = readString(view, offset); offset = s1.nextOffset;
+      const s2 = readString(view, offset); offset = s2.nextOffset;
+      offset += 1; // transfer_flag
+      const s3 = readString(view, offset); offset = s3.nextOffset;
 
-      // 2. confirmation_code
-      const s2 = readString(view, offset);
-      offset = s2.nextOffset;
-
-      // 3. transfer_flag (1 byte)
-      offset += 1;
-
-      // 4. inquiryCode
-      const s3 = readString(view, offset);
       return s3.value;
     }
 
@@ -55,7 +61,9 @@
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          const inquiryCode = findInquiryCode(reader.result);
+          const encrypted = new Uint8Array(reader.result);
+          const decryptedBuffer = decryptSaveData(encrypted);
+          const inquiryCode = extractInquiryCode(decryptedBuffer);
           document.getElementById("output").textContent = `inquiryCode: ${inquiryCode}`;
         } catch (e) {
           document.getElementById("output").textContent = "読み取りエラー: " + e.message;
