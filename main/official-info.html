@@ -80,7 +80,6 @@
         <div class="gacha-container-inner">
             <div class="external-search-controls">
                 <div class="input-group">
-                  <h3>技術的制限により、章の名前とステージ数しか見れません。</h3>
                     <select id="stageType">
                         <option value="S">S イベントステージ</option>
                         <option value="A">A 強襲</option>
@@ -96,12 +95,12 @@
                         <option value="SR">SR スペシャルルール</option>
                     </select>
                     <input type="number" id="stageNumber" value="0" min="0" max="999" style="width: 80px;">
-                    <button onclick="updateStageIframe()">ステージページ表示</button>
+                  <button onclick="updateStageIframe()">ステージページ表示</button>
                 </div>
             </div>
             <section class="gacha-section">
                 <div class="iframe-wrapper gacha-view">
-                    <iframe id="stageIframe" src="https://ponosgames.com/information/appli/battlecats/stage/ND000.html" frameborder="0"></iframe>
+                    <iframe id="stageIframe" src="https://kbc-rakv0.vercel.app/api/stage-proxy?type=ND&num=000" frameborder="0"></iframe>
                 </div>
             </section>
         </div>
@@ -155,22 +154,14 @@
   <script>
 
 function updateStageIframe() {
-    // 選択されたカテゴリ（S, NA, NDなど）を取得
-    const type = document.getElementById('stageType').value;
-    // 入力された数値を取得
-    const num = document.getElementById('stageNumber').value;
-    
-    // 数字を必ず3桁の文字列に変換（例: 1 -> 001, 99 -> 099）
-    const numStr = num.toString().padStart(3, '0');
-    
-    // URLを組み立て
-    const newUrl = `https://ponosgames.com/information/appli/battlecats/stage/${type}${numStr}.html`;
-    
-    console.log("ステージURL生成:", newUrl);
-    
-    // iframeを更新
-    document.getElementById('stageIframe').src = newUrl;
-}
+  const type = document.getElementById('stageType').value;
+  const num = document.getElementById('stageNumber').value;
+  const numStr = num.toString().padStart(3, '0'); 
+  
+  // プロキシAPI経由のURLに変更
+  const newUrl = `../api/stage-proxy?type=${type}&num=${numStr}`;
+  console.log("プロキシ経由ステージURL生成:", newUrl);
+  document.getElementById('stageIframe').src = newUrl; }
     
 function updateEnemyImage() {
     const num = document.getElementById('enemyNumber').value;
