@@ -1,12 +1,19 @@
 export default async function handler(req, res) {
   const { type = 'ND', num = '000' } = req.query;
-  const url = `https://ponosgames.com/information/appli/battlecats/stage/${type}${num}.html`;
+  const baseUrl = `https://ponosgames.com/information/appli/battlecats/stage/`;
+  const url = `${baseUrl}${type}${num}.html`;
 
   try {
     const response = await fetch(url);
     let html = await response.text();
 
-    // スクリプトを注入（必要に応じてステージ数を調整）
+    // 相対パスを絶対パスに変換
+    html = html.replace(/(href|src)=["'](?!https?:\/\/|\/\/|data:|#)([^"']+)["']/g, (match, attr, path) => {
+      const absoluteUrl = new URL(path, baseUrl).href;
+      return `${attr}="${absoluteUrl}"`;
+    });
+
+    // スクリプトを注入
     const injection = `
       <script>
         setCurrentStageIndex(120);
@@ -17,8 +24,6 @@ export default async function handler(req, res) {
         }
       </script>
     `;
-
-    // </body> の直前にスクリプトを挿入
     html = html.replace('</body>', `${injection}</body>`);
 
     res.setHeader('Content-Type', 'text/html');
