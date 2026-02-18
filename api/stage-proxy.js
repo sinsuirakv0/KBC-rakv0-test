@@ -7,13 +7,13 @@ export default async function handler(req, res) {
     const response = await fetch(url);
     let html = await response.text();
 
-    // 相対パスを絶対パスに変換
+    // 相対パスを絶対パスに変換（CSS, JS, 画像などすべて）
     html = html.replace(/(href|src)=["'](?!https?:\/\/|\/\/|data:|#)([^"']+)["']/g, (match, attr, path) => {
       const absoluteUrl = new URL(path, baseUrl).href;
       return `${attr}="${absoluteUrl}"`;
     });
 
-    // スクリプトを注入
+    // スクリプトを注入（倍率切り替えなどが動作するように）
     const injection = `
       <script>
         setCurrentStageIndex(120);
