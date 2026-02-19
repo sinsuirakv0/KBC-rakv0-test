@@ -5,7 +5,7 @@
   <title>Gift Data TSV Parser</title>
   <style>
     body { font-family: sans-serif; padding: 1em; }
-    pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; }
+    pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; max-height: 400px; overflow: auto; }
   </style>
 </head>
 <body>
@@ -31,7 +31,8 @@
       if (!rawText) return;
       const lines = rawText.trim().split('\n').filter(line => line.trim() && line !== '[start]' && line !== '[end]');
       const results = lines.map(parseGiftLine);
-      document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+      const json = JSON.stringify(results, null, 2);
+      document.getElementById('output').textContent = json;
     });
 
     function decodeWeekdays(bitmask) {
@@ -55,57 +56,56 @@
       index += 2; // skip two unused fields
 
       const timeBlocks = [];
-     let timeBlockCount = parseInt(parts[index], 10);
-let timeBlocks = [];
+      const timeBlockCount = parseInt(parts[index], 10);
 
-if (!isNaN(timeBlockCount) && timeBlockCount > 0 && parts.length > index + timeBlockCount * 10) {
-  index++;
-  for (let i = 0; i < timeBlockCount; i++) {
-    const block = {
-      dateRanges: [],
-      monthDays: [],
-      weekdays: [],
-      timeRanges: []
-    };
+      // 安全にタイムブロックを読み込む（最低限の長さチェック）
+      if (!isNaN(timeBlockCount) && timeBlockCount > 0 && parts.length > index + timeBlockCount * 10) {
+        index++;
+        for (let i = 0; i < timeBlockCount; i++) {
+          const block = {
+            dateRanges: [],
+            monthDays: [],
+            weekdays: [],
+            timeRanges: []
+          };
 
-    const yearCount = parseInt(parts[index++], 10);
-    for (let j = 0; j < yearCount; j++) {
-      const startDay = parts[index++];
-      const startTime = parts[index++];
-      const endDay = parts[index++];
-      const endTime = parts[index++];
-      block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
-    }
+          const yearCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < yearCount; j++) {
+            const startDay = parts[index++];
+            const startTime = parts[index++];
+            const endDay = parts[index++];
+            const endTime = parts[index++];
+            block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+          }
 
-    const monthCount = parseInt(parts[index++], 10);
-    for (let j = 0; j < monthCount; j++) {
-      block.monthDays.push(parseInt(parts[index++], 10));
-    }
+          const monthCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < monthCount; j++) {
+            block.monthDays.push(parseInt(parts[index++], 10));
+          }
 
-    const weekdayBits = parseInt(parts[index++], 10);
-    block.weekdays = decodeWeekdays(weekdayBits);
+          const weekdayBits = parseInt(parts[index++], 10);
+          block.weekdays = decodeWeekdays(weekdayBits);
 
-    const timeRangeCount = parseInt(parts[index++], 10);
-    for (let j = 0; j < timeRangeCount; j++) {
-      const start = parts[index++];
-      const end = parts[index++];
-      block.timeRanges.push([start, end]);
-    }
+          const timeRangeCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < timeRangeCount; j++) {
+            const start = parts[index++];
+            const end = parts[index++];
+            block.timeRanges.push([start, end]);
+          }
 
-    timeBlocks.push(block);
-  }
-} else {
-  index++; // skip 0 or invalid
-}
+          timeBlocks.push(block);
+        }
+      } else {
+        index++; // skip 0 or invalid
+      }
 
-      const eventId = parseInt(parts[index++], 10);
-      const giftType = parseInt(parts[index++], 10);
-      const giftAmount = parseInt(parts[index++], 10);
+      const eventId = parseInt(parts[index++] || "0", 10);
+      const giftType = parseInt(parts[index++] || "0", 10);
+      const giftAmount = parseInt(parts[index++] || "0", 10);
       const title = parts[index++] || "";
       const messageOrUrl = parts[index++] || "";
       const isUrl = messageOrUrl.startsWith('http');
-      const skip1 = parts[index++];
-      const skip2 = parts[index++];
+      index += 2; // skip unknown fields
       const repeatFlag = parseInt(parts[index++] || "0", 10);
 
       return {
@@ -125,4 +125,3 @@ if (!isNaN(timeBlockCount) && timeBlockCount > 0 && parts.length > index + timeB
   </script>
 </body>
 </html>
-
