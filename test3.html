@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-  <h1>item.tsv → JSON 変換</h1>
+  <h1>item.tsv → JSON 変換２</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -41,7 +41,7 @@
     }
 
     function estimateTimeBlockLength(parts, startIndex, blockCount) {
-      let idx = startIndex + 1;
+      let idx = startIndex;
       try {
         for (let i = 0; i < blockCount; i++) {
           const yearCount = parseInt(parts[idx++], 10);
@@ -77,16 +77,15 @@
       };
 
       let index = 6;
-      index++; // skip unused field
+      index++; // skip unused field (always 0)
 
       const timeBlocks = [];
-      const timeBlockCount = parseInt(parts[index], 10);
+      const timeBlockCount = parseInt(parts[index++], 10);
+      const timeBlockStart = index;
 
       if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
-        const estimatedLength = estimateTimeBlockLength(parts, index, timeBlockCount);
-        const remaining = parts.length - (index + estimatedLength);
-        if (estimatedLength > 0 && remaining >= 9) {
-          index++;
+        const estimatedLength = estimateTimeBlockLength(parts, timeBlockStart, timeBlockCount);
+        if (estimatedLength > 0 && parts.length > timeBlockStart + estimatedLength + 8) {
           for (let i = 0; i < timeBlockCount; i++) {
             const block = {
               dateRanges: [],
@@ -122,12 +121,12 @@
             timeBlocks.push(block);
           }
         } else {
-          index++; // skip invalid block count
+          // タイムブロック数があるのに構造が不正 → スキップ
+          index = timeBlockStart;
         }
-      } else {
-        index++; // skip 0 or invalid
       }
 
+      // タイムブロックの後にギフト情報が来る
       const eventId = parseInt(parts[index++] || "0", 10);
       const giftType = parseInt(parts[index++] || "0", 10);
       const giftAmount = parseInt(parts[index++] || "0", 10);
@@ -155,3 +154,4 @@
   </script>
 </body>
 </html>
+
