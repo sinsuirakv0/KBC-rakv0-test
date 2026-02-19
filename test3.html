@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-  <h1>item.tsv → JSON 変換２</h1>
+  <h1>item.tsv → JSON 変換３</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -66,91 +66,98 @@
     }
 
     function parseItemLine(line) {
-      const parts = line.trim().split('\t').filter(x => x !== '');
-      const header = {
-        startDate: parts[0],
-        startTime: parts[1],
-        endDate: parts[2],
-        endTime: parts[3],
-        minVersion: parts[4],
-        maxVersion: parts[5]
-      };
+  const parts = line.trim().split('\t');
+  const header = {
+    startDate: parts[0],
+    startTime: parts[1],
+    endDate: parts[2],
+    endTime: parts[3],
+    minVersion: parts[4],
+    maxVersion: parts[5]
+  };
 
-      let index = 6;
-      index++; // skip unused field (always 0)
+  let index = 6;
+  index++; // skip unused field (always 0)
 
-      const timeBlocks = [];
-      const timeBlockCount = parseInt(parts[index++], 10);
-      const timeBlockStart = index;
+  const timeBlocks = [];
+  const timeBlockCount = parseInt(parts[index++], 10);
 
-      if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
-        const estimatedLength = estimateTimeBlockLength(parts, timeBlockStart, timeBlockCount);
-        if (estimatedLength > 0 && parts.length > timeBlockStart + estimatedLength + 8) {
-          for (let i = 0; i < timeBlockCount; i++) {
-            const block = {
-              dateRanges: [],
-              monthDays: [],
-              weekdays: [],
-              timeRanges: []
-            };
+  for (let i = 0; i < timeBlockCount; i++) {
+    const block = {
+      dateRanges: [],
+      monthDays: [],
+      weekdays: [],
+      timeRanges: []
+    };
 
-            const yearCount = parseInt(parts[index++], 10);
-            for (let j = 0; j < yearCount; j++) {
-              const startDay = parts[index++];
-              const startTime = parts[index++];
-              const endDay = parts[index++];
-              const endTime = parts[index++];
-              block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
-            }
-
-            const monthCount = parseInt(parts[index++], 10);
-            for (let j = 0; j < monthCount; j++) {
-              block.monthDays.push(parseInt(parts[index++], 10));
-            }
-
-            const weekdayBits = parseInt(parts[index++], 10);
-            block.weekdays = decodeWeekdays(weekdayBits);
-
-            const timeRangeCount = parseInt(parts[index++], 10);
-            for (let j = 0; j < timeRangeCount; j++) {
-              const start = parts[index++];
-              const end = parts[index++];
-              block.timeRanges.push([start, end]);
-            }
-
-            timeBlocks.push(block);
-          }
-        } else {
-          // タイムブロック数があるのに構造が不正 → スキップ
-          index = timeBlockStart;
-        }
-      }
-
-      // タイムブロックの後にギフト情報が来る
-      const eventId = parseInt(parts[index++] || "0", 10);
-      const giftType = parseInt(parts[index++] || "0", 10);
-      const giftAmount = parseInt(parts[index++] || "0", 10);
-      const title = parts[index++] || "";
-      const messageOrUrl = parts[index++] || "";
-      const isUrl = messageOrUrl.startsWith('http');
-      index++; // skip unknown (usually 7)
-      index++; // skip unknown (usually 0)
-      const repeatFlag = parseInt(parts[index++] || "0", 10);
-
-      return {
-        header,
-        timeBlocks,
-        gift: {
-          eventId,
-          giftType,
-          giftAmount,
-          title,
-          message: isUrl ? "" : messageOrUrl,
-          url: isUrl ? messageOrUrl : "",
-          repeatFlag
-        }
-      };
+    const yearCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < yearCount; j++) {
+      const startDay = parts[index++];
+      const startTime = parts[index++];
+      const endDay = parts[index++];
+      const endTime = parts[index++];
+      block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
     }
+
+    const monthCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < monthCount; j++) {
+      block.monthDays.push(parseInt(parts[index++], 10));
+    }
+
+    const weekdayBits = parseInt(parts[index++], 10);
+    block.weekdays = decodeWeekdays(weekdayBits);
+
+    const timeRangeCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < timeRangeCount; j++) {
+      const start = parts[index++];
+      const end = parts[index++];
+      block.timeRanges.push([start, end]);
+    }
+
+    timeBlocks.push(block);
+  }
+
+  // ギフト情報の読み取り（安全に）
+  const remaining = parts.slice(index);
+  let eventId = 0, giftType = 0, giftAmount = 0, title = "", message = "", url = "", repeatFlag = 0;
+
+  if (remaining.length >= 8) {
+    eventId = parseInt(remaining[0], 10) || 0;
+    giftType = parseInt(remaining[1], 10) || 0;
+    giftAmount = parseInt(remaining[2], 10) || 0;
+
+    const rawTitle = remaining[3] || "";
+    const rawMessageOrUrl = remaining[4] || "";
+
+    // URLかどうかを判定
+    if (rawMessageOrUrl.startsWith("http")) {
+      title = rawTitle;
+      url = rawMessageOrUrl;
+    } else if (rawTitle.startsWith("http")) {
+      url = rawTitle;
+    } else {
+      title = rawTitle;
+      message = rawMessageOrUrl;
+    }
+
+    repeatFlag = parseInt(remaining[7], 10) || 0;
+  }
+
+  return {
+    header,
+    timeBlocks,
+    gift: {
+      eventId,
+      giftType,
+      giftAmount,
+      title,
+      message,
+      url,
+      repeatFlag
+    }
+  };
+}
+
   </script>
 </body>
 </html>
