@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-  <h1>TSV → JSON 変換</h1>
+  <h1>TSV → JSON 変換２</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -41,70 +41,71 @@
     }
 
     function parseLevelLine(line) {
-      const parts = line.trim().split('\t').filter(x => x !== '');
-      const header = {
-        startDate: parts[0],
-        startTime: parts[1],
-        endDate: parts[2],
-        endTime: parts[3],
-        minVersion: parts[4],
-        maxVersion: parts[5]
-      };
+  const parts = line.trim().split('\t').filter(x => x !== '');
+  const header = {
+    startDate: parts[0],
+    startTime: parts[1],
+    endDate: parts[2],
+    endTime: parts[3],
+    minVersion: parts[4],
+    maxVersion: parts[5]
+  };
 
-      let index = 6;
-      const timeBlockCount = parseInt(parts[index++], 10);
-      const timeBlocks = [];
+  let index = 6;
+  const timeBlockCount = parseInt(parts[index++], 10);
+  const timeBlocks = [];
 
-      for (let i = 0; i < timeBlockCount; i++) {
-        // Days of Year
-        const yearCount = parseInt(parts[index++], 10);
-        const yearRanges = [];
-        for (let j = 0; j < yearCount; j++) {
-          const startDay = parts[index++];
-          const startTime = parts[index++];
-          const endDay = parts[index++];
-          const endTime = parts[index++];
-          yearRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
-        }
-
-        // Days of Month
-        const monthCount = parseInt(parts[index++], 10);
-        const monthDays = [];
-        for (let j = 0; j < monthCount; j++) {
-          monthDays.push(parseInt(parts[index++], 10));
-        }
-
-        // Days of Week
-        const weekdayBits = parseInt(parts[index++], 10);
-        const weekdays = decodeWeekdays(weekdayBits);
-
-        // Times of Day
-        const timeRangeCount = parseInt(parts[index++], 10);
-        const timeRanges = [];
-        for (let j = 0; j < timeRangeCount; j++) {
-          const start = parts[index++];
-          const end = parts[index++];
-          timeRanges.push([start, end]);
-        }
-
-        timeBlocks.push({
-          dateRanges: yearRanges,
-          monthDays,
-          weekdays,
-          timeRanges
-        });
-      }
-
-      // ステージ数とステージIDを抽出
-      const stageCount = parseInt(parts[index++], 10);
-      const stageIds = parts.slice(index, index + stageCount).map(Number);
-
-      return {
-        header,
-        timeBlocks,
-        stageIds
-      };
+  for (let i = 0; i < timeBlockCount; i++) {
+    // Days of Year
+    const yearCount = parseInt(parts[index++], 10);
+    const yearRanges = [];
+    for (let j = 0; j < yearCount; j++) {
+      const startDay = parts[index++];
+      const startTime = parts[index++];
+      const endDay = parts[index++];
+      const endTime = parts[index++];
+      yearRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
     }
+
+    // Days of Month
+    const monthCount = parseInt(parts[index++], 10);
+    const monthDays = [];
+    for (let j = 0; j < monthCount; j++) {
+      monthDays.push(parseInt(parts[index++], 10));
+    }
+
+    // Days of Week
+    const weekdayBits = parseInt(parts[index++], 10);
+    const weekdays = decodeWeekdays(weekdayBits);
+
+    // Times of Day
+    const timeRangeCount = parseInt(parts[index++], 10);
+    const timeRanges = [];
+    for (let j = 0; j < timeRangeCount; j++) {
+      const start = parts[index++];
+      const end = parts[index++];
+      timeRanges.push([start, end]);
+    }
+
+    timeBlocks.push({
+      dateRanges: yearRanges,
+      monthDays,
+      weekdays,
+      timeRanges
+    });
+  }
+
+  // ステージ数とステージIDを抽出
+  const stageCount = parseInt(parts[index++], 10);
+  const stageIds = parts.slice(index, index + stageCount).map(Number);
+
+  return {
+    header,
+    timeBlocks,
+    stageIds
+  };
+}
+
   </script>
 </body>
 </html>
