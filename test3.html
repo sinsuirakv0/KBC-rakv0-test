@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Gift Data TSV Parser</title>
+  <title>Item TSV Parser</title>
   <style>
     body { font-family: sans-serif; padding: 1em; }
     pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; max-height: 400px; overflow: auto; }
   </style>
 </head>
 <body>
-  <h1>Gift Data TSV → JSON 変換１</h1>
+  <h1>item.tsv → JSON 変換</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -30,9 +30,8 @@
     document.getElementById('parseBtn').addEventListener('click', () => {
       if (!rawText) return;
       const lines = rawText.trim().split('\n').filter(line => line.trim() && line !== '[start]' && line !== '[end]');
-      const results = lines.map(parseGiftLine);
-      const json = JSON.stringify(results, null, 2);
-      document.getElementById('output').textContent = json;
+      const results = lines.map(parseItemLine);
+      document.getElementById('output').textContent = JSON.stringify(results, null, 2);
     });
 
     function decodeWeekdays(bitmask) {
@@ -43,22 +42,31 @@
 
     function estimateTimeBlockLength(parts, startIndex, blockCount) {
       let idx = startIndex + 1;
-      for (let i = 0; i < blockCount; i++) {
-        const yearCount = parseInt(parts[idx], 10);
-        idx += 1 + (isNaN(yearCount) ? 0 : yearCount * 4);
+      try {
+        for (let i = 0; i < blockCount; i++) {
+          const yearCount = parseInt(parts[idx++], 10);
+          if (isNaN(yearCount)) return -1;
+          idx += yearCount * 4;
 
-        const monthCount = parseInt(parts[idx], 10);
-        idx += 1 + (isNaN(monthCount) ? 0 : monthCount);
+          const monthCount = parseInt(parts[idx++], 10);
+          if (isNaN(monthCount)) return -1;
+          idx += monthCount;
 
-        idx += 1; // weekday
-        const timeCount = parseInt(parts[idx], 10);
-        idx += 1 + (isNaN(timeCount) ? 0 : timeCount * 2);
+          const weekdayBits = parseInt(parts[idx++], 10);
+          if (isNaN(weekdayBits)) return -1;
+
+          const timeCount = parseInt(parts[idx++], 10);
+          if (isNaN(timeCount)) return -1;
+          idx += timeCount * 2;
+        }
+        return idx - startIndex;
+      } catch {
+        return -1;
       }
-      return idx - startIndex;
     }
 
-    function parseGiftLine(line) {
-      const parts = line.split('\t');
+    function parseItemLine(line) {
+      const parts = line.trim().split('\t').filter(x => x !== '');
       const header = {
         startDate: parts[0],
         startTime: parts[1],
@@ -69,14 +77,15 @@
       };
 
       let index = 6;
-      index += 2; // skip two unused fields
+      index += 2; // skip 2 unused fields
 
       const timeBlocks = [];
       const timeBlockCount = parseInt(parts[index], 10);
 
       if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
         const estimatedLength = estimateTimeBlockLength(parts, index, timeBlockCount);
-        if (parts.length >= index + estimatedLength + 7) {
+        const remaining = parts.length - (index + estimatedLength);
+        if (estimatedLength > 0 && remaining >= 7) {
           index++;
           for (let i = 0; i < timeBlockCount; i++) {
             const block = {
