@@ -77,7 +77,7 @@
       };
 
       let index = 6;
-      index += 2; // skip 2 unused fields
+      index++; // skip unused field
 
       const timeBlocks = [];
       const timeBlockCount = parseInt(parts[index], 10);
@@ -85,7 +85,7 @@
       if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
         const estimatedLength = estimateTimeBlockLength(parts, index, timeBlockCount);
         const remaining = parts.length - (index + estimatedLength);
-        if (estimatedLength > 0 && remaining >= 7) {
+        if (estimatedLength > 0 && remaining >= 9) {
           index++;
           for (let i = 0; i < timeBlockCount; i++) {
             const block = {
@@ -134,7 +134,8 @@
       const title = parts[index++] || "";
       const messageOrUrl = parts[index++] || "";
       const isUrl = messageOrUrl.startsWith('http');
-      index += 2; // skip unknown fields
+      index++; // skip unknown (usually 7)
+      index++; // skip unknown (usually 0)
       const repeatFlag = parseInt(parts[index++] || "0", 10);
 
       return {
