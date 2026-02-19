@@ -2,214 +2,80 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KBC official info viewer</title>
-  <link rel="stylesheet" href="../assets/style.css">
-
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-<link rel="icon" href="../assets/favicon.ico">
-<meta property="og:title" content="KBC PONOS公式ページ">
-<meta property="og:description" content="ゲーム内の公式情報を閲覧することができます。">
-<meta property="og:image" content="../assets/preview.png">
-<meta property="og:url" content="https://kbc-rakv0.vercel.app/">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="KBC PONOS公式情報ページ">
-<meta name="twitter:description" content="ゲーム内の公式情報を閲覧することができます。">
-<meta name="twitter:image" content="../assets/preview.png">
+  <title>ガチャTSVパーサー</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    textarea { width: 100%; height: 200px; }
+    pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; }
+  </style>
 </head>
-<body class="fade-in">
+<body>
+  <h1>ガチャTSVパーサー</h1>
+  <input type="file" id="fileInput" accept=".txt,.tsv"><br><br>
+  <button id="parseBtn">解析する</button>
+  <pre id="output">ここに解析結果が表示されます</pre>
 
-  <div class="container">
-    <header class="header">
-      <div class="header-left">
-        <img src="../assets/logo.png" alt="ロゴ" id="logo" style="cursor: pointer;"> 
-        <h1 class="site-title">KBC</h1>
-      </div>
-      <nav class="nav">
-        <a href="../index.html">Home</a>
-        <a href="https://kbc-rakv0-announce.vercel.app/"></a>
-        <a href="#"></a>
-      </nav>
-</header>
-<main class="content-area">
-    <h3>公式情報</h3>
-    <div class="lang-selector">
-        <p>お知らせ言語切り替え:</p>
-        <div class="lang-buttons">
-            <button onclick="updateLang('ja')">日本語</button>
-            <button onclick="updateLang('en')">English</button>
-            <button onclick="updateLang('ko')">한국어</button>
-            <button onclick="updateLang('tw')">繁體中文</button>
-        </div>
-    </div>
-
-    <div class="iframe-wrapper">
-        <iframe 
-            id="announcementIframe"
-            src="https://nyanko-announcement.ponosgames.com/v1/notices?clientVersion=999999&countryCode=ja&clearedStageJapan=300&clearedStageFuture=300&clearedUniverse=99999&timeDifference=840&page=" 
-            frameborder="0"
-            allowfullscreen>
-        </iframe>
-    </div>
-
-    <hr>
-
-    <details class="gacha-details">
-        <summary>ガチャページを表示する</summary>
-        <div class="gacha-container-inner">
-            <div class="external-search-controls">
-                <div class="input-group">
-                    <span class="prefix">R</span>
-                    <input type="number" id="gachaNumber" value="1034" min="1" max="2000">
-                    <button onclick="updateGachaIframe()">表示を更新</button>
-                </div>
-            </div>
-            <section class="gacha-section">
-                <div class="iframe-wrapper gacha-view">
-                    <iframe id="gachaIframe" src="https://ponosgames.com/information/appli/battlecats/gacha/rare/R1034.html" frameborder="0"></iframe>
-                </div>
-            </section>
-        </div>
-    </details>
-
-  <hr>
-
-    <details class="gacha-details">
-        <summary>ステージ情報を表示する</summary>
-        <div class="gacha-container-inner">
-            <div class="external-search-controls">
-                <div class="input-group">
-                  <h3>技術的制限により、章の名前とステージ数しか見れません。</h3>
-                    <select id="stageType">
-                        <option value="S">S イベントステージ</option>
-                        <option value="A">A 強襲</option>
-                        <option value="C">C コラボ</option>
-                        <option value="CA">CA コラボ強襲</option>
-                        <option value="N">N 旧レジェ</option>
-                        <option value="NA">NA 真レジェ</option>
-                        <option value="ND" selected>ND 0レジェ</option>
-                        <option value="H">H 地図</option>
-                        <option value="V">V 塔</option>
-                        <option value="R">R 道場</option>
-                        <option value="Q">Q 超獣</option>
-                        <option value="SR">SR スペシャルルール</option>
-                    </select>
-                    <input type="number" id="stageNumber" value="0" min="0" max="999" style="width: 80px;">
-                  <button onclick="updateStageIframe()">ステージページ表示</button>
-                </div>
-            </div>
-            <section class="gacha-section">
-                <div class="iframe-wrapper gacha-view">
-                    <iframe id="stageIframe" src="https://kbc-rakv0.vercel.app/api/stage-proxy?type=ND&num=000" frameborder="0"></iframe>
-                </div>
-            </section>
-        </div>
-    </details>
-
-<hr>
-
-<details class="gacha-details">
-    <summary>敵アイコン検索</summary>
-    
-    <div class="gacha-container-inner">
-        <div class="external-search-controls">
-            <div class="input-group">
-              <a href="https://jarjarblink.github.io/JDB/tunit_search.html?cc=ja">敵ID検索　　</a>
-                <span class="prefix">No.</span>
-                <input type="number" id="enemyNumber" value="0" min="0" max="999" style="width: 80px;">
-                <button onclick="updateEnemyImage()">画像を表示</button>
-            </div>
-        </div>
-
-        <section class="gacha-section" style="text-align: center; background: transparent;">
-            <div class="enemy-icon-wrapper" style="margin-top: 20px;">
-                <img id="enemyIcon" 
-                     src="https://ponosgames.com/information/appli/battlecats/stage/img/enemy/enemy_icon_000.png" 
-                     alt="敵アイコン" 
-                     style="width: 128px; height: auto; border: 2px solid var(--accent); border-radius: 10px; padding: 5px; background: rgba(255,255,255,0.1);">
-            </div>
-        </section>
-    </div>
-</details>
-
-  <hr>
-
-<details class="gacha-details">
-    <summary>にゃんこ大戦争 HELPを表示</summary>
-    
-    <div class="gacha-container-inner">
-        <section class="gacha-section" style="background: transparent; padding: 0;">
-            <div class="iframe-wrapper" style="height: 60vh; border: 1px solid var(--border);">
-                <iframe 
-                    id="helpIframe" 
-                    src="https://ponosgames.com/information/appli/battlecats/help/index.html" 
-                    frameborder="0">
-                </iframe>
-            </div>
-        </section>
-    </div>
-</details>
-</main>
-</div> 
   <script>
+    let rawText = '';
 
-function updateStageIframe() {
-  const type = document.getElementById('stageType').value;
-  const num = document.getElementById('stageNumber').value;
-  const numStr = num.toString().padStart(3, '0'); 
-  
-  // プロキシAPI経由のURLに変更
-  const newUrl = `https://kbc-rakv0.vercel.app/api/stage-proxy?type=${type}&num=${numStr}`;
-  console.log("プロキシ経由ステージURL生成:", newUrl);
-  document.getElementById('stageIframe').src = newUrl; }
-    
-function updateEnemyImage() {
-    const num = document.getElementById('enemyNumber').value;
-    
-    // 数字を3桁に揃える (例: 5 -> 005)
-    const numStr = num.toString().padStart(3, '0');
-    
-    // 画像のURLを作成
-    const newImageUrl = `https://ponosgames.com/information/appli/battlecats/stage/img/enemy/enemy_icon_${numStr}.png`;
-    
-    // 画像タグのsrcを更新
-    document.getElementById('enemyIcon').src = newImageUrl;
-    
-    // 確認用にURLテキストも更新
-    document.getElementById('enemyUrlText').innerText = `URL: ${newImageUrl}`;
-    
-    console.log("敵アイコンURL更新:", newImageUrl);
-} 
-  function updateLang(langCode) {
-    const iframe = document.getElementById('announcementIframe');
-    // 現在のURLを取得
-    let currentUrl = iframe.src;
-    
-    // URLの中の countryCode= の後の2〜5文字(ja, en, zh-twなど)を置換
-    // 正規表現を使って countryCode=... の部分を書き換えます
-    const newUrl = currentUrl.replace(/countryCode=[a-z-]{2,5}/, `countryCode=${langCode}`);
-    
-    iframe.src = newUrl;
-}
-    
-function updateGachaIframe() {
-    const inputVal = document.getElementById('gachaNumber').value;
-    let numStr;
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        rawText = event.target.result;
+      };
+      reader.readAsText(file, 'utf-8');
+    });
 
-    if (inputVal < 1000) {
-        // 1000未満の場合は、3桁になるようにゼロで埋める（例: 99 -> 099, 5 -> 005）
-        numStr = inputVal.toString().padStart(3, '0');
-    } else {
-        // 1000以上の場合は、そのままの数字を使う
-        numStr = inputVal.toString();
-    }
+    document.getElementById('parseBtn').addEventListener('click', () => {
+      if (!rawText) return;
+      const lines = rawText.trim().split('\n');
+      const results = [];
 
-    const newUrl = `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${numStr}.html`;
-    
-    console.log("生成されたURL:", newUrl);
-    document.getElementById('gachaIframe').src = newUrl;
-}
+      for (const line of lines) {
+        const cells = line.trim().split('\t');
+        if (cells.length < 10) continue;
+
+        const header = {
+          startDate: cells[0],
+          startTime: cells[1],
+          endDate: cells[2],
+          endTime: cells[3],
+          minVersion: cells[4],
+          maxVersion: cells[5],
+          unknown1: cells[6],
+          unknown2: cells[7],
+          gachaType: Number(cells[8]),
+          gachaCount: Number(cells[9])
+        };
+
+        const gachas = [];
+        let offset = 10;
+        for (let i = 0; i < header.gachaCount; i++) {
+          const gachaSlice = cells.slice(offset, offset + 15);
+          const gachaId = Number(gachaSlice[0]);
+          if (gachaId !== -1) {
+            gachas.push({
+              id: gachaId,
+              price: Number(gachaSlice[1]),
+              normal: Number(gachaSlice[3]),
+              rare: Number(gachaSlice[5]),
+              superRare: Number(gachaSlice[7]),
+              uberRare: Number(gachaSlice[9]),
+              guaranteed: Number(gachaSlice[10]) === 1,
+              legendRare: Number(gachaSlice[11]),
+              message: gachaSlice[14]
+            });
+          }
+          offset += 15;
+        }
+
+        results.push({ header, gachas });
+      }
+
+      document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+    });
   </script>
- </body>
+</body>
 </html>
