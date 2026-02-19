@@ -5,8 +5,6 @@
   <title>Level Data TSV Parser</title>
   <style>
     body { font-family: sans-serif; padding: 1em; }
-    textarea, pre { width: 100%; }
-    textarea { height: 200px; }
     pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; }
   </style>
 </head>
@@ -31,7 +29,7 @@
 
     document.getElementById('parseBtn').addEventListener('click', () => {
       if (!rawText) return;
-      const lines = rawText.trim().split('\n');
+      const lines = rawText.trim().split('\n').filter(line => line.trim() && line !== '[start]' && line !== '[end]');
       const results = lines.map(parseLevelLine);
       document.getElementById('output').textContent = JSON.stringify(results, null, 2);
     });
@@ -55,20 +53,46 @@
 
       let index = 6;
       const timeBlockCount = parseInt(parts[index++], 10);
-      const weekdays = [];
+      const timeBlocks = [];
 
       for (let i = 0; i < timeBlockCount; i++) {
-        const yearBlockCount = parseInt(parts[index++], 10);
-        index += yearBlockCount * 4;
+        // Days of Year
+        const yearCount = parseInt(parts[index++], 10);
+        const yearRanges = [];
+        for (let j = 0; j < yearCount; j++) {
+          const startDay = parts[index++];
+          const startTime = parts[index++];
+          const endDay = parts[index++];
+          const endTime = parts[index++];
+          yearRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+        }
 
-        const monthDayCount = parseInt(parts[index++], 10);
-        index += monthDayCount;
+        // Days of Month
+        const monthCount = parseInt(parts[index++], 10);
+        const monthDays = [];
+        for (let j = 0; j < monthCount; j++) {
+          monthDays.push(parseInt(parts[index++], 10));
+        }
 
-        const weekdayBit = parseInt(parts[index++], 10);
-        weekdays.push(...decodeWeekdays(weekdayBit));
+        // Days of Week
+        const weekdayBits = parseInt(parts[index++], 10);
+        const weekdays = decodeWeekdays(weekdayBits);
 
+        // Times of Day
         const timeRangeCount = parseInt(parts[index++], 10);
-        index += timeRangeCount * 2;
+        const timeRanges = [];
+        for (let j = 0; j < timeRangeCount; j++) {
+          const start = parts[index++];
+          const end = parts[index++];
+          timeRanges.push([start, end]);
+        }
+
+        timeBlocks.push({
+          dateRanges: yearRanges,
+          monthDays,
+          weekdays,
+          timeRanges
+        });
       }
 
       const stageCount = parseInt(parts[index++], 10);
@@ -76,10 +100,7 @@
 
       return {
         header,
-        times: {
-          weekdays: [...new Set(weekdays)],
-          hasTimeBlocks: timeBlockCount > 0
-        },
+        timeBlocks,
         stageIds
       };
     }
