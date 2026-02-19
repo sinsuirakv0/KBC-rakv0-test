@@ -55,47 +55,48 @@
       index += 2; // skip two unused fields
 
       const timeBlocks = [];
-      let timeBlockCount = parseInt(parts[index], 10);
-      if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
-        index++;
-        for (let i = 0; i < timeBlockCount; i++) {
-          const block = {
-            dateRanges: [],
-            monthDays: [],
-            weekdays: [],
-            timeRanges: []
-          };
+     let timeBlockCount = parseInt(parts[index], 10);
+let timeBlocks = [];
 
-          const yearCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < yearCount; j++) {
-            const startDay = parts[index++];
-            const startTime = parts[index++];
-            const endDay = parts[index++];
-            const endTime = parts[index++];
-            block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
-          }
+if (!isNaN(timeBlockCount) && timeBlockCount > 0 && parts.length > index + timeBlockCount * 10) {
+  index++;
+  for (let i = 0; i < timeBlockCount; i++) {
+    const block = {
+      dateRanges: [],
+      monthDays: [],
+      weekdays: [],
+      timeRanges: []
+    };
 
-          const monthCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < monthCount; j++) {
-            block.monthDays.push(parseInt(parts[index++], 10));
-          }
+    const yearCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < yearCount; j++) {
+      const startDay = parts[index++];
+      const startTime = parts[index++];
+      const endDay = parts[index++];
+      const endTime = parts[index++];
+      block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+    }
 
-          const weekdayBits = parseInt(parts[index++], 10);
-          block.weekdays = decodeWeekdays(weekdayBits);
+    const monthCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < monthCount; j++) {
+      block.monthDays.push(parseInt(parts[index++], 10));
+    }
 
-          const timeRangeCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < timeRangeCount; j++) {
-            const start = parts[index++];
-            const end = parts[index++];
-            block.timeRanges.push([start, end]);
-          }
+    const weekdayBits = parseInt(parts[index++], 10);
+    block.weekdays = decodeWeekdays(weekdayBits);
 
-          timeBlocks.push(block);
-        }
-      } else {
-        timeBlockCount = 0;
-        index++; // still need to skip the 0
-      }
+    const timeRangeCount = parseInt(parts[index++], 10);
+    for (let j = 0; j < timeRangeCount; j++) {
+      const start = parts[index++];
+      const end = parts[index++];
+      block.timeRanges.push([start, end]);
+    }
+
+    timeBlocks.push(block);
+  }
+} else {
+  index++; // skip 0 or invalid
+}
 
       const eventId = parseInt(parts[index++], 10);
       const giftType = parseInt(parts[index++], 10);
