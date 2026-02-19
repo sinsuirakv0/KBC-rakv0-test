@@ -35,10 +35,10 @@
     });
 
     function decodeWeekdays(bitmask) {
-      if (bitmask === 0) return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      return days.filter((_, i) => (bitmask >> i) & 1);
-    }
+  if (bitmask === 0) return [];
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return days.filter((_, i) => (bitmask >> i) & 1);
+}
 
     function parseLevelLine(line) {
       const parts = line.trim().split('\t').filter(x => x !== '');
