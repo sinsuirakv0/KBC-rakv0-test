@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-  <h1>Level Data TSV → JSON 変換</h1>
+  <h1>TSV → JSON 変換</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -95,6 +95,7 @@
         });
       }
 
+      // ステージ数とステージIDを抽出
       const stageCount = parseInt(parts[index++], 10);
       const stageIds = parts.slice(index, index + stageCount).map(Number);
 
