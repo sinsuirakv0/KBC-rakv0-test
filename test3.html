@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Gift Data TSV Parser</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Gift Data TSV → JSON 変換</h1>
+  <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
+  <button id="parseBtn">解析してJSON出力</button>
+  <pre id="output">ここに結果が表示されます</pre>
+
+  <script>
+    let rawText = '';
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        rawText = event.target.result;
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('parseBtn').addEventListener('click', () => {
+      if (!rawText) return;
+      const lines = rawText.trim().split('\n').filter(line => line.trim() && line !== '[start]' && line !== '[end]');
+      const results = lines.map(parseGiftLine);
+      document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+    });
+
+    function parseGiftLine(line) {
+      const parts = line.split('\t');
+      const [
+        startDate, startTime, endDate, endTime,
+        minVersion, maxVersion,
+        _skip1, _skip2,
+        eventId, giftType, giftAmount,
+        title, messageOrUrl,
+        _skip3, _skip4, repeatFlag
+      ] = parts;
+
+      const isUrl = messageOrUrl?.startsWith('http');
+      const result = {
+        header: {
+          startDate,
+          startTime,
+          endDate,
+          endTime,
+          minVersion,
+          maxVersion
+        },
+        eventId: parseInt(eventId, 10),
+        giftType: parseInt(giftType, 10),
+        giftAmount: parseInt(giftAmount, 10),
+        title: title || "",
+        message: isUrl ? "" : (messageOrUrl || ""),
+        url: isUrl ? messageOrUrl : "",
+        repeatFlag: parseInt(repeatFlag || "0", 10)
+      };
+
+      return result;
+    }
+  </script>
+</body>
+</html>
