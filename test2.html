@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Level Data TSV Parser</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    textarea, pre { width: 100%; }
+    textarea { height: 200px; }
+    pre { background: #f0f0f0; padding: 1em; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Level Data TSV → JSON 変換</h1>
+  <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
+  <button id="parseBtn">解析してJSON出力</button>
+  <pre id="output">ここに結果が表示されます</pre>
+
+  <script>
+    let rawText = '';
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        rawText = event.target.result;
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('parseBtn').addEventListener('click', () => {
+      if (!rawText) return;
+      const lines = rawText.trim().split('\n');
+      const results = lines.map(parseLevelLine);
+      document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+    });
+
+    function decodeWeekdays(bitmask) {
+      if (bitmask === 0) return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return days.filter((_, i) => (bitmask >> i) & 1);
+    }
+
+    function parseLevelLine(line) {
+      const parts = line.trim().split('\t').filter(x => x !== '');
+      const header = {
+        startDate: parts[0],
+        startTime: parts[1],
+        endDate: parts[2],
+        endTime: parts[3],
+        minVersion: parts[4],
+        maxVersion: parts[5]
+      };
+
+      let index = 6;
+      const timeBlockCount = parseInt(parts[index++], 10);
+      const weekdays = [];
+
+      for (let i = 0; i < timeBlockCount; i++) {
+        const yearBlockCount = parseInt(parts[index++], 10);
+        index += yearBlockCount * 4;
+
+        const monthDayCount = parseInt(parts[index++], 10);
+        index += monthDayCount;
+
+        const weekdayBit = parseInt(parts[index++], 10);
+        weekdays.push(...decodeWeekdays(weekdayBit));
+
+        const timeRangeCount = parseInt(parts[index++], 10);
+        index += timeRangeCount * 2;
+      }
+
+      const stageCount = parseInt(parts[index++], 10);
+      const stageIds = parts.slice(index, index + stageCount).map(Number);
+
+      return {
+        header,
+        times: {
+          weekdays: [...new Set(weekdays)],
+          hasTimeBlocks: timeBlockCount > 0
+        },
+        stageIds
+      };
+    }
+  </script>
+</body>
+</html>
