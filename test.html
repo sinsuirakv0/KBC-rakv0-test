@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-  <h1>ガチャTSVパーサー</h1>
+  <h1>ガチャTSVパーサー１</h1>
   <input type="file" id="fileInput" accept=".txt,.tsv"><br><br>
   <button id="parseBtn">解析する</button>
   <pre id="output">ここに解析結果が表示されます</pre>
@@ -50,26 +50,31 @@
           gachaCount: Number(cells[9])
         };
 
-        const gachas = [];
-        let offset = 10;
-        for (let i = 0; i < header.gachaCount; i++) {
-          const gachaSlice = cells.slice(offset, offset + 15);
-          const gachaId = Number(gachaSlice[0]);
-          if (gachaId !== -1) {
-            gachas.push({
-              id: gachaId,
-              price: Number(gachaSlice[1]),
-              normal: Number(gachaSlice[3]),
-              rare: Number(gachaSlice[5]),
-              superRare: Number(gachaSlice[7]),
-              uberRare: Number(gachaSlice[9]),
-              guaranteed: Number(gachaSlice[10]) === 1,
-              legendRare: Number(gachaSlice[11]),
-              message: gachaSlice[14]
-            });
-          }
-          offset += 15;
-        }
+        // ガチャ情報の抽出部分だけ抜粋（前のコードの中の一部を差し替え）
+const gachas = [];
+let offset = 10;
+for (let i = 0; i < header.gachaCount; i++) {
+  const gachaSlice = cells.slice(offset, offset + 15);
+  const gachaId = Number(gachaSlice[0]);
+  if (gachaId !== -1) {
+    gachas.push({
+      id: gachaId,
+      price: Number(gachaSlice[1]),
+      flags: Number(gachaSlice[3]),
+      rates: {
+        normal: Number(gachaSlice[4]),
+        rare: Number(gachaSlice[6]),
+        superRare: Number(gachaSlice[8]),
+        uberRare: Number(gachaSlice[10]),
+        legendRare: Number(gachaSlice[12])
+      },
+      guaranteed: Number(gachaSlice[11]) === 1,
+      message: gachaSlice[14]
+    });
+  }
+  offset += 15;
+}
+
 
         results.push({ header, gachas });
       }
