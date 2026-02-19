@@ -52,6 +52,7 @@
       };
 
       let index = 6;
+      index++; // skip unused flag
       const timeBlockCount = parseInt(parts[index++], 10);
       const timeBlocks = [];
 
@@ -94,7 +95,7 @@
         timeBlocks.push(block);
       }
 
-      // ステージ数とステージIDを抽出
+      // ステージ数とステージID
       const stageCount = parseInt(parts[index++], 10);
       const stageIds = parts.slice(index, index + stageCount).map(Number);
 
@@ -107,4 +108,3 @@
   </script>
 </body>
 </html>
-
