@@ -9,7 +9,7 @@
   </style>
 </head>
 <body>
-  <h1>Gift Data TSV → JSON 変換</h1>
+  <h1>Gift Data TSV → JSON 変換１</h1>
   <input type="file" id="fileInput" accept=".tsv,.txt"><br><br>
   <button id="parseBtn">解析してJSON出力</button>
   <pre id="output">ここに結果が表示されます</pre>
@@ -41,6 +41,22 @@
       return days.filter((_, i) => (bitmask >> i) & 1);
     }
 
+    function estimateTimeBlockLength(parts, startIndex, blockCount) {
+      let idx = startIndex + 1;
+      for (let i = 0; i < blockCount; i++) {
+        const yearCount = parseInt(parts[idx], 10);
+        idx += 1 + (isNaN(yearCount) ? 0 : yearCount * 4);
+
+        const monthCount = parseInt(parts[idx], 10);
+        idx += 1 + (isNaN(monthCount) ? 0 : monthCount);
+
+        idx += 1; // weekday
+        const timeCount = parseInt(parts[idx], 10);
+        idx += 1 + (isNaN(timeCount) ? 0 : timeCount * 2);
+      }
+      return idx - startIndex;
+    }
+
     function parseGiftLine(line) {
       const parts = line.split('\t');
       const header = {
@@ -58,42 +74,46 @@
       const timeBlocks = [];
       const timeBlockCount = parseInt(parts[index], 10);
 
-      // 安全にタイムブロックを読み込む（最低限の長さチェック）
-      if (!isNaN(timeBlockCount) && timeBlockCount > 0 && parts.length > index + timeBlockCount * 10) {
-        index++;
-        for (let i = 0; i < timeBlockCount; i++) {
-          const block = {
-            dateRanges: [],
-            monthDays: [],
-            weekdays: [],
-            timeRanges: []
-          };
+      if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
+        const estimatedLength = estimateTimeBlockLength(parts, index, timeBlockCount);
+        if (parts.length >= index + estimatedLength + 7) {
+          index++;
+          for (let i = 0; i < timeBlockCount; i++) {
+            const block = {
+              dateRanges: [],
+              monthDays: [],
+              weekdays: [],
+              timeRanges: []
+            };
 
-          const yearCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < yearCount; j++) {
-            const startDay = parts[index++];
-            const startTime = parts[index++];
-            const endDay = parts[index++];
-            const endTime = parts[index++];
-            block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+            const yearCount = parseInt(parts[index++], 10);
+            for (let j = 0; j < yearCount; j++) {
+              const startDay = parts[index++];
+              const startTime = parts[index++];
+              const endDay = parts[index++];
+              const endTime = parts[index++];
+              block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+            }
+
+            const monthCount = parseInt(parts[index++], 10);
+            for (let j = 0; j < monthCount; j++) {
+              block.monthDays.push(parseInt(parts[index++], 10));
+            }
+
+            const weekdayBits = parseInt(parts[index++], 10);
+            block.weekdays = decodeWeekdays(weekdayBits);
+
+            const timeRangeCount = parseInt(parts[index++], 10);
+            for (let j = 0; j < timeRangeCount; j++) {
+              const start = parts[index++];
+              const end = parts[index++];
+              block.timeRanges.push([start, end]);
+            }
+
+            timeBlocks.push(block);
           }
-
-          const monthCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < monthCount; j++) {
-            block.monthDays.push(parseInt(parts[index++], 10));
-          }
-
-          const weekdayBits = parseInt(parts[index++], 10);
-          block.weekdays = decodeWeekdays(weekdayBits);
-
-          const timeRangeCount = parseInt(parts[index++], 10);
-          for (let j = 0; j < timeRangeCount; j++) {
-            const start = parts[index++];
-            const end = parts[index++];
-            block.timeRanges.push([start, end]);
-          }
-
-          timeBlocks.push(block);
+        } else {
+          index++; // skip invalid block count
         }
       } else {
         index++; // skip 0 or invalid
