@@ -34,38 +34,94 @@
       document.getElementById('output').textContent = JSON.stringify(results, null, 2);
     });
 
+    function decodeWeekdays(bitmask) {
+      if (bitmask === 0) return [];
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return days.filter((_, i) => (bitmask >> i) & 1);
+    }
+
     function parseGiftLine(line) {
       const parts = line.split('\t');
-      const [
-        startDate, startTime, endDate, endTime,
-        minVersion, maxVersion,
-        _skip1, _skip2,
-        eventId, giftType, giftAmount,
-        title, messageOrUrl,
-        _skip3, _skip4, repeatFlag
-      ] = parts;
-
-      const isUrl = messageOrUrl?.startsWith('http');
-      const result = {
-        header: {
-          startDate,
-          startTime,
-          endDate,
-          endTime,
-          minVersion,
-          maxVersion
-        },
-        eventId: parseInt(eventId, 10),
-        giftType: parseInt(giftType, 10),
-        giftAmount: parseInt(giftAmount, 10),
-        title: title || "",
-        message: isUrl ? "" : (messageOrUrl || ""),
-        url: isUrl ? messageOrUrl : "",
-        repeatFlag: parseInt(repeatFlag || "0", 10)
+      const header = {
+        startDate: parts[0],
+        startTime: parts[1],
+        endDate: parts[2],
+        endTime: parts[3],
+        minVersion: parts[4],
+        maxVersion: parts[5]
       };
 
-      return result;
+      let index = 6;
+      index += 2; // skip two unused fields
+
+      const timeBlocks = [];
+      let timeBlockCount = parseInt(parts[index], 10);
+      if (!isNaN(timeBlockCount) && timeBlockCount > 0) {
+        index++;
+        for (let i = 0; i < timeBlockCount; i++) {
+          const block = {
+            dateRanges: [],
+            monthDays: [],
+            weekdays: [],
+            timeRanges: []
+          };
+
+          const yearCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < yearCount; j++) {
+            const startDay = parts[index++];
+            const startTime = parts[index++];
+            const endDay = parts[index++];
+            const endTime = parts[index++];
+            block.dateRanges.push({ start: `${startDay} ${startTime}`, end: `${endDay} ${endTime}` });
+          }
+
+          const monthCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < monthCount; j++) {
+            block.monthDays.push(parseInt(parts[index++], 10));
+          }
+
+          const weekdayBits = parseInt(parts[index++], 10);
+          block.weekdays = decodeWeekdays(weekdayBits);
+
+          const timeRangeCount = parseInt(parts[index++], 10);
+          for (let j = 0; j < timeRangeCount; j++) {
+            const start = parts[index++];
+            const end = parts[index++];
+            block.timeRanges.push([start, end]);
+          }
+
+          timeBlocks.push(block);
+        }
+      } else {
+        timeBlockCount = 0;
+        index++; // still need to skip the 0
+      }
+
+      const eventId = parseInt(parts[index++], 10);
+      const giftType = parseInt(parts[index++], 10);
+      const giftAmount = parseInt(parts[index++], 10);
+      const title = parts[index++] || "";
+      const messageOrUrl = parts[index++] || "";
+      const isUrl = messageOrUrl.startsWith('http');
+      const skip1 = parts[index++];
+      const skip2 = parts[index++];
+      const repeatFlag = parseInt(parts[index++] || "0", 10);
+
+      return {
+        header,
+        timeBlocks,
+        gift: {
+          eventId,
+          giftType,
+          giftAmount,
+          title,
+          message: isUrl ? "" : messageOrUrl,
+          url: isUrl ? messageOrUrl : "",
+          repeatFlag
+        }
+      };
     }
   </script>
 </body>
 </html>
+
