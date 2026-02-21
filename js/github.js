@@ -1,7 +1,7 @@
 const GITHUB_OWNER = "sinsuirakv0";
 const GITHUB_REPO = "KBC-rakv0-test";
 const GITHUB_BRANCH = "main";
-const GITHUB_TOKEN = "ghp_xxx"; // ← ここはあなたのGitHubトークンに置き換えてね
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 const apiBase = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents`;
 
