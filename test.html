@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-  <h1>ガチャTSVパーサー</h1>
+  <h1>ガチャTSVパーサー1</h1>
   <input type="file" id="fileInput" accept=".txt,.tsv"><br><br>
   <button id="parseBtn">解析する</button>
   <pre id="output">ここに解析結果が表示されます</pre>
@@ -45,8 +45,7 @@
           minVersion: cells[4],
           maxVersion: cells[5],
           gachaType: Number(cells[8]),
-          gachaCount: Number(cells[9]),
-          pos: Number(cells[10])
+          gachaCount: Number(cells[9])
         };
 
         // ガチャ情報の抽出部分だけ抜粋（前のコードの中の一部を差し替え）
