@@ -6,7 +6,7 @@ import { parseItem } from "../parsers/item.js";
 import { getGitHubFile, updateGitHubFile } from "../js/github.js";
 
 export const config = {
-  schedule: "*/5 * * * *" // 5分ごとに実行
+  schedule: "*/5 * * * *" // 必要に応じて変更可
 };
 
 const types = [
@@ -17,6 +17,7 @@ const types = [
 
 export default async function handler(req, res) {
   try {
+    const forceUpdate = req.query.force === "1"; // ← ここでforce=1を検出
     const jwt = await getJWT();
     const results = [];
 
@@ -26,26 +27,25 @@ export default async function handler(req, res) {
       const text = await response.text();
       const hash = crypto.createHash("md5").update(text).digest("hex");
 
-      // 前回のハッシュをGitHubから取得
       const prevHash = await getGitHubFile(`hashes/${name}.md5`);
       const prevHashText = prevHash?.content?.trim();
 
-      if (hash !== prevHashText) {
+      if (hash !== prevHashText || forceUpdate) {
         const json = parser(text);
 
         await updateGitHubFile({
           path: `data/${name}.json`,
           content: JSON.stringify(json, null, 2),
-          message: `update ${name}.json`
+          message: `update ${name}.json${forceUpdate ? " (forced)" : ""}`
         });
 
         await updateGitHubFile({
           path: `hashes/${name}.md5`,
           content: hash,
-          message: `update ${name}.md5`
+          message: `update ${name}.md5${forceUpdate ? " (forced)" : ""}`
         });
 
-        results.push(`${name}.tsv updated`);
+        results.push(`${name}.tsv updated${forceUpdate ? " (forced)" : ""}`);
       } else {
         results.push(`${name}.tsv unchanged`);
       }
