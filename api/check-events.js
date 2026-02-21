@@ -17,7 +17,7 @@ const types = [
 
 export default async function handler(req, res) {
   try {
-    const forceUpdate = req.query.force === "1"; // ← ここでforce=1を検出
+    const forceUpdate = req.query.force === "12"; // ← ここでforce=1を検出
     const jwt = await getJWT();
     const results = [];
 
