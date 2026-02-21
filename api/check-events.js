@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { parseGatya } from "../parsers/gatya.js";
 import { parseSale } from "../parsers/sale.js";
 import { parseItem } from "../parsers/item.js";
-import { getGitHubFile, updateGitHubFile } from "../js/github.js";
+import { getGitHubFile, updateGitHubFile, deleteGitHubFile } from "../js/github.js";
 
 export const config = {
   schedule: "*/5 * * * *" // 必要に応じて変更可
@@ -33,6 +33,13 @@ export default async function handler(req, res) {
       if (hash !== prevHashText || forceUpdate) {
         const json = parser(text);
 
+        if (forceUpdate) {
+          await deleteGitHubFile({
+            path: `data/${name}.json`,
+            message: `delete ${name}.json (forced)`
+          });
+         }
+        
         await updateGitHubFile({
           path: `data/${name}.json`,
           content: JSON.stringify(json, null, 2),
