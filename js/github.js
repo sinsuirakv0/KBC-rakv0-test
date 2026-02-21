@@ -53,3 +53,29 @@ export async function updateGitHubFile({ path, content, message }) {
     throw new Error(`GitHub push failed: ${error}`);
   }
 }
+
+export async function deleteGitHubFile({ path, message }) {
+  const url = `${apiBase}/${path}`;
+
+  // まずSHAを取得
+  const file = await getGitHubFile(path);
+  if (!file?.sha) throw new Error(`File not found: ${path}`);
+
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      Authorization: `token ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message,
+      sha: file.sha,
+      branch: GITHUB_BRANCH
+    })
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`GitHub delete failed: ${error}`);
+  }
+}
