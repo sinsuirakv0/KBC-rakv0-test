@@ -43,8 +43,8 @@
       justify-content: space-between;
       align-items: center;
       font-weight: bold;
-      font-size: 1.2em;
-      margin-bottom: 10px;
+      font-size: 1.1em;
+      margin-bottom: 8px;
     }
 
     .close-btn {
@@ -52,6 +52,10 @@
       border: none;
       font-size: 1.2em;
       cursor: pointer;
+    }
+
+    pre {
+      margin: 0;
     }
   </style>
 </head>
@@ -72,7 +76,8 @@
   <script>
     const saleUrl = 'https://kbc-rakv0.vercel.app/data/sale.json'; // ← 実際のURLに置き換えてね
     const stageNameMap = {
-      "1118": "ステージ名",
+      "1014": "ステージ名A",
+      "1118": "ステージ名B",
       "36020": "ネコ道場：激ムズ",
       "9493": "レジェンドステージ1",
       "9494": "レジェンドステージ2",
@@ -112,14 +117,13 @@
       return `${m}/${d}`;
     }
 
-    function parseTimeBlocks(entry, stageName = "ステージ名") {
+    function parseTimeBlocks(entry, stageNames = []) {
       const { startDate, startTime, endDate, endTime, minVersion, maxVersion } = entry.header;
-      const stageId = entry.stageIds[0];
+      const stageIds = entry.stageIds;
 
       const lines = [];
       lines.push(`期間：${formatDateWithWeekday(startDate, startTime)} ～ ${formatDateWithWeekday(endDate, endTime)}`);
-      lines.push(`v:${minVersion}-${maxVersion} | id:${stageId}`);
-      lines.push('');
+      lines.push(`v:${minVersion}-${maxVersion} | id:${stageIds.join(', ')}`);
 
       const timeLines = [];
 
@@ -148,14 +152,15 @@
       }
 
       if (timeLines.length > 0) {
+        lines.push('');
         lines.push(`開催日時：`);
         lines.push(...timeLines);
       }
 
       return {
-        label: `${startDate.slice(4,6)}/${startDate.slice(6,8)}～${endDate.slice(4,6)}/${endDate.slice(6,8)}　${stageName}`,
+        label: `${startDate.slice(4,6)}/${startDate.slice(6,8)}～${endDate.slice(4,6)}/${endDate.slice(6,8)}　${stageNames.join(', ')}`,
         detail: lines.join('\n'),
-        title: `${stageName}`
+        title: stageNames.join(', ')
       };
     }
 
@@ -177,9 +182,8 @@
         list.innerHTML = '';
 
         data.forEach(entry => {
-          const stageId = entry.stageIds[0];
-          const stageName = stageNameMap[stageId] || `ID:${stageId}`;
-          const { label, detail, title } = parseTimeBlocks(entry, stageName);
+          const stageNames = entry.stageIds.map(id => stageNameMap[id] || `ID:${id}`);
+          const { label, detail, title } = parseTimeBlocks(entry, stageNames);
 
           const div = document.createElement('div');
           div.className = 'entry';
