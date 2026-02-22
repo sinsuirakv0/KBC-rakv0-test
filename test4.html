@@ -42,15 +42,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: bold;
-      font-size: 1.1em;
+      font-size: 1em;
       margin-bottom: 8px;
+      white-space: nowrap;
+    }
+
+    #overlay-title {
+      font-weight: normal;
     }
 
     .close-btn {
       background: none;
       border: none;
-      font-size: 1.2em;
+      font-size: 1.1em;
       cursor: pointer;
     }
 
@@ -66,7 +70,7 @@
   <div class="overlay" id="overlay">
     <div class="overlay-content" id="overlay-content">
       <div class="overlay-header">
-        <span id="overlay-title">ステージ名</span>
+        <span id="overlay-title">・ ステージ名</span>
         <button class="close-btn" onclick="hideOverlay()">×</button>
       </div>
       <pre id="overlay-body"></pre>
@@ -78,6 +82,7 @@
     const stageNameMap = {
       "1014": "ステージ名A",
       "1118": "ステージ名B",
+      "1421": "ステージ名C",
       "36020": "ネコ道場：激ムズ",
       "9493": "レジェンドステージ1",
       "9494": "レジェンドステージ2",
@@ -165,7 +170,7 @@
     }
 
     function showOverlay(title, text) {
-      document.getElementById('overlay-title').textContent = title;
+      document.getElementById('overlay-title').textContent = `・ ${title}`;
       document.getElementById('overlay-body').textContent = text;
       document.getElementById('overlay').style.display = 'flex';
     }
