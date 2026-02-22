@@ -4,90 +4,163 @@
   <meta charset="UTF-8">
   <title>セールスケジュール</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
+    body { font-family: sans-serif; padding: 20px; }
+    .entry { cursor: pointer; margin-bottom: 8px; }
+    .entry:hover { text-decoration: underline; color: #0078d4; }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
     }
-    pre {
-      background: #f9f9f9;
-      padding: 1em;
-      border: 1px solid #ccc;
+
+    .overlay-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      max-height: 80%;
+      overflow-y: auto;
       white-space: pre-wrap;
+    }
+
+    .close-btn {
+      margin-top: 1em;
+      text-align: right;
+    }
+
+    .close-btn button {
+      padding: 6px 12px;
     }
   </style>
 </head>
 <body>
   <h1>セールスケジュール</h1>
-  <pre id="output">読み込み中...</pre>
+  <div id="list"></div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-content" id="overlay-content">
+      <div class="close-btn"><button onclick="hideOverlay()">閉じる</button></div>
+    </div>
+  </div>
 
   <script>
-    const saleUrl = 'https://kbc-rakv0.vercel.app/data/sale.json'; // ← 実際のURLに置き換えてね
+    const saleUrl = 'https://example.com/sale.json'; // ← 実際のURLに置き換えてね
     const stageNameMap = {
       "1118": "ステージ名",
-      // 他のステージIDもここに追加可能
+      "36020": "ネコ道場：激ムズ",
+      "9493": "レジェンドステージ1",
+      "9494": "レジェンドステージ2",
+      "9495": "レジェンドステージ3",
+      "9496": "レジェンドステージ4"
+    };
+
+    const weekdayMap = {
+      "Sun": "日曜日",
+      "Mon": "月曜日",
+      "Tue": "火曜日",
+      "Wed": "水曜日",
+      "Thu": "木曜日",
+      "Fri": "金曜日",
+      "Sat": "土曜日"
     };
 
     function formatTime(t) {
       return `${t.slice(0, 2)}:${t.slice(2, 4)}`;
     }
 
-    function formatDate(m, d) {
-      return `${m.toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}`;
+    function formatDateWithWeekday(dateStr, timeStr) {
+      const y = parseInt(dateStr.slice(0, 4));
+      const m = parseInt(dateStr.slice(4, 6)) - 1;
+      const d = parseInt(dateStr.slice(6, 8));
+      const h = parseInt(timeStr.slice(0, 2));
+      const min = parseInt(timeStr.slice(2, 4));
+      const date = new Date(y, m, d, h, min);
+      const weekday = "日月火水木金土"[date.getDay()];
+      return `${y}/${(m+1).toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}(${weekday}) ${formatTime(timeStr)}`;
+    }
+
+    function formatShortDate(md) {
+      const m = md.month.toString().padStart(2, '0');
+      const d = md.day.toString().padStart(2, '0');
+      return `${m}/${d}`;
     }
 
     function parseTimeBlocks(entry, stageName = "ステージ名") {
       const { startDate, startTime, endDate, endTime, minVersion, maxVersion } = entry.header;
       const baseYear = parseInt(startDate.slice(0, 4));
-      const stageId = entry.stageIds[0]; // 単一想定
+      const stageId = entry.stageIds[0];
 
       const lines = [];
-      lines.push(`[${stageId} ${stageName}]`);
-      lines.push(`${startDate}(${startTime})-${endDate}(${endTime}) v:${minVersion}-${maxVersion}`);
+      lines.push(`期間：${formatDateWithWeekday(startDate, startTime)} ～ ${formatDateWithWeekday(endDate, endTime)}`);
+      lines.push(`v:${minVersion}-${maxVersion} | id:${stageId}`);
+      lines.push('');
+      lines.push(`開催日時：`);
 
       for (const block of entry.timeBlocks) {
         const { dateRanges, monthDays, weekdays, timeRanges } = block;
+        const timeStr = timeRanges.map(([s, e]) => `${formatTime(s)}～${formatTime(e)}`).join(' & ');
 
-        // 時間帯の整形
-        const timeStr = timeRanges.map(([s, e]) => `${formatTime(s)}～${formatTime(e)}`).join(', ');
-
-        for (const range of dateRanges) {
-          const [startMonth, startDay] = range.start.split(' ')[0].match(/(\d{1,2})(\d{2})/).slice(1).map(Number);
-          const [endMonth, endDay] = range.end.split(' ')[0].match(/(\d{1,2})(\d{2})/).slice(1).map(Number);
-          const startTime = formatTime(range.start.split(' ')[1]);
-          const endTime = formatTime(range.end.split(' ')[1]);
-
-          const dateStr = `${formatDate(startMonth, startDay)}(${startTime})～${formatDate(endMonth, endDay)}(${endTime})`;
-
-          // AND条件チェック（dateRangesは必須、他は空なら無視）
-          const hasMonthDays = monthDays.length > 0;
-          const hasWeekdays = weekdays.length > 0;
-
-          if (!hasMonthDays && !hasWeekdays) {
-            lines.push(`・${dateStr} ${timeStr}`);
-          } else {
-            lines.push(`・${dateStr} ${timeStr} ※条件付き（未展開）`);
+        if (dateRanges.length > 0) {
+          for (const range of dateRanges) {
+            const [sm, sd] = range.start.split(' ')[0].match(/(\d{1,2})(\d{2})/).slice(1).map(Number);
+            const [em, ed] = range.end.split(' ')[0].match(/(\d{1,2})(\d{2})/).slice(1).map(Number);
+            const st = formatTime(range.start.split(' ')[1]);
+            const et = formatTime(range.end.split(' ')[1]);
+            lines.push(`${formatShortDate({month: sm, day: sd})}(${st})～${formatShortDate({month: em, day: ed})}(${et}) ${timeStr}`);
           }
+        } else if (monthDays.length > 0) {
+          monthDays.forEach(day => {
+            lines.push(`毎月${day}日 ${timeStr}`);
+          });
+        } else if (weekdays.length > 0) {
+          weekdays.forEach(wd => {
+            const jp = weekdayMap[wd] || wd;
+            lines.push(`${jp} ${timeStr}`);
+          });
         }
       }
 
-      return lines.join('\n');
+      return {
+        label: `${formatShortDate({month: parseInt(startDate.slice(4,6)), day: parseInt(startDate.slice(6,8))})}～${formatShortDate({month: parseInt(endDate.slice(4,6)), day: parseInt(endDate.slice(6,8))})}　${stageName}`,
+        detail: lines.join('\n')
+      };
+    }
+
+    function showOverlay(text) {
+      const overlay = document.getElementById('overlay');
+      const content = document.getElementById('overlay-content');
+      content.innerHTML = `<div class="close-btn"><button onclick="hideOverlay()">閉じる</button></div><pre>${text}</pre>`;
+      overlay.style.display = 'flex';
+    }
+
+    function hideOverlay() {
+      document.getElementById('overlay').style.display = 'none';
     }
 
     async function loadAndDisplay() {
       try {
         const res = await fetch(saleUrl);
         const data = await res.json();
-        const output = document.getElementById('output');
-        output.textContent = '';
+        const list = document.getElementById('list');
+        list.innerHTML = '';
 
         data.forEach(entry => {
           const stageId = entry.stageIds[0];
           const stageName = stageNameMap[stageId] || 'ステージ名不明';
-          const text = parseTimeBlocks(entry, stageName);
-          output.textContent += text + '\n\n';
+          const { label, detail } = parseTimeBlocks(entry, stageName);
+
+          const div = document.createElement('div');
+          div.className = 'entry';
+          div.textContent = label;
+          div.addEventListener('click', () => showOverlay(detail));
+          list.appendChild(div);
         });
       } catch (err) {
-        document.getElementById('output').textContent = '読み込みに失敗しました。';
+        document.getElementById('list').textContent = '読み込みに失敗しました。';
         console.error(err);
       }
     }
