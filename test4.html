@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>セールスケジュール</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #f0f0f0; }
+    tr:hover { background-color: #eef; cursor: pointer; }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .overlay-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+  <h1>セールスケジュール</h1>
+  <table id="sale-table">
+    <thead>
+      <tr>
+        <th>期間</th>
+        <th>ステージ</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-content" id="overlay-content"></div>
+  </div>
+
+  <script>
+    const saleUrl = 'https://kbc-rakv0.vercel.app/data/sale.json'; // ← 実際のURLに置き換えてね
+    const stageNameMap = {
+      "36020": "ネコ道場：激ムズ",
+      "9493": "レジェンドステージ1",
+      "9494": "レジェンドステージ2",
+      "9495": "レジェンドステージ3",
+      "9496": "レジェンドステージ4"
+    };
+
+    function formatDate(dateStr, timeStr) {
+      const y = dateStr.slice(0, 4);
+      const m = dateStr.slice(4, 6);
+      const d = dateStr.slice(6, 8);
+      const h = timeStr.slice(0, 2);
+      const min = timeStr.slice(2, 4);
+      return `${m}/${d} ${h}:${min}`;
+    }
+
+    async function loadSaleData() {
+      const res = await fetch(saleUrl);
+      const data = await res.json();
+      const tbody = document.querySelector('#sale-table tbody');
+
+      data.forEach((entry, index) => {
+        const { startDate, startTime, endDate, endTime } = entry.header;
+        const stageNames = entry.stageIds.map(id => stageNameMap[id] || `ID: ${id}`);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${formatDate(startDate, startTime)} ～ ${formatDate(endDate, endTime)}</td>
+          <td>${stageNames.join(', ')}</td>
+        `;
+        row.addEventListener('click', () => showOverlay(entry));
+        tbody.appendChild(row);
+      });
+    }
+
+    function showOverlay(entry) {
+      const overlay = document.getElementById('overlay');
+      const content = document.getElementById('overlay-content');
+      const { startDate, startTime, endDate, endTime, minVersion, maxVersion } = entry.header;
+      const stageNames = entry.stageIds.map(id => stageNameMap[id] || `ID: ${id}`);
+
+      content.innerHTML = `
+        <h2>詳細情報</h2>
+        <p><strong>期間:</strong> ${formatDate(startDate, startTime)} ～ ${formatDate(endDate, endTime)}</p>
+        <p><strong>ステージ:</strong> ${stageNames.join(', ')}</p>
+        <p><strong>対応バージョン:</strong> ${minVersion} ～ ${maxVersion}</p>
+        <button onclick="hideOverlay()">閉じる</button>
+      `;
+      overlay.style.display = 'flex';
+    }
+
+    function hideOverlay() {
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    loadSaleData();
+  </script>
+</body>
+</html>
