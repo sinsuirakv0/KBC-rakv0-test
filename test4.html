@@ -4,9 +4,17 @@
   <meta charset="UTF-8">
   <title>セールスケジュール</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .entry { cursor: pointer; margin-bottom: 8px; }
-    .entry:hover { text-decoration: underline; color: #0078d4; }
+    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+    .entry {
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .entry:hover {
+      background-color: #eef;
+    }
 
     .overlay {
       position: fixed;
@@ -15,6 +23,7 @@
       display: none;
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
 
     .overlay-content {
@@ -25,15 +34,24 @@
       max-height: 80%;
       overflow-y: auto;
       white-space: pre-wrap;
+      position: relative;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .overlay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 10px;
     }
 
     .close-btn {
-      margin-top: 1em;
-      text-align: right;
-    }
-
-    .close-btn button {
-      padding: 6px 12px;
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -43,12 +61,16 @@
 
   <div class="overlay" id="overlay">
     <div class="overlay-content" id="overlay-content">
-      <div class="close-btn"><button onclick="hideOverlay()">閉じる</button></div>
+      <div class="overlay-header">
+        <span id="overlay-title">ステージ名</span>
+        <button class="close-btn" onclick="hideOverlay()">×</button>
+      </div>
+      <pre id="overlay-body"></pre>
     </div>
   </div>
 
   <script>
-    const saleUrl = 'https://kbc-rakv0.vercel.app/data/sale.json'; // ← 実際のURLに置き換えてね
+    const saleUrl = 'https://example.com/sale.json'; // ← 実際のURLに置き換えてね
     const stageNameMap = {
       "1118": "ステージ名",
       "36020": "ネコ道場：激ムズ",
@@ -69,6 +91,7 @@
     };
 
     function formatTime(t) {
+      t = t.toString().padStart(4, '0');
       return `${t.slice(0, 2)}:${t.slice(2, 4)}`;
     }
 
@@ -76,11 +99,11 @@
       const y = parseInt(dateStr.slice(0, 4));
       const m = parseInt(dateStr.slice(4, 6)) - 1;
       const d = parseInt(dateStr.slice(6, 8));
-      const h = parseInt(timeStr.slice(0, 2));
-      const min = parseInt(timeStr.slice(2, 4));
+      const h = parseInt((timeStr || '0000').slice(0, 2));
+      const min = parseInt((timeStr || '0000').slice(2, 4));
       const date = new Date(y, m, d, h, min);
       const weekday = "日月火水木金土"[date.getDay()];
-      return `${y}/${(m+1).toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}(${weekday}) ${formatTime(timeStr)}`;
+      return `${y}/${(m+1).toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}(${weekday}) ${formatTime(timeStr || '0000')}`;
     }
 
     function formatShortDate(md) {
@@ -91,14 +114,14 @@
 
     function parseTimeBlocks(entry, stageName = "ステージ名") {
       const { startDate, startTime, endDate, endTime, minVersion, maxVersion } = entry.header;
-      const baseYear = parseInt(startDate.slice(0, 4));
       const stageId = entry.stageIds[0];
 
       const lines = [];
       lines.push(`期間：${formatDateWithWeekday(startDate, startTime)} ～ ${formatDateWithWeekday(endDate, endTime)}`);
       lines.push(`v:${minVersion}-${maxVersion} | id:${stageId}`);
       lines.push('');
-      lines.push(`開催日時：`);
+
+      const timeLines = [];
 
       for (const block of entry.timeBlocks) {
         const { dateRanges, monthDays, weekdays, timeRanges } = block;
@@ -110,31 +133,36 @@
             const [em, ed] = range.end.split(' ')[0].match(/(\d{1,2})(\d{2})/).slice(1).map(Number);
             const st = formatTime(range.start.split(' ')[1]);
             const et = formatTime(range.end.split(' ')[1]);
-            lines.push(`${formatShortDate({month: sm, day: sd})}(${st})～${formatShortDate({month: em, day: ed})}(${et}) ${timeStr}`);
+            timeLines.push(`${sm.toString().padStart(2, '0')}/${sd.toString().padStart(2, '0')}(${st})～${em.toString().padStart(2, '0')}/${ed.toString().padStart(2, '0')}(${et}) ${timeStr}`);
           }
         } else if (monthDays.length > 0) {
           monthDays.forEach(day => {
-            lines.push(`毎月${day}日 ${timeStr}`);
+            timeLines.push(`毎月${day}日 ${timeStr}`);
           });
         } else if (weekdays.length > 0) {
           weekdays.forEach(wd => {
             const jp = weekdayMap[wd] || wd;
-            lines.push(`${jp} ${timeStr}`);
+            timeLines.push(`${jp} ${timeStr}`);
           });
         }
       }
 
+      if (timeLines.length > 0) {
+        lines.push(`開催日時：`);
+        lines.push(...timeLines);
+      }
+
       return {
-        label: `${formatShortDate({month: parseInt(startDate.slice(4,6)), day: parseInt(startDate.slice(6,8))})}～${formatShortDate({month: parseInt(endDate.slice(4,6)), day: parseInt(endDate.slice(6,8))})}　${stageName}`,
-        detail: lines.join('\n')
+        label: `${startDate.slice(4,6)}/${startDate.slice(6,8)}～${endDate.slice(4,6)}/${endDate.slice(6,8)}　${stageName}`,
+        detail: lines.join('\n'),
+        title: `${stageName}`
       };
     }
 
-    function showOverlay(text) {
-      const overlay = document.getElementById('overlay');
-      const content = document.getElementById('overlay-content');
-      content.innerHTML = `<div class="close-btn"><button onclick="hideOverlay()">閉じる</button></div><pre>${text}</pre>`;
-      overlay.style.display = 'flex';
+    function showOverlay(title, text) {
+      document.getElementById('overlay-title').textContent = title;
+      document.getElementById('overlay-body').textContent = text;
+      document.getElementById('overlay').style.display = 'flex';
     }
 
     function hideOverlay() {
@@ -150,13 +178,13 @@
 
         data.forEach(entry => {
           const stageId = entry.stageIds[0];
-          const stageName = stageNameMap[stageId] || 'ステージ名不明';
-          const { label, detail } = parseTimeBlocks(entry, stageName);
+          const stageName = stageNameMap[stageId] || `ID:${stageId}`;
+          const { label, detail, title } = parseTimeBlocks(entry, stageName);
 
           const div = document.createElement('div');
           div.className = 'entry';
           div.textContent = label;
-          div.addEventListener('click', () => showOverlay(detail));
+          div.addEventListener('click', () => showOverlay(title, detail));
           list.appendChild(div);
         });
       } catch (err) {
