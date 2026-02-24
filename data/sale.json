@@ -14041,5 +14041,42 @@
       9495,
       9496
     ]
+  },
+  {
+    "header": {
+      "startDate": "20260301",
+      "startTime": "000",
+      "endDate": "20300101",
+      "endTime": "000",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [
+      {
+        "dateRanges": [],
+        "monthDays": [
+          1,
+          2
+        ],
+        "weekdays": [],
+        "timeRanges": [
+          [
+            "800",
+            "1000"
+          ],
+          [
+            "1200",
+            "1400"
+          ],
+          [
+            "1900",
+            "2100"
+          ]
+        ]
+      }
+    ],
+    "stageIds": [
+      1118
+    ]
   }
 ]
