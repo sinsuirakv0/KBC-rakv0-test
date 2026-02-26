@@ -1,6 +1,7 @@
 # 適当
+
 コードのほとんどを生成AIで書いています
-私にhtml javascript css等の知識は一切ありません
-多分HTML javascript cssだけで出来てます
+<br>私にhtml javascript css等の知識は一切ありません
+
 
 # パスのメモ（いつか書く）
