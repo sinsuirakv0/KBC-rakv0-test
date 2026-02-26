@@ -12,3 +12,28 @@
 <br>Event-Data-Downloader
 <br>└ api/getData
 <br>&emsp;&emsp;&emsp;└ ../js/jwt.js
+<br>
+<br>スケサイト仮
+<br>├ data/
+<br>│　└ sale(gatya,item).json　(json達はapi/check-events.jsにより五分ごとに更新検知、自動更新されるよ)
+<br>
+<br>
+<br>
+<br>api/check-events.js
+<br>├ ../js/
+<br>│　　├ jwt.js
+<br>│　　└ github.js
+<br>├ ../parsers/
+<br>│　　　├ sale(gatya,item).js (tsvの生データをjsonにしてるよ)
+<br>│
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
