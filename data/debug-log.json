@@ -1,5 +1,28 @@
 [
   {
+    "startedAt": "2026-02-27T19:00:23.038Z",
+    "results": [
+      {
+        "name": "gatya",
+        "changed": false,
+        "updated": null,
+        "error": null
+      },
+      {
+        "name": "sale",
+        "changed": false,
+        "updated": null,
+        "error": null
+      },
+      {
+        "name": "item",
+        "changed": false,
+        "updated": null,
+        "error": null
+      }
+    ]
+  },
+  {
     "startedAt": "2026-02-27T18:55:14.668Z",
     "results": [
       {
@@ -1110,29 +1133,6 @@
         "name": "gatya",
         "changed": false,
         "updated": null,
-        "error": null
-      },
-      {
-        "name": "sale",
-        "changed": false,
-        "updated": null,
-        "error": null
-      },
-      {
-        "name": "item",
-        "changed": false,
-        "updated": null,
-        "error": null
-      }
-    ]
-  },
-  {
-    "startedAt": "2026-02-27T15:29:41.710Z",
-    "results": [
-      {
-        "name": "gatya",
-        "changed": true,
-        "updated": true,
         "error": null
       },
       {
