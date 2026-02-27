@@ -1113,66 +1113,6 @@
   },
   {
     "header": {
-      "startDate": "20260101",
-      "startTime": "0",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150100",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 2473,
-      "giftType": 301,
-      "giftAmount": 0,
-      "title": "←全画面告知の表示と同時に付与する",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260101",
-      "startTime": "0",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150100",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 2474,
-      "giftType": 302,
-      "giftAmount": 0,
-      "title": "←全画面告知の表示と同時に付与する",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260130",
-      "startTime": "1100",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150101",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 80094,
-      "giftType": 11042,
-      "giftAmount": 0,
-      "title": "",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
       "startDate": "20260216",
       "startTime": "1100",
       "endDate": "20260302",
@@ -1209,26 +1149,6 @@
       "message": "イベント期間中にログインすると、1日1回スタンプを押してもらえるにゃ！<br>毎日ログインして最大でネコカン280個ゲット！(3/2まで)",
       "url": "",
       "repeatFlag": 1
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260216",
-      "startTime": "1100",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150101",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 51680,
-      "giftType": 827,
-      "giftAmount": 0,
-      "title": "",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
     }
   },
   {
@@ -1342,26 +1262,6 @@
   },
   {
     "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 51682,
-      "giftType": 982,
-      "giftAmount": 0,
-      "title": "「エヴァンゲリオン」コラボイベント開催記念☆",
-      "message": "コラボイベントの開催を記念して、<br>限定キャラ「ちびカヲル」と「レアチケット+1」をプレゼント！",
-      "url": "",
-      "repeatFlag": 1
-    }
-  },
-  {
-    "header": {
       "startDate": "20260222",
       "startTime": "1100",
       "endDate": "20260302",
@@ -1398,86 +1298,6 @@
       "message": "2月22日は年に一度のスーパーにゃんにゃん記念日！<br>特別大サービス！レアチケット＆リーダーシップを2個ずつプレゼント！",
       "url": "",
       "repeatFlag": 1
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260223",
-      "startTime": "000",
-      "endDate": "20260224",
-      "endTime": "000",
-      "minVersion": "150200",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 2482,
-      "giftType": 203,
-      "giftAmount": 1,
-      "title": "祝日感謝☆",
-      "message": "祝日感謝！今日だけ特別大サービス！<br>レアチケット1枚をプレゼント！",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 51685,
-      "giftType": 833,
-      "giftAmount": 0,
-      "title": "",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 51686,
-      "giftType": 834,
-      "giftAmount": 0,
-      "title": "",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
-    }
-  },
-  {
-    "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999"
-    },
-    "timeBlocks": [],
-    "gift": {
-      "eventId": 51687,
-      "giftType": 852,
-      "giftAmount": 0,
-      "title": "",
-      "message": "",
-      "url": "",
-      "repeatFlag": 0
     }
   },
   {
@@ -1558,6 +1378,118 @@
       "message": "",
       "url": "",
       "repeatFlag": 2
+    }
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260330",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [],
+    "gift": {
+      "eventId": 51692,
+      "giftType": 974,
+      "giftAmount": 0,
+      "title": "「トキメキにゃんこ学園」学園生活応援スタンプ☆",
+      "message": "にゃんこ学園イベントを記念して特別ボーナス！<br>恋も勉強も両立！伝説のラブレターを集めて学園生活を充実させよう！（3/30まで）",
+      "url": "",
+      "repeatFlag": 1
+    }
+  },
+  {
+    "header": {
+      "startDate": "20260305",
+      "startTime": "1100",
+      "endDate": "20260313",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [],
+    "gift": {
+      "eventId": 51694,
+      "giftType": 837,
+      "giftAmount": 0,
+      "title": "",
+      "message": "",
+      "url": "",
+      "repeatFlag": 0
+    }
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260330",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [],
+    "gift": {
+      "eventId": 5203,
+      "giftType": 838,
+      "giftAmount": 0,
+      "title": "",
+      "message": "",
+      "url": "",
+      "repeatFlag": 0
+    }
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260323",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [],
+    "gift": {
+      "eventId": 80096,
+      "giftType": 11012,
+      "giftAmount": 0,
+      "title": "",
+      "message": "",
+      "url": "",
+      "repeatFlag": 1
+    }
+  },
+  {
+    "header": {
+      "startDate": "20260303",
+      "startTime": "700",
+      "endDate": "20260330",
+      "endTime": "900",
+      "minVersion": "150200",
+      "maxVersion": "999999"
+    },
+    "timeBlocks": [
+      {
+        "dateRanges": [],
+        "monthDays": [],
+        "weekdays": [],
+        "timeRanges": [
+          [
+            "700",
+            "900"
+          ]
+        ]
+      }
+    ],
+    "gift": {
+      "eventId": 51693,
+      "giftType": 973,
+      "giftAmount": 0,
+      "title": "「トキメキにゃんこ学園」生徒出席簿",
+      "message": "トキメキにゃんこ学園イベントを記念して特別ボーナス！めざせ無遅刻無欠席！<br>毎朝7時～9時限定で出席確認！ログインでアイテムプレゼント！（3/30まで）",
+      "url": "",
+      "repeatFlag": 1
     }
   }
 ]
