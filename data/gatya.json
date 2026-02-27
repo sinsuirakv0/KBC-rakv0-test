@@ -417,146 +417,6 @@
   },
   {
     "header": {
-      "startDate": "20260218",
-      "startTime": "1100",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150101",
-      "maxVersion": "999999",
-      "gachaType": 1,
-      "gachaCount": 1
-    },
-    "gachas": [
-      {
-        "id": 1023,
-        "price": 150,
-        "flags": 4216,
-        "rates": {
-          "normal": 0,
-          "rare": 6470,
-          "superRare": 2600,
-          "uberRare": 900,
-          "legendRare": 30
-        },
-        "guaranteed": false,
-        "message": "限定超激レアキャラクター「冥護の天女ルナーシャ」参戦！★詳細はバナーをタップ!!"
-      }
-    ]
-  },
-  {
-    "header": {
-      "startDate": "20260218",
-      "startTime": "1100",
-      "endDate": "20260221",
-      "endTime": "1100",
-      "minVersion": "150101",
-      "maxVersion": "999999",
-      "gachaType": 1,
-      "gachaCount": 3
-    },
-    "gachas": [
-      {
-        "id": 1004,
-        "price": 150,
-        "flags": 20600,
-        "rates": {
-          "normal": 0,
-          "rare": 6970,
-          "superRare": 2500,
-          "uberRare": 500,
-          "legendRare": 30
-        },
-        "guaranteed": false,
-        "message": "進化後に召喚能力を持つ「樹の精霊コモリ」参戦！★詳細はバナーをタップ!!"
-      }
-    ]
-  },
-  {
-    "header": {
-      "startDate": "20260216",
-      "startTime": "1100",
-      "endDate": "20260223",
-      "endTime": "1100",
-      "minVersion": "150101",
-      "maxVersion": "999999",
-      "gachaType": 0,
-      "gachaCount": 2
-    },
-    "gachas": [
-      {
-        "id": 65,
-        "price": 0,
-        "flags": 2,
-        "rates": {
-          "normal": 500,
-          "rare": 6900,
-          "superRare": 2000,
-          "uberRare": 500,
-          "legendRare": 100
-        },
-        "guaranteed": false,
-        "message": "高確率でキャッツアイが手に入るイベント限定特別ガチャ！"
-      }
-    ]
-  },
-  {
-    "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999",
-      "gachaType": 1,
-      "gachaCount": 1
-    },
-    "gachas": [
-      {
-        "id": 998,
-        "price": 150,
-        "flags": 4216,
-        "rates": {
-          "normal": 0,
-          "rare": 6970,
-          "superRare": 2500,
-          "uberRare": 500,
-          "legendRare": 30
-        },
-        "guaranteed": true,
-        "message": "限定伝説レアや「エヴァ量産機」が登場！エヴァンゲリオンコラボガチャ！"
-      }
-    ]
-  },
-  {
-    "header": {
-      "startDate": "20260221",
-      "startTime": "1100",
-      "endDate": "20260225",
-      "endTime": "1100",
-      "minVersion": "150200",
-      "maxVersion": "999999",
-      "gachaType": 1,
-      "gachaCount": 2
-    },
-    "gachas": [
-      {
-        "id": 999,
-        "price": 150,
-        "flags": 4216,
-        "rates": {
-          "normal": 0,
-          "rare": 6970,
-          "superRare": 2500,
-          "uberRare": 500,
-          "legendRare": 30
-        },
-        "guaranteed": true,
-        "message": "限定伝説レアが登場！エヴァンゲリオンコラボガチャ2nd！★詳細はバナーをタップ!!"
-      }
-    ]
-  },
-  {
-    "header": {
       "startDate": "20260221",
       "startTime": "1100",
       "endDate": "20260302",
@@ -748,6 +608,370 @@
         },
         "guaranteed": false,
         "message": "高確率でマタタビが手に入るイベント限定特別ガチャ！"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260331",
+      "endTime": "000",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 4,
+      "gachaCount": 2
+    },
+    "gachas": [
+      {
+        "id": 0,
+        "price": 0,
+        "flags": 0,
+        "rates": {
+          "normal": 0,
+          "rare": 1000,
+          "superRare": 5000,
+          "uberRare": 2500,
+          "legendRare": 1500
+        },
+        "guaranteed": false,
+        "message": "0"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260305",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 1
+    },
+    "gachas": [
+      {
+        "id": 1033,
+        "price": 150,
+        "flags": 0,
+        "rates": {
+          "normal": 0,
+          "rare": 6470,
+          "superRare": 2600,
+          "uberRare": 900,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "限定キャラ「幼騎士ルーノ」参戦！★超激レア出現率アップの「超ネコ祭」開催中!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260305",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 2
+    },
+    "gachas": [
+      {
+        "id": 943,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "召喚能力を持つキャラクター「明智光秀」参戦！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260302",
+      "startTime": "1100",
+      "endDate": "20260305",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 3
+    },
+    "gachas": [
+      {
+        "id": 991,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "波動攻撃と召喚能力を持つ「韋駄天スカンダ」参戦！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260305",
+      "startTime": "1100",
+      "endDate": "20260307",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 1
+    },
+    "gachas": [
+      {
+        "id": 696,
+        "price": 150,
+        "flags": 4,
+        "rates": {
+          "normal": 0,
+          "rare": 7000,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 0
+        },
+        "guaranteed": false,
+        "message": "赤い敵対策はお任せ！限定キャラも登場する特別版！★おまけアップイベント開催中!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260305",
+      "startTime": "1100",
+      "endDate": "20260307",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 2
+    },
+    "gachas": [
+      {
+        "id": 452,
+        "price": 150,
+        "flags": 4,
+        "rates": {
+          "normal": 0,
+          "rare": 7000,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 0
+        },
+        "guaranteed": false,
+        "message": "浮いてる敵に対して強力効果の「エアバスターズ」！★おまけアップイベント開催中!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260305",
+      "startTime": "1100",
+      "endDate": "20260307",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 3
+    },
+    "gachas": [
+      {
+        "id": 906,
+        "price": 150,
+        "flags": 4,
+        "rates": {
+          "normal": 0,
+          "rare": 7000,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 0
+        },
+        "guaranteed": false,
+        "message": "メタルな敵に効果絶大！限定キャラも登場の特別版！★おまけアップイベント開催中!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260307",
+      "startTime": "1100",
+      "endDate": "20260309",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 1
+    },
+    "gachas": [
+      {
+        "id": 1012,
+        "price": 150,
+        "flags": 0,
+        "rates": {
+          "normal": 0,
+          "rare": 6770,
+          "superRare": 2500,
+          "uberRare": 700,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "季節キャラクターが一堂に集結!!★超激レア出現率アップの「超国王祭」!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260307",
+      "startTime": "1100",
+      "endDate": "20260309",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 2
+    },
+    "gachas": [
+      {
+        "id": 945,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "召喚能力を持つキャラクター「砲龍ガンドロス」参戦！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260307",
+      "startTime": "1100",
+      "endDate": "20260309",
+      "endTime": "1100",
+      "minVersion": "150200",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 3
+    },
+    "gachas": [
+      {
+        "id": 946,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "進化後に召喚能力を持つキャラクター「花咲かじいさん」参戦！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260309",
+      "startTime": "1100",
+      "endDate": "20260323",
+      "endTime": "1100",
+      "minVersion": "150201",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 2
+    },
+    "gachas": [
+      {
+        "id": 968,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 7000,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 0
+        },
+        "guaranteed": false,
+        "message": "ホワイトデー期間限定のクールなガチャ！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260309",
+      "startTime": "1100",
+      "endDate": "20260311",
+      "endTime": "1100",
+      "minVersion": "150201",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 3
+    },
+    "gachas": [
+      {
+        "id": 986,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "進化後に召喚能力を持つキャラクター「マモルガ」参戦！★詳細はバナーをタップ!!"
+      }
+    ]
+  },
+  {
+    "header": {
+      "startDate": "20260311",
+      "startTime": "1100",
+      "endDate": "20260313",
+      "endTime": "1100",
+      "minVersion": "150201",
+      "maxVersion": "999999",
+      "gachaType": 1,
+      "gachaCount": 3
+    },
+    "gachas": [
+      {
+        "id": 1004,
+        "price": 150,
+        "flags": 16384,
+        "rates": {
+          "normal": 0,
+          "rare": 6970,
+          "superRare": 2500,
+          "uberRare": 500,
+          "legendRare": 30
+        },
+        "guaranteed": false,
+        "message": "進化後に召喚能力を持つ「樹の精霊コモリ」参戦！★詳細はバナーをタップ!!"
       }
     ]
   }
