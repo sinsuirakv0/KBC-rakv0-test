@@ -1,5 +1,28 @@
 [
   {
+    "startedAt": "2026-02-27T17:55:13.717Z",
+    "results": [
+      {
+        "name": "gatya",
+        "changed": false,
+        "updated": null,
+        "error": null
+      },
+      {
+        "name": "sale",
+        "changed": false,
+        "updated": null,
+        "error": null
+      },
+      {
+        "name": "item",
+        "changed": false,
+        "updated": null,
+        "error": null
+      }
+    ]
+  },
+  {
     "startedAt": "2026-02-27T17:50:15.161Z",
     "results": [
       {
