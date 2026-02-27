@@ -1,8 +1,6 @@
 name: Check Events
 
 on:
-  schedule:
-    - cron: "* * * * *" # 1分ごとに実行
   workflow_dispatch: # 手動実行も可能にする
 
 jobs:
