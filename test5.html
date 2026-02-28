@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>にゃんこ大戦争スケジュール</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* ===== リセット & 基本 ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #ff8c00;
+      --orange-light: #ffa733;
+      --orange-dark: #cc6f00;
+      --bg: #f7f3ee;
+      --card-bg: #ffffff;
+      --text: #2a2a2a;
+      --text-muted: #888;
+      --border: #e5ddd5;
+      --green: #4caf50;
+      --blue: #2196f3;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== ヘッダー ===== */
+    header {
+      background: var(--orange);
+      color: white;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .cat-icon { font-size: 1.4rem; }
+
+    /* ===== タブ ===== */
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 3px solid var(--orange);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -3px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--orange); }
+    .tab.active {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+
+    /* ===== コントロール ===== */
+    .controls {
+      background: #fff;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .controls label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .controls input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--orange);
+      cursor: pointer;
+    }
+    #now-display {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ===== メインコンテンツ ===== */
+    main { max-width: 800px; margin: 0 auto; padding: 12px 12px 40px; }
+
+    .content { display: none; }
+    .content.active { display: block; }
+
+    /* ===== ローディング ===== */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .loading::before { content: '🐱 '; }
+
+    /* ===== イベントカード ===== */
+    .event-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--orange-light);
+      transition: box-shadow 0.2s;
+    }
+    .event-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+    .event-card.is-current { border-left-color: var(--green); }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .event-name {
+      font-weight: bold;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-message {
+      color: #555;
+      font-size: 0.82rem;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .event-dates {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== タグ ===== */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .tag-current { background: var(--green); color: white; }
+    .tag-future  { background: var(--blue); color: white; }
+
+    /* ===== カウント表示 ===== */
+    .count-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    /* ===== 空状態 ===== */
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ===== ガチャカード特有 ===== */
+    .gatya-rates {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="cat-icon">🐱</span>
+  にゃんこ大戦争スケジュール
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="gatya">ガチャ</div>
+  <div class="tab" data-tab="sale">イベント</div>
+  <div class="tab" data-tab="item">アイテム</div>
+  <div class="tab" data-tab="mission">ミッション</div>
+</div>
+
+<div class="controls">
+  <label>
+    <input type="checkbox" id="showCurrent">
+    開催中も表示
+  </label>
+  <label>
+    <input type="checkbox" id="showPast">
+    過去も表示
+  </label>
+  <label>
+    <input type="checkbox" id="sortByDate">
+    日付順に並べる
+  </label>
+  <span id="now-display"></span>
+</div>
+
+<main>
+  <div id="gatya"   class="content active"><div class="loading">読み込み中...</div></div>
+  <div id="sale"    class="content"><div class="loading">読み込み中...</div></div>
+  <div id="item"    class="content"><div class="loading">読み込み中...</div></div>
+  <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
+</main>
+
+<script>
+// =============================================
+// 状態管理
+// =============================================
+let gatyaData  = [];
+let saleData   = [];
+let itemData   = [];
+let saleNames  = new Map(); // id -> 名前
+
+let currentTab = 'gatya';
+
+// =============================================
+// ユーティリティ: 日時パース
+// 例: "20260216", "1100" → Date オブジェクト
+// =============================================
+function parseDateTime(dateStr, timeStr) {
+  const y   = parseInt(dateStr.slice(0, 4));
+  const mon = parseInt(dateStr.slice(4, 6)) - 1;
+  const d   = parseInt(dateStr.slice(6, 8));
+  // "0", "000", "1100", "400" などを4桁に正規化
+  const t   = String(timeStr).padStart(4, '0');
+  const h   = parseInt(t.slice(0, 2));
+  const min = parseInt(t.slice(2, 4));
+  return new Date(y, mon, d, h, min);
+}
+
+// =============================================
+// ユーティリティ: 日付フォーマット
+// =============================================
+function formatDate(date) {
+  const y   = date.getFullYear();
+  const mon = String(date.getMonth() + 1).padStart(2, '0');
+  const d   = String(date.getDate()).padStart(2, '0');
+  const h   = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}/${mon}/${d} ${h}:${min}`;
+}
+
+// =============================================
+// ユーティリティ: CSV パース
+// 形式: id,名前
+// =============================================
+function parseCSV(text) {
+  const map = new Map();
+  for (const line of text.split('\n')) {
+    const idx = line.indexOf(',');
+    if (idx === -1) continue;
+    const id   = parseInt(line.slice(0, idx).trim());
+    const name = line.slice(idx + 1).trim();
+    if (!isNaN(id) && name) map.set(id, name);
+  }
+  return map;
+}
+
+// =============================================
+// フィルタリング
+// イベント配列 { start, end, ... } を受け取り
+// チェックボックスの状態に応じてフィルタリング
+// =============================================
+function filterAndSort(events) {
+  const now         = new Date();
+  const showCurrent = document.getElementById('showCurrent').checked;
+  const showPast    = document.getElementById('showPast').checked;
+  const sortByDate  = document.getElementById('sortByDate').checked;
+
+  const filtered = events.filter(e => {
+    const isPast    = e.end <= now;
+    const isCurrent = e.start <= now && e.end > now;
+    const isFuture  = e.start > now;
+
+    if (showPast)    return true;             // すべて表示
+    if (isPast)      return false;            // 過去は非表示
+    if (isCurrent)   return showCurrent;      // 開催中はチェック次第
+    if (isFuture)    return true;             // 未来は常に表示
+    return false;
+  });
+
+  if (sortByDate) {
+    filtered.sort((a, b) => a.start - b.start);
+  }
+
+  return filtered;
+}
+
+// =============================================
+// カード HTML 生成
+// =============================================
+function makeCard(name, message, start, end, isCurrent) {
+  const tag = isCurrent
+    ? '<span class="tag tag-current">開催中</span>'
+    : '<span class="tag tag-future">予定</span>';
+
+  const msgHtml = message
+    ? `<div class="event-message">${message.replace(/<br\s*\/?>/gi, ' ')}</div>`
+    : '';
+
+  return `
+    <div class="event-card ${isCurrent ? 'is-current' : ''}">
+      <div class="card-header">
+        ${tag}
+        <div class="event-name">${name}</div>
+      </div>
+      ${msgHtml}
+      <div class="event-dates">
+        <span>開始: ${formatDate(start)}</span>
+        <span>終了: ${formatDate(end)}</span>
+      </div>
+    </div>`;
+}
+
+// =============================================
+// ガチャタブ描画
+// gatya.json の各エントリを処理
+// gachas[].message を名前として使用
+// =============================================
+function renderGatya() {
+  const now  = new Date();
+  const cont = document.getElementById('gatya');
+
+  // エントリごとにイベントオブジェクトを作成
+  const events = gatyaData.map(entry => {
+    const start = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end   = parseDateTime(entry.header.endDate,   entry.header.endTime);
+
+    // gachas の message をまとめる (空のものは除外)
+    const names = entry.gachas
+      .map(g => g.message || '')
+      .filter(Boolean);
+    const name = names.length > 0 ? names.join('<br>') : `ガチャ (ID: ${entry.gachas.map(g=>g.id).join(',')})`;
+
+    return { start, end, name, message: '', entry };
+  });
+
+  const filtered = filterAndSort(events);
+
+  if (filtered.length === 0) {
+    cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>';
+    return;
+  }
+
+  const cards = filtered.map(e => {
+    const isCurrent = e.start <= now && e.end > now;
+    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
+  }).join('');
+
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+}
+
+// =============================================
+// セール(イベント)タブ描画
+// sale.json の各エントリを処理
+// stageIds[] を sale_name.csv で名前に変換
+// =============================================
+function renderSale() {
+  const now  = new Date();
+  const cont = document.getElementById('sale');
+
+  const events = saleData.map(entry => {
+    const start = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end   = parseDateTime(entry.header.endDate,   entry.header.endTime);
+
+    // stageIds を名前に変換、不明なIDは「ID:xxx」で表示
+    const stageIds = entry.stageIds || [];
+    const names    = stageIds.map(id => saleNames.get(id) ?? `ID:${id}`);
+    const name     = names.join(', ');
+
+    return { start, end, name, message: '', entry };
+  });
+
+  const filtered = filterAndSort(events);
+
+  if (filtered.length === 0) {
+    cont.innerHTML = '<div class="empty">🐈 表示するイベントがありません</div>';
+    return;
+  }
+
+  const cards = filtered.map(e => {
+    const isCurrent = e.start <= now && e.end > now;
+    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
+  }).join('');
+
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+}
+
+// =============================================
+// アイテムタブ描画
+// item.json の各エントリを処理
+// gift.title と gift.message を使用
+// =============================================
+function renderItem() {
+  const now  = new Date();
+  const cont = document.getElementById('item');
+
+  const events = itemData.map(entry => {
+    const start   = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end     = parseDateTime(entry.header.endDate,   entry.header.endTime);
+    const gift    = entry.gift || {};
+    const name    = gift.title    || `イベントID: ${gift.eventId}`;
+    const message = gift.message  || '';
+
+    return { start, end, name, message, entry };
+  });
+
+  const filtered = filterAndSort(events);
+
+  if (filtered.length === 0) {
+    cont.innerHTML = '<div class="empty">🐈 表示するアイテムイベントがありません</div>';
+    return;
+  }
+
+  const cards = filtered.map(e => {
+    const isCurrent = e.start <= now && e.end > now;
+    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
+  }).join('');
+
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+}
+
+// =============================================
+// ミッション判定
+// stageIds のいずれかが対象レンジに含まれるか
+// 対象: 8000台, 9000台, 15000台, 17000台
+// =============================================
+function isMissionEntry(entry) {
+  const ids = entry.stageIds || [];
+  return ids.some(id =>
+    (id >= 8000  && id <= 8999)  ||
+    (id >= 9000  && id <= 9999)  ||
+    (id >= 15000 && id <= 15999) ||
+    (id >= 17000 && id <= 17999)
+  );
+}
+
+// =============================================
+// ミッションタブ描画
+// sale.json の中からミッション対象エントリを抽出
+// =============================================
+function renderMission() {
+  const now  = new Date();
+  const cont = document.getElementById('mission');
+
+  // sale.json からミッション対象を抽出
+  const events = saleData
+    .filter(isMissionEntry)
+    .map(entry => {
+      const start    = parseDateTime(entry.header.startDate, entry.header.startTime);
+      const end      = parseDateTime(entry.header.endDate,   entry.header.endTime);
+      const stageIds = entry.stageIds || [];
+      const names    = stageIds.map(id => saleNames.get(id) ?? `ID:${id}`);
+      const name     = names.join(', ');
+      return { start, end, name, message: '', entry };
+    });
+
+  const filtered = filterAndSort(events);
+
+  if (filtered.length === 0) {
+    cont.innerHTML = '<div class="empty">🐈 表示するミッションがありません</div>';
+    return;
+  }
+
+  const cards = filtered.map(e => {
+    const isCurrent = e.start <= now && e.end > now;
+    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
+  }).join('');
+
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+}
+
+// =============================================
+// 全タブ再描画
+// =============================================
+function renderAll() {
+  renderGatya();
+  renderSale();
+  renderItem();
+  renderMission();
+}
+
+// =============================================
+// タブ切り替え
+// =============================================
+function showTab(tabName) {
+  currentTab = tabName;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.content').forEach(c => {
+    c.classList.toggle('active', c.id === tabName);
+  });
+}
+
+// =============================================
+// データ読み込み
+// =============================================
+async function loadData() {
+  try {
+    const BASE = 'https://kbc-rakv0.vercel.app/data';
+    const [gatyaRes, saleRes, itemRes, saleNameRes] = await Promise.all([
+      fetch(`${BASE}/gatya.json`),
+      fetch(`${BASE}/sale.json`),
+      fetch(`${BASE}/item.json`),
+      fetch(`${BASE}/sale_name.csv`),
+    ]);
+
+    gatyaData = await gatyaRes.json();
+    saleData  = await saleRes.json();
+    itemData  = await itemRes.json();
+
+    const saleNameText = await saleNameRes.text();
+    saleNames = parseCSV(saleNameText);
+
+    renderAll();
+  } catch (err) {
+    console.error('データ読み込みエラー:', err);
+    document.querySelectorAll('.loading').forEach(el => {
+      el.textContent = 'データの読み込みに失敗しました: ' + err.message;
+    });
+  }
+}
+
+// =============================================
+// 現在時刻表示
+// =============================================
+function updateNow() {
+  document.getElementById('now-display').textContent = '現在: ' + formatDate(new Date());
+}
+
+// =============================================
+// イベントリスナー登録
+// =============================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => showTab(tab.dataset.tab));
+});
+
+['showCurrent', 'showPast', 'sortByDate'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderAll);
+});
+
+// 初期化
+updateNow();
+setInterval(updateNow, 60000); // 1分ごとに時刻更新
+loadData();
+</script>
+</body>
+</html>
