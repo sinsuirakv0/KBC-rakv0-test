@@ -1,18 +1,3 @@
 {
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!data/debug-log.json'"
 }
-
-{
-  "headers": [
-    {
-      "source": "/data/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    }
-  ]
-}
-
