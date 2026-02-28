@@ -49,8 +49,8 @@ async function main() {
     logResults.push({ name: "global", error: err.message });
   }
 
-  // ステップ④: ログ保存
-  await saveLog({ startedAt, results: logResults });
+  // ステップ④: ログ保存(止めたいときは[//]でコメントアウト)
+  //await saveLog({ startedAt, results: logResults });
   console.log("\nログ保存完了、処理終了");
 }
 
