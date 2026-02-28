@@ -187,12 +187,110 @@
       font-size: 0.9rem;
     }
 
-    /* ===== ガチャカード特有 ===== */
-    .gatya-rates {
+    /* ===== カード: 新レイアウト ===== */
+    .event-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin-bottom: 7px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--orange-light);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: box-shadow 0.2s, background 0.15s;
+      user-select: none;
+    }
+    .event-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.13); background: #fdf8f2; }
+    .event-card.is-current { border-left-color: var(--green); }
+
+    .card-tag {
+      flex-shrink: 0;
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .tag-current { background: var(--green); color: white; }
+    .tag-future  { background: var(--blue);  color: white; }
+    .tag-past    { background: #aaa;          color: white; }
+
+    .card-body { flex: 1; min-width: 0; }
+    .card-period {
       font-size: 0.75rem;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-bottom: 2px;
     }
+    .card-name {
+      font-weight: bold;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-arrow { flex-shrink: 0; color: #ccc; font-size: 0.8rem; }
+
+    /* ===== オーバーレイ ===== */
+    .overlay-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .overlay-backdrop.show { display: flex; }
+    .overlay-panel {
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      padding: 20px 20px 32px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .overlay-close {
+      float: right; font-size: 1.4rem; cursor: pointer;
+      color: #aaa; line-height: 1; padding: 0 4px;
+    }
+    .overlay-close:hover { color: #444; }
+    .overlay-title {
+      font-size: 1rem; font-weight: bold;
+      margin-bottom: 14px; line-height: 1.5; padding-right: 24px;
+    }
+    .overlay-section { margin-bottom: 12px; }
+    .overlay-label {
+      font-size: 0.75rem; font-weight: bold;
+      color: var(--orange-dark); margin-bottom: 3px;
+    }
+    .overlay-value {
+      font-size: 0.88rem; color: var(--text);
+      line-height: 1.7; white-space: pre-wrap;
+    }
+    .overlay-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .count-label {
+      font-size: 0.8rem; color: var(--text-muted);
+      margin-bottom: 8px; padding-left: 2px;
+    }
+    .empty {
+      text-align: center; padding: 40px;
+      color: var(--text-muted); font-size: 0.9rem;
+    }
+    .loading {
+      text-align: center; padding: 40px;
+      color: var(--text-muted); font-size: 0.95rem;
+    }
+    .loading::before { content: '🐱 '; }
   </style>
 </head>
 <body>
@@ -232,47 +330,177 @@
   <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
 </main>
 
+<!-- オーバーレイ -->
+<div id="overlay" class="overlay-backdrop">
+  <div class="overlay-panel">
+    <span class="overlay-close" id="overlay-close">&times;</span>
+    <div class="overlay-title" id="overlay-title"></div>
+    <hr class="overlay-divider">
+    <div id="overlay-body"></div>
+  </div>
+</div>
+
 <script>
 // =============================================
 // 状態管理
 // =============================================
-let gatyaData  = [];
-let saleData   = [];
-let itemData   = [];
-let saleNames  = new Map(); // id -> 名前
-
-let currentTab = 'gatya';
+let gatyaData = [];
+let saleData  = [];
+let itemData  = [];
+let saleNames = new Map(); // stageId -> 名前
 
 // =============================================
-// ユーティリティ: 日時パース
-// 例: "20260216", "1100" → Date オブジェクト
+// 定数
+// =============================================
+const WEEKDAY_JP = { Mon:'月', Tue:'火', Wed:'水', Thu:'木', Fri:'金', Sat:'土', Sun:'日' };
+const DOW_JP     = ['日','月','火','水','木','金','土'];
+
+// =============================================
+// ミッション判定
+// 対象: 8000台, 9000台, 15000台, 17000台
+// =============================================
+function isMissionId(id) {
+  return (id >= 8000  && id <= 8999)  ||
+         (id >= 9000  && id <= 9999)  ||
+         (id >= 15000 && id <= 15999) ||
+         (id >= 17000 && id <= 17999);
+}
+
+// =============================================
+// 時刻文字列パース
+// "800" → "08:00", "1100" → "11:00", "0" → "00:00"
+// =============================================
+function parseTimeStr(t) {
+  const s = String(t).padStart(4, '0');
+  return `${s.slice(0,2)}:${s.slice(2,4)}`;
+}
+
+// 00:00かどうか（表示省略判定）
+function isMidnight(t) {
+  const s = String(t).padStart(4, '0');
+  return s === '0000';
+}
+
+// =============================================
+// ヘッダー日付パース → Date
+// dateStr: "20260216", timeStr: "1100"
 // =============================================
 function parseDateTime(dateStr, timeStr) {
   const y   = parseInt(dateStr.slice(0, 4));
   const mon = parseInt(dateStr.slice(4, 6)) - 1;
   const d   = parseInt(dateStr.slice(6, 8));
-  // "0", "000", "1100", "400" などを4桁に正規化
-  const t   = String(timeStr).padStart(4, '0');
-  const h   = parseInt(t.slice(0, 2));
-  const min = parseInt(t.slice(2, 4));
-  return new Date(y, mon, d, h, min);
+  const s   = String(timeStr).padStart(4, '0');
+  return new Date(y, mon, d, parseInt(s.slice(0,2)), parseInt(s.slice(2,4)));
 }
 
 // =============================================
-// ユーティリティ: 日付フォーマット
+// カード用期間文字列
+// 例: "02/16〜03/03"  "02/16(11:00)〜03/03"
+// 00:00は省略
 // =============================================
-function formatDate(date) {
-  const y   = date.getFullYear();
-  const mon = String(date.getMonth() + 1).padStart(2, '0');
-  const d   = String(date.getDate()).padStart(2, '0');
-  const h   = String(date.getHours()).padStart(2, '0');
-  const min = String(date.getMinutes()).padStart(2, '0');
-  return `${y}/${mon}/${d} ${h}:${min}`;
+function formatCardPeriod(dateStr, timeStr, eDateStr, eTimeStr) {
+  const sm = dateStr.slice(4,6);
+  const sd = dateStr.slice(6,8);
+  const em = eDateStr.slice(4,6);
+  const ed = eDateStr.slice(6,8);
+  const st = isMidnight(timeStr)  ? '' : `(${parseTimeStr(timeStr)})`;
+  const et = isMidnight(eTimeStr) ? '' : `(${parseTimeStr(eTimeStr)})`;
+  return `${sm}/${sd}${st}〜${em}/${ed}${et}`;
 }
 
 // =============================================
-// ユーティリティ: CSV パース
-// 形式: id,名前
+// 詳細用日付文字列（曜日付き）
+// 例: "2026/02/16(月) 11:00"
+// =============================================
+function formatDetailDate(dateStr, timeStr) {
+  const dt  = parseDateTime(dateStr, timeStr);
+  const y   = dt.getFullYear();
+  const mon = String(dt.getMonth()+1).padStart(2,'0');
+  const d   = String(dt.getDate()).padStart(2,'0');
+  const dow = DOW_JP[dt.getDay()];
+  const t   = parseTimeStr(timeStr);
+  return `${y}/${mon}/${d}(${dow}) ${t}`;
+}
+
+// =============================================
+// dateRanges の文字列パース
+// "223 0" → 2月23日 00:00
+// "1023 1100" → 10月23日 11:00
+// =============================================
+function parseDateRangePart(str) {
+  const [datePart, timePart = '0'] = str.trim().split(' ');
+  let month, day;
+  if (datePart.length <= 3) {
+    // 3桁: 先頭1桁=月, 残2桁=日
+    month = parseInt(datePart[0]);
+    day   = parseInt(datePart.slice(1));
+  } else {
+    // 4桁: 先頭2桁=月, 残2桁=日
+    month = parseInt(datePart.slice(0,2));
+    day   = parseInt(datePart.slice(2));
+  }
+  const timeStr = parseTimeStr(timePart);
+  const midnight = isMidnight(timePart);
+  return { month, day, timeStr, midnight };
+}
+
+// =============================================
+// timeRanges → "08:00~10:00 & 12:00~14:00"
+// =============================================
+function formatTimeRanges(ranges) {
+  return ranges.map(([s, e]) => `${parseTimeStr(s)}~${parseTimeStr(e)}`).join(' & ');
+}
+
+// =============================================
+// 曜日配列 → "月・水・金"
+// =============================================
+function formatWeekdays(days) {
+  return days.map(d => WEEKDAY_JP[d] || d).join('・');
+}
+
+// =============================================
+// 1つの timeBlock を人間が読める形に変換
+// 戻り値: 文字列（複数行の可能性あり）
+// =============================================
+function formatTimeBlock(block) {
+  const { dateRanges, monthDays, weekdays, timeRanges } = block;
+  const timeStr = formatTimeRanges(timeRanges);
+  const lines   = [];
+
+  // dateRanges: 特定期間
+  if (dateRanges && dateRanges.length > 0) {
+    for (const dr of dateRanges) {
+      const s = parseDateRangePart(dr.start);
+      const e = parseDateRangePart(dr.end);
+      const sStr = `${s.month}/${String(s.day).padStart(2,'0')}${s.midnight ? '' : ' ' + s.timeStr}`;
+      const eStr = `${e.month}/${String(e.day).padStart(2,'0')}${e.midnight ? '' : ' ' + e.timeStr}`;
+      lines.push(`${sStr}~${eStr} ${timeStr}`);
+    }
+  }
+
+  // monthDays: 毎月〇日
+  if (monthDays && monthDays.length > 0) {
+    lines.push(`${monthDays.join(',')}日 ${timeStr}`);
+  }
+
+  // weekdays: 曜日
+  if (weekdays && weekdays.length > 0) {
+    lines.push(`${formatWeekdays(weekdays)} ${timeStr}`);
+  }
+
+  return lines.join('\n');
+}
+
+// =============================================
+// 全 timeBlocks → 開催期間テキスト
+// =============================================
+function formatTimeBlocks(blocks) {
+  if (!blocks || blocks.length === 0) return '（常時開催）';
+  return blocks.map(formatTimeBlock).filter(Boolean).join('\n');
+}
+
+// =============================================
+// CSV パース: id,名前
 // =============================================
 function parseCSV(text) {
   const map = new Map();
@@ -287,9 +515,7 @@ function parseCSV(text) {
 }
 
 // =============================================
-// フィルタリング
-// イベント配列 { start, end, ... } を受け取り
-// チェックボックスの状態に応じてフィルタリング
+// フィルタリング & ソート
 // =============================================
 function filterAndSort(events) {
   const now         = new Date();
@@ -298,206 +524,201 @@ function filterAndSort(events) {
   const sortByDate  = document.getElementById('sortByDate').checked;
 
   const filtered = events.filter(e => {
-    const isPast    = e.end <= now;
+    const isPast    = e.end   <= now;
     const isCurrent = e.start <= now && e.end > now;
-    const isFuture  = e.start > now;
+    const isFuture  = e.start >  now;
 
-    if (showPast)    return true;             // すべて表示
-    if (isPast)      return false;            // 過去は非表示
-    if (isCurrent)   return showCurrent;      // 開催中はチェック次第
-    if (isFuture)    return true;             // 未来は常に表示
+    if (showPast)  return true;
+    if (isPast)    return false;
+    if (isCurrent) return showCurrent;
+    if (isFuture)  return true;
     return false;
   });
 
-  if (sortByDate) {
-    filtered.sort((a, b) => a.start - b.start);
-  }
-
+  if (sortByDate) filtered.sort((a, b) => a.start - b.start);
   return filtered;
 }
 
 // =============================================
-// カード HTML 生成
+// カード HTML 生成（新レイアウト）
+// クリックで openOverlay(detail) を呼ぶ
 // =============================================
-function makeCard(name, message, start, end, isCurrent) {
-  const tag = isCurrent
-    ? '<span class="tag tag-current">開催中</span>'
-    : '<span class="tag tag-future">予定</span>';
-
-  const msgHtml = message
-    ? `<div class="event-message">${message.replace(/<br\s*\/?>/gi, ' ')}</div>`
-    : '';
-
+function makeCard(period, name, isCurrent, isPast, detail) {
+  const tagClass = isPast ? 'tag-past' : isCurrent ? 'tag-current' : 'tag-future';
+  const tagLabel = isPast ? '終了'     : isCurrent ? '開催中'     : '予定';
+  const dataAttr = encodeURIComponent(JSON.stringify(detail));
   return `
-    <div class="event-card ${isCurrent ? 'is-current' : ''}">
-      <div class="card-header">
-        ${tag}
-        <div class="event-name">${name}</div>
+    <div class="event-card ${isCurrent ? 'is-current' : ''}"
+         onclick="openOverlay(decodeURIComponent('${dataAttr}'))">
+      <span class="card-tag ${tagClass}">${tagLabel}</span>
+      <div class="card-body">
+        <div class="card-period">${period}</div>
+        <div class="card-name">${name}</div>
       </div>
-      ${msgHtml}
-      <div class="event-dates">
-        <span>開始: ${formatDate(start)}</span>
-        <span>終了: ${formatDate(end)}</span>
-      </div>
+      <span class="card-arrow">›</span>
     </div>`;
 }
 
 // =============================================
+// sale/mission エントリ → イベント配列に展開
+// stageIds を1つずつ別オブジェクトに分割
+// missionOnly: true=ミッションのみ, false=ミッション除外
+// =============================================
+function expandSaleEntry(entry, missionOnly) {
+  const now    = new Date();
+  const result = [];
+  for (const id of (entry.stageIds || [])) {
+    const isMission = isMissionId(id);
+    if (missionOnly !== isMission) continue;
+
+    const start   = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end     = parseDateTime(entry.header.endDate,   entry.header.endTime);
+    const name    = saleNames.get(id) ?? `ID:${id}`;
+    const period  = formatCardPeriod(
+      entry.header.startDate, entry.header.startTime,
+      entry.header.endDate,   entry.header.endTime
+    );
+    // 詳細データ
+    const detail = {
+      name,
+      id,
+      period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
+      ver:    `${entry.header.minVersion}~${entry.header.maxVersion}`,
+      schedule: formatTimeBlocks(entry.timeBlocks),
+    };
+    result.push({ start, end, name, period, detail });
+  }
+  return result;
+}
+
+// =============================================
+// オーバーレイ 開く
+// =============================================
+function openOverlay(jsonStr) {
+  const d   = JSON.parse(jsonStr);
+  const el  = document.getElementById('overlay');
+  document.getElementById('overlay-title').textContent = `${d.name}　ID: ${d.id}`;
+  document.getElementById('overlay-body').innerHTML = `
+    <div class="overlay-section">
+      <div class="overlay-label">期間</div>
+      <div class="overlay-value">${d.period}</div>
+    </div>
+    <div class="overlay-section">
+      <div class="overlay-label">ver</div>
+      <div class="overlay-value">${d.ver}</div>
+    </div>
+    <div class="overlay-section">
+      <div class="overlay-label">開催期間</div>
+      <div class="overlay-value">${d.schedule}</div>
+    </div>`;
+  el.classList.add('show');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// =============================================
+// 汎用: イベント配列からカードHTML生成
+// =============================================
+function buildCards(events) {
+  const now = new Date();
+  return events.map(e => {
+    const isCurrent = e.start <= now && e.end > now;
+    const isPast    = e.end   <= now;
+    return makeCard(e.period, e.name, isCurrent, isPast, e.detail);
+  }).join('');
+}
+
+// =============================================
 // ガチャタブ描画
-// gatya.json の各エントリを処理
-// gachas[].message を名前として使用
 // =============================================
 function renderGatya() {
   const now  = new Date();
   const cont = document.getElementById('gatya');
 
-  // エントリごとにイベントオブジェクトを作成
   const events = gatyaData.map(entry => {
-    const start = parseDateTime(entry.header.startDate, entry.header.startTime);
-    const end   = parseDateTime(entry.header.endDate,   entry.header.endTime);
-
-    // gachas の message をまとめる (空のものは除外)
-    const names = entry.gachas
-      .map(g => g.message || '')
-      .filter(Boolean);
-    const name = names.length > 0 ? names.join('<br>') : `ガチャ (ID: ${entry.gachas.map(g=>g.id).join(',')})`;
-
-    return { start, end, name, message: '', entry };
+    const start  = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end    = parseDateTime(entry.header.endDate,   entry.header.endTime);
+    const period = formatCardPeriod(
+      entry.header.startDate, entry.header.startTime,
+      entry.header.endDate,   entry.header.endTime
+    );
+    const names = (entry.gachas || []).map(g => g.message || '').filter(Boolean);
+    const name  = names.length > 0 ? names.join(' / ') : `ガチャ ID:${(entry.gachas||[]).map(g=>g.id).join(',')}`;
+    const detail = {
+      name,
+      id: (entry.gachas||[]).map(g=>g.id).join(','),
+      period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
+      ver: `${entry.header.minVersion}~${entry.header.maxVersion}`,
+      schedule: formatTimeBlocks(entry.timeBlocks),
+    };
+    return { start, end, name, period, detail };
   });
 
   const filtered = filterAndSort(events);
-
   if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>';
-    return;
+    cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>'; return;
   }
-
-  const cards = filtered.map(e => {
-    const isCurrent = e.start <= now && e.end > now;
-    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
-  }).join('');
-
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
 }
 
 // =============================================
-// セール(イベント)タブ描画
-// sale.json の各エントリを処理
-// stageIds[] を sale_name.csv で名前に変換
+// セールタブ描画（ミッション除外）
 // =============================================
 function renderSale() {
-  const now  = new Date();
-  const cont = document.getElementById('sale');
-
-  const events = saleData.map(entry => {
-    const start = parseDateTime(entry.header.startDate, entry.header.startTime);
-    const end   = parseDateTime(entry.header.endDate,   entry.header.endTime);
-
-    // stageIds を名前に変換、不明なIDは「ID:xxx」で表示
-    const stageIds = entry.stageIds || [];
-    const names    = stageIds.map(id => saleNames.get(id) ?? `ID:${id}`);
-    const name     = names.join(', ');
-
-    return { start, end, name, message: '', entry };
-  });
-
+  const cont   = document.getElementById('sale');
+  const events = saleData.flatMap(entry => expandSaleEntry(entry, false));
   const filtered = filterAndSort(events);
-
   if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するイベントがありません</div>';
-    return;
+    cont.innerHTML = '<div class="empty">🐈 表示するイベントがありません</div>'; return;
   }
-
-  const cards = filtered.map(e => {
-    const isCurrent = e.start <= now && e.end > now;
-    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
-  }).join('');
-
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
 }
 
 // =============================================
 // アイテムタブ描画
-// item.json の各エントリを処理
-// gift.title と gift.message を使用
 // =============================================
 function renderItem() {
-  const now  = new Date();
   const cont = document.getElementById('item');
 
   const events = itemData.map(entry => {
-    const start   = parseDateTime(entry.header.startDate, entry.header.startTime);
-    const end     = parseDateTime(entry.header.endDate,   entry.header.endTime);
-    const gift    = entry.gift || {};
-    const name    = gift.title    || `イベントID: ${gift.eventId}`;
-    const message = gift.message  || '';
-
-    return { start, end, name, message, entry };
+    const start  = parseDateTime(entry.header.startDate, entry.header.startTime);
+    const end    = parseDateTime(entry.header.endDate,   entry.header.endTime);
+    const period = formatCardPeriod(
+      entry.header.startDate, entry.header.startTime,
+      entry.header.endDate,   entry.header.endTime
+    );
+    const gift   = entry.gift || {};
+    const name   = gift.title || `イベントID: ${gift.eventId}`;
+    const detail = {
+      name,
+      id: gift.eventId ?? '-',
+      period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
+      ver: `${entry.header.minVersion}~${entry.header.maxVersion}`,
+      schedule: formatTimeBlocks(entry.timeBlocks),
+    };
+    return { start, end, name, period, detail };
   });
 
   const filtered = filterAndSort(events);
-
   if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するアイテムイベントがありません</div>';
-    return;
+    cont.innerHTML = '<div class="empty">🐈 表示するアイテムイベントがありません</div>'; return;
   }
-
-  const cards = filtered.map(e => {
-    const isCurrent = e.start <= now && e.end > now;
-    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
-  }).join('');
-
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
 }
 
 // =============================================
-// ミッション判定
-// stageIds のいずれかが対象レンジに含まれるか
-// 対象: 8000台, 9000台, 15000台, 17000台
-// =============================================
-function isMissionEntry(entry) {
-  const ids = entry.stageIds || [];
-  return ids.some(id =>
-    (id >= 8000  && id <= 8999)  ||
-    (id >= 9000  && id <= 9999)  ||
-    (id >= 15000 && id <= 15999) ||
-    (id >= 17000 && id <= 17999)
-  );
-}
-
-// =============================================
-// ミッションタブ描画
-// sale.json の中からミッション対象エントリを抽出
+// ミッションタブ描画（ミッションのみ）
 // =============================================
 function renderMission() {
-  const now  = new Date();
-  const cont = document.getElementById('mission');
-
-  // sale.json からミッション対象を抽出
-  const events = saleData
-    .filter(isMissionEntry)
-    .map(entry => {
-      const start    = parseDateTime(entry.header.startDate, entry.header.startTime);
-      const end      = parseDateTime(entry.header.endDate,   entry.header.endTime);
-      const stageIds = entry.stageIds || [];
-      const names    = stageIds.map(id => saleNames.get(id) ?? `ID:${id}`);
-      const name     = names.join(', ');
-      return { start, end, name, message: '', entry };
-    });
-
+  const cont   = document.getElementById('mission');
+  const events = saleData.flatMap(entry => expandSaleEntry(entry, true));
   const filtered = filterAndSort(events);
-
   if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するミッションがありません</div>';
-    return;
+    cont.innerHTML = '<div class="empty">🐈 表示するミッションがありません</div>'; return;
   }
-
-  const cards = filtered.map(e => {
-    const isCurrent = e.start <= now && e.end > now;
-    return makeCard(e.name, e.message, e.start, e.end, isCurrent);
-  }).join('');
-
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + cards;
+  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
 }
 
 // =============================================
@@ -514,7 +735,6 @@ function renderAll() {
 // タブ切り替え
 // =============================================
 function showTab(tabName) {
-  currentTab = tabName;
   document.querySelectorAll('.tab').forEach(t => {
     t.classList.toggle('active', t.dataset.tab === tabName);
   });
@@ -555,6 +775,14 @@ async function loadData() {
 // =============================================
 // 現在時刻表示
 // =============================================
+function formatDate(date) {
+  const y   = date.getFullYear();
+  const mon = String(date.getMonth()+1).padStart(2,'0');
+  const d   = String(date.getDate()).padStart(2,'0');
+  const h   = String(date.getHours()).padStart(2,'0');
+  const min = String(date.getMinutes()).padStart(2,'0');
+  return `${y}/${mon}/${d} ${h}:${min}`;
+}
 function updateNow() {
   document.getElementById('now-display').textContent = '現在: ' + formatDate(new Date());
 }
@@ -565,14 +793,17 @@ function updateNow() {
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => showTab(tab.dataset.tab));
 });
-
 ['showCurrent', 'showPast', 'sortByDate'].forEach(id => {
   document.getElementById(id).addEventListener('change', renderAll);
+});
+document.getElementById('overlay-close').addEventListener('click', closeOverlay);
+document.getElementById('overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeOverlay();
 });
 
 // 初期化
 updateNow();
-setInterval(updateNow, 60000); // 1分ごとに時刻更新
+setInterval(updateNow, 60000);
 loadData();
 </script>
 </body>
