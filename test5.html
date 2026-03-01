@@ -278,31 +278,26 @@
       line-height: 1.7; white-space: pre-wrap;
     }
 
-    /* ===== ガチャ サブタブ ===== */
-    .sub-tabs {
+    /* ===== ガチャ セクション ===== */
+    .gatya-section-header {
       display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .sub-tab {
-      padding: 4px 14px;
-      border-radius: 99px;
-      font-size: 0.8rem;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0 8px;
+      font-size: 0.85rem;
       font-weight: bold;
-      cursor: pointer;
-      border: 2px solid var(--orange-light);
       color: var(--orange-dark);
-      background: #fff;
-      transition: background 0.15s, color 0.15s;
     }
-    .sub-tab.active {
-      background: var(--orange);
-      color: #fff;
-      border-color: var(--orange);
+    .gatya-section-header::before,
+    .gatya-section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--orange-light);
     }
-    .sub-content { display: none; }
-    .sub-content.active { display: block; }
+    .gatya-section:first-child .gatya-section-header {
+      margin-top: 0;
+    }
     .overlay-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
     .count-label {
       font-size: 0.8rem; color: var(--text-muted);
@@ -350,16 +345,7 @@
 </div>
 
 <main>
-  <div id="gatya" class="content active">
-    <div class="sub-tabs">
-      <div class="sub-tab active" data-sub="rare"   onclick="showSubTab('rare')">レア</div>
-      <div class="sub-tab"        data-sub="normal" onclick="showSubTab('normal')">ノーマル</div>
-      <div class="sub-tab"        data-sub="event"  onclick="showSubTab('event')">イベント</div>
-    </div>
-    <div id="sub-rare"   class="sub-content active"><div class="loading">読み込み中...</div></div>
-    <div id="sub-normal" class="sub-content"><div class="loading">読み込み中...</div></div>
-    <div id="sub-event"  class="sub-content"><div class="loading">読み込み中...</div></div>
-  </div>
+  <div id="gatya" class="content active"><div class="loading">読み込み中...</div></div>
   <div id="sale"    class="content"><div class="loading">読み込み中...</div></div>
   <div id="item"    class="content"><div class="loading">読み込み中...</div></div>
   <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
@@ -737,44 +723,37 @@ function gachaTypeToSub(t) {
 }
 
 // =============================================
-// サブタブ切り替え
-// =============================================
-function showSubTab(name) {
-  document.querySelectorAll('.sub-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.sub === name);
-  });
-  document.querySelectorAll('.sub-content').forEach(c => {
-    c.classList.toggle('active', c.id === 'sub-' + name);
-  });
-}
-
-// =============================================
 // ガチャタブ描画
+// type 0: ノーマル, 1: レア, 4: イベント
+// type 2, 3: 非表示
+// セクションヘッダーで区切って1ページに表示
 // =============================================
 function renderGatya() {
-  const now = new Date();
+  const cont = document.getElementById('gatya');
 
-  // エントリをサブタブごとに振り分け
+  // type 2,3 は除外して振り分け
   const buckets = { normal: [], rare: [], event: [] };
 
   for (const entry of gatyaData) {
-    const h     = entry.header;
+    const h    = entry.header;
+    const type = h.gachaType;
+
+    // type 2,3 は非表示
+    if (type === 2 || type === 3) continue;
+
+    const sub   = gachaTypeToSub(type);
     const start = parseDateTime(h.startDate, h.startTime);
     const end   = parseDateTime(h.endDate,   h.endTime);
-    const sub   = gachaTypeToSub(h.gachaType);
 
-    // gachas 内の各ガチャを1カードにまとめる
     for (const g of (entry.gachas || [])) {
-      const csvName    = gatyaNames.get(g.id);
-      const flagLabel  = FLAGS_LABEL[g.flags] || '';
-      const guaranteed = g.guaranteed ? '＜確定＞' : '';
-      const nameParts  = [csvName ?? `ID:${g.id}`, guaranteed, flagLabel].filter(Boolean);
-      const cardName   = nameParts.join(' ');
-      const period     = formatCardPeriod(h.startDate, h.startTime, h.endDate, h.endTime);
+      const csvName   = gatyaNames.get(g.id);
+      const flagLabel = FLAGS_LABEL[g.flags] || '';
+      const guarLabel = g.guaranteed ? '＜確定＞' : '';
+      const nameParts = [csvName ?? `ID:${g.id}`, guarLabel, flagLabel].filter(Boolean);
+      const period    = formatCardPeriod(h.startDate, h.startTime, h.endDate, h.endTime);
+      const rateText  = formatRates(g.rates || {});
+      const msgText   = (g.message && g.message !== '0') ? g.message : '';
 
-      // 詳細データ
-      const rateText = formatRates(g.rates || {});
-      const msgText  = (g.message && g.message !== '0') ? g.message : '';
       const detail = {
         type: 'gatya',
         name: csvName ?? `ID:${g.id}`,
@@ -782,25 +761,41 @@ function renderGatya() {
         period: `${formatDetailDate(h.startDate, h.startTime)} ~ ${formatDetailDate(h.endDate, h.endTime)}`,
         ver:    `${h.minVersion}~${h.maxVersion}`,
         gachaCount: h.gachaCount,
-        rates:  rateText,
+        rates:   rateText,
         message: msgText,
         guaranteed: g.guaranteed,
         flagLabel,
       };
 
-      buckets[sub].push({ start, end, name: cardName, period, detail });
+      buckets[sub].push({ start, end, name: nameParts.join(' '), period, detail });
     }
   }
 
-  // 各サブタブを描画
-  for (const [sub, events] of Object.entries(buckets)) {
-    const cont     = document.getElementById('sub-' + sub);
-    const filtered = filterAndSort(events);
-    if (filtered.length === 0) {
-      cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>';
-    } else {
-      cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
-    }
+  // セクション定義（表示順）
+  const sections = [
+    { key: 'normal', label: 'ノーマル' },
+    { key: 'rare',   label: 'レア' },
+    { key: 'event',  label: 'イベント' },
+  ];
+
+  let html = '';
+  let totalCount = 0;
+
+  for (const { key, label } of sections) {
+    const filtered = filterAndSort(buckets[key]);
+    if (filtered.length === 0) continue;
+    totalCount += filtered.length;
+    html += `
+      <div class="gatya-section">
+        <div class="gatya-section-header">${label}</div>
+        ${buildCards(filtered)}
+      </div>`;
+  }
+
+  if (html === '') {
+    cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>';
+  } else {
+    cont.innerHTML = `<div class="count-label">${totalCount} 件</div>` + html;
   }
 }
 
