@@ -277,6 +277,32 @@
       font-size: 0.88rem; color: var(--text);
       line-height: 1.7; white-space: pre-wrap;
     }
+
+    /* ===== ガチャ サブタブ ===== */
+    .sub-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .sub-tab {
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: 2px solid var(--orange-light);
+      color: var(--orange-dark);
+      background: #fff;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sub-tab.active {
+      background: var(--orange);
+      color: #fff;
+      border-color: var(--orange);
+    }
+    .sub-content { display: none; }
+    .sub-content.active { display: block; }
     .overlay-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
     .count-label {
       font-size: 0.8rem; color: var(--text-muted);
@@ -324,7 +350,16 @@
 </div>
 
 <main>
-  <div id="gatya"   class="content active"><div class="loading">読み込み中...</div></div>
+  <div id="gatya" class="content active">
+    <div class="sub-tabs">
+      <div class="sub-tab active" data-sub="rare"   onclick="showSubTab('rare')">レア</div>
+      <div class="sub-tab"        data-sub="normal" onclick="showSubTab('normal')">ノーマル</div>
+      <div class="sub-tab"        data-sub="event"  onclick="showSubTab('event')">イベント</div>
+    </div>
+    <div id="sub-rare"   class="sub-content active"><div class="loading">読み込み中...</div></div>
+    <div id="sub-normal" class="sub-content"><div class="loading">読み込み中...</div></div>
+    <div id="sub-event"  class="sub-content"><div class="loading">読み込み中...</div></div>
+  </div>
   <div id="sale"    class="content"><div class="loading">読み込み中...</div></div>
   <div id="item"    class="content"><div class="loading">読み込み中...</div></div>
   <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
@@ -347,7 +382,8 @@
 let gatyaData = [];
 let saleData  = [];
 let itemData  = [];
-let saleNames = new Map(); // stageId -> 名前
+let saleNames  = new Map(); // stageId -> 名前
+let gatyaNames = new Map(); // gacha id -> 名前
 
 // =============================================
 // 定数
@@ -375,10 +411,10 @@ function parseTimeStr(t) {
   return `${s.slice(0,2)}:${s.slice(2,4)}`;
 }
 
-// 11:00かどうか（表示省略判定）
+// 00:00かどうか（表示省略判定）
 function isMidnight(t) {
   const s = String(t).padStart(4, '0');
-  return s === '1100';
+  return s === '0000';
 }
 
 // =============================================
@@ -396,7 +432,7 @@ function parseDateTime(dateStr, timeStr) {
 // =============================================
 // カード用期間文字列
 // 例: "02/16〜03/03"  "02/16(11:00)〜03/03"
-// 11:00は省略
+// 00:00は省略
 // =============================================
 function formatCardPeriod(dateStr, timeStr, eDateStr, eTimeStr) {
   const sm = dateStr.slice(4,6);
@@ -595,22 +631,56 @@ function expandSaleEntry(entry, missionOnly) {
 // オーバーレイ 開く
 // =============================================
 function openOverlay(jsonStr) {
-  const d   = JSON.parse(jsonStr);
-  const el  = document.getElementById('overlay');
+  const d  = JSON.parse(jsonStr);
+  const el = document.getElementById('overlay');
   document.getElementById('overlay-title').textContent = `${d.name}　ID: ${d.id}`;
-  document.getElementById('overlay-body').innerHTML = `
-    <div class="overlay-section">
-      <div class="overlay-label">期間</div>
-      <div class="overlay-value">${d.period}</div>
-    </div>
-    <div class="overlay-section">
-      <div class="overlay-label">ver</div>
-      <div class="overlay-value">${d.ver}</div>
-    </div>
-    <div class="overlay-section">
-      <div class="overlay-label">開催期間</div>
-      <div class="overlay-value">${d.schedule}</div>
-    </div>`;
+
+  let bodyHtml = '';
+
+  if (d.type === 'gatya') {
+    // ガチャ詳細
+    const flagLine = d.flagLabel ? `<br>${d.flagLabel}` : '';
+    const guarLine = d.guaranteed ? '<br>＜確定あり＞' : '';
+    bodyHtml = `
+      <div class="overlay-section">
+        <div class="overlay-label">期間</div>
+        <div class="overlay-value">${d.period}</div>
+      </div>
+      <div class="overlay-section">
+        <div class="overlay-label">ver</div>
+        <div class="overlay-value">${d.ver}</div>
+      </div>
+      <div class="overlay-section">
+        <div class="overlay-label">詳細</div>
+        <div class="overlay-value">バナー位置 ${d.gachaCount}${flagLine}${guarLine}</div>
+      </div>
+      <div class="overlay-section">
+        <div class="overlay-label">レート</div>
+        <div class="overlay-value">${d.rates || '（データなし）'}</div>
+      </div>
+      ${d.message ? `<hr class="overlay-divider">
+      <div class="overlay-section">
+        <div class="overlay-label">【タイトル】</div>
+        <div class="overlay-value">${d.message}</div>
+      </div>` : ''}`;
+  } else {
+    // sale/item/mission 詳細
+    bodyHtml = `
+      <div class="overlay-section">
+        <div class="overlay-label">期間</div>
+        <div class="overlay-value">${d.period}</div>
+      </div>
+      <div class="overlay-section">
+        <div class="overlay-label">ver</div>
+        <div class="overlay-value">${d.ver}</div>
+      </div>
+      <div class="overlay-section">
+        <div class="overlay-label">開催期間</div>
+        <div class="overlay-value">${d.schedule}</div>
+      </div>`;
+  }
+
+  document.getElementById('overlay-body').innerHTML = bodyHtml;
   el.classList.add('show');
 }
 
@@ -631,36 +701,107 @@ function buildCards(events) {
 }
 
 // =============================================
+// flags → ラベル変換
+// =============================================
+const FLAGS_LABEL = {
+  4:     '【step up】',
+  20600: '＋福引＆かけら',
+  16384: '＋かけら',
+  4216:  '＋福引',
+};
+
+// =============================================
+// rates → 表示テキスト（0は非表示）
+// =============================================
+const RATE_LABELS = [
+  ['normal',     'ノーマル'],
+  ['rare',       'レア'],
+  ['superRare',  '激レア'],
+  ['uberRare',   '超激レア'],
+  ['legendRare', '伝説レア'],
+];
+function formatRates(rates) {
+  return RATE_LABELS
+    .filter(([k]) => (rates[k] ?? 0) > 0)
+    .map(([k, label]) => `${label}: ${(rates[k] / 100).toFixed(2)}%`)
+    .join('\n');
+}
+
+// =============================================
+// ガチャタイプ → サブタブID
+// =============================================
+function gachaTypeToSub(t) {
+  if (t === 0) return 'normal';
+  if (t === 4) return 'event';
+  return 'rare'; // 1 and others
+}
+
+// =============================================
+// サブタブ切り替え
+// =============================================
+function showSubTab(name) {
+  document.querySelectorAll('.sub-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.sub === name);
+  });
+  document.querySelectorAll('.sub-content').forEach(c => {
+    c.classList.toggle('active', c.id === 'sub-' + name);
+  });
+}
+
+// =============================================
 // ガチャタブ描画
 // =============================================
 function renderGatya() {
-  const now  = new Date();
-  const cont = document.getElementById('gatya');
+  const now = new Date();
 
-  const events = gatyaData.map(entry => {
-    const start  = parseDateTime(entry.header.startDate, entry.header.startTime);
-    const end    = parseDateTime(entry.header.endDate,   entry.header.endTime);
-    const period = formatCardPeriod(
-      entry.header.startDate, entry.header.startTime,
-      entry.header.endDate,   entry.header.endTime
-    );
-    const names = (entry.gachas || []).map(g => g.message || '').filter(Boolean);
-    const name  = names.length > 0 ? names.join(' / ') : `ガチャ ID:${(entry.gachas||[]).map(g=>g.id).join(',')}`;
-    const detail = {
-      name,
-      id: (entry.gachas||[]).map(g=>g.id).join(','),
-      period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
-      ver: `${entry.header.minVersion}~${entry.header.maxVersion}`,
-      schedule: formatTimeBlocks(entry.timeBlocks),
-    };
-    return { start, end, name, period, detail };
-  });
+  // エントリをサブタブごとに振り分け
+  const buckets = { normal: [], rare: [], event: [] };
 
-  const filtered = filterAndSort(events);
-  if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>'; return;
+  for (const entry of gatyaData) {
+    const h     = entry.header;
+    const start = parseDateTime(h.startDate, h.startTime);
+    const end   = parseDateTime(h.endDate,   h.endTime);
+    const sub   = gachaTypeToSub(h.gachaType);
+
+    // gachas 内の各ガチャを1カードにまとめる
+    for (const g of (entry.gachas || [])) {
+      const csvName    = gatyaNames.get(g.id);
+      const flagLabel  = FLAGS_LABEL[g.flags] || '';
+      const guaranteed = g.guaranteed ? '＜確定＞' : '';
+      const nameParts  = [csvName ?? `ID:${g.id}`, guaranteed, flagLabel].filter(Boolean);
+      const cardName   = nameParts.join(' ');
+      const period     = formatCardPeriod(h.startDate, h.startTime, h.endDate, h.endTime);
+
+      // 詳細データ
+      const rateText = formatRates(g.rates || {});
+      const msgText  = (g.message && g.message !== '0') ? g.message : '';
+      const detail = {
+        type: 'gatya',
+        name: csvName ?? `ID:${g.id}`,
+        id:   g.id,
+        period: `${formatDetailDate(h.startDate, h.startTime)} ~ ${formatDetailDate(h.endDate, h.endTime)}`,
+        ver:    `${h.minVersion}~${h.maxVersion}`,
+        gachaCount: h.gachaCount,
+        rates:  rateText,
+        message: msgText,
+        guaranteed: g.guaranteed,
+        flagLabel,
+      };
+
+      buckets[sub].push({ start, end, name: cardName, period, detail });
+    }
   }
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
+
+  // 各サブタブを描画
+  for (const [sub, events] of Object.entries(buckets)) {
+    const cont     = document.getElementById('sub-' + sub);
+    const filtered = filterAndSort(events);
+    if (filtered.length === 0) {
+      cont.innerHTML = '<div class="empty">🐈 表示するガチャイベントがありません</div>';
+    } else {
+      cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
+    }
+  }
 }
 
 // =============================================
@@ -749,19 +890,24 @@ function showTab(tabName) {
 async function loadData() {
   try {
     const BASE = 'https://kbc-rakv0.vercel.app/data';
-    const [gatyaRes, saleRes, itemRes, saleNameRes] = await Promise.all([
+    const [gatyaRes, saleRes, itemRes, saleNameRes, gatyaNameRes] = await Promise.all([
       fetch(`${BASE}/gatya.json`),
       fetch(`${BASE}/sale.json`),
       fetch(`${BASE}/item.json`),
       fetch(`${BASE}/sale_name.csv`),
+      fetch(`${BASE}/gatya_name.csv`),
     ]);
 
     gatyaData = await gatyaRes.json();
     saleData  = await saleRes.json();
     itemData  = await itemRes.json();
 
-    const saleNameText = await saleNameRes.text();
+    const saleNameText  = await saleNameRes.text();
     saleNames = parseCSV(saleNameText);
+
+    // gatya_name.csv（空でもエラーにしない）
+    const gatyaNameText = await gatyaNameRes.text().catch(() => '');
+    gatyaNames = parseCSV(gatyaNameText);
 
     renderAll();
   } catch (err) {
