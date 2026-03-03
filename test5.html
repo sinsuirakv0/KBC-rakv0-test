@@ -314,6 +314,33 @@
       transition: background 0.15s;
     }
     .placeholder-link:hover { background: var(--orange-dark); }
+    /* ===== ガチャ詳細 iframe ===== */
+    .overlay-iframe-wrap {
+      margin-top: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #f5f5f5;
+      min-height: 80px;
+      position: relative;
+    }
+    .overlay-iframe-wrap iframe {
+      display: block;
+      width: 100%;
+      height: 480px;
+      border: none;
+    }
+    .overlay-iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: #f9f9f9;
+    }
+
     /* ===== ガチャ セクション ===== */
     .gatya-section-header {
       display: flex;
@@ -713,6 +740,16 @@ function openOverlay(jsonStr) {
       <div class="overlay-section">
         <div class="overlay-label">【タイトル】</div>
         <div class="overlay-value">${d.message}</div>
+      </div>` : ''}
+      ${d.infoUrl ? `<hr class="overlay-divider">
+      <div id="overlay-iframe-wrap" class="overlay-iframe-wrap">
+        <div class="overlay-iframe-loading" id="overlay-iframe-loading">読み込み中...</div>
+        <iframe
+          id="overlay-iframe"
+          src="${d.infoUrl}"
+          onload="handleIframeLoad(this)"
+          onerror="handleIframeError(this)">
+        </iframe>
       </div>` : ''}`;
   } else {
     // sale/item/mission 詳細
@@ -733,6 +770,31 @@ function openOverlay(jsonStr) {
 
   document.getElementById('overlay-body').innerHTML = bodyHtml;
   el.classList.add('show');
+}
+
+// =============================================
+// iframe ロードハンドラ
+// クロスオリジンで正常なら loading を非表示
+// アクセス拒否(X-Frame-Options)などは wrap を削除
+// =============================================
+function handleIframeLoad(iframe) {
+  try {
+    // クロスオリジン正常読み込みはここでSecurityErrorになる→ページ存在
+    const doc = iframe.contentDocument;
+    if (doc && doc.body && doc.body.innerHTML.trim() === '') {
+      // 空ページ = エラーページの可能性 → 非表示
+      document.getElementById('overlay-iframe-wrap')?.remove();
+      return;
+    }
+  } catch(e) {
+    // SecurityError = クロスオリジンで正常読み込み → loading非表示
+  }
+  const loading = document.getElementById('overlay-iframe-loading');
+  if (loading) loading.style.display = 'none';
+}
+
+function handleIframeError(iframe) {
+  document.getElementById('overlay-iframe-wrap')?.remove();
 }
 
 function closeOverlay() {
@@ -819,6 +881,12 @@ function renderGatya() {
       const rateText  = formatRates(g.rates || {});
       const msgText   = (g.message && g.message !== '0') ? g.message : '';
 
+      // infoUrl: レア→R{id}, イベント→E{id}, ノーマル→null
+      const infoPrefix = h.gachaType === 1 ? 'R' : h.gachaType === 4 ? 'E' : null;
+      const infoUrl = infoPrefix
+        ? `https://ponosgames.com/information/appli/battlecats/gacha/rare/${infoPrefix}${g.id}.html`
+        : null;
+
       const detail = {
         type: 'gatya',
         name: csvName ?? `ID:${g.id}`,
@@ -830,6 +898,7 @@ function renderGatya() {
         message: msgText,
         guaranteed: g.guaranteed,
         flagLabel,
+        infoUrl,
       };
 
       buckets[sub].push({ start, end, name: nameParts.join(' '), period, detail });
