@@ -278,6 +278,42 @@
       line-height: 1.7; white-space: pre-wrap;
     }
 
+
+    /* ===== 仮プレースホルダー ===== */
+    .placeholder-notice {
+      background: #fff8f0;
+      border: 2px dashed var(--orange-light);
+      border-radius: 10px;
+      padding: 24px 20px;
+      margin-top: 8px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 2;
+    }
+    .placeholder-label {
+      display: inline-block;
+      background: var(--orange);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .placeholder-link {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 20px;
+      background: var(--orange);
+      color: #fff;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .placeholder-link:hover { background: var(--orange-dark); }
     /* ===== ガチャ セクション ===== */
     .gatya-section-header {
       display: flex;
@@ -813,48 +849,41 @@ function renderSale() {
 }
 
 // =============================================
-// アイテムタブ描画
+// アイテムタブ描画（仮）
+// 実機試験未完了のため外部リンクを表示
 // =============================================
 function renderItem() {
   const cont = document.getElementById('item');
-
-  const events = itemData.map(entry => {
-    const start  = parseDateTime(entry.header.startDate, entry.header.startTime);
-    const end    = parseDateTime(entry.header.endDate,   entry.header.endTime);
-    const period = formatCardPeriod(
-      entry.header.startDate, entry.header.startTime,
-      entry.header.endDate,   entry.header.endTime
-    );
-    const gift   = entry.gift || {};
-    const name   = gift.title || `イベントID: ${gift.eventId}`;
-    const detail = {
-      name,
-      id: gift.eventId ?? '-',
-      period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
-      ver: `${entry.header.minVersion}~${entry.header.maxVersion}`,
-      schedule: formatTimeBlocks(entry.timeBlocks),
-    };
-    return { start, end, name, period, detail };
-  });
-
-  const filtered = filterAndSort(events);
-  if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するアイテムイベントがありません</div>'; return;
-  }
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
+  cont.innerHTML = `
+    <div class="placeholder-notice">
+      <div class="placeholder-label">仮</div>
+      <p>itemの表示は現在準備中です。</p>
+      <p>現在は下記のサイトをご利用ください。</p>
+      <a class="placeholder-link"
+         href="https://bc-event.vercel.app/?tab=item"
+         target="_blank" rel="noopener">
+        bc-event.vercel.app → item タブ ›
+      </a>
+    </div>`;
 }
 
 // =============================================
-// ミッションタブ描画（ミッションのみ）
+// ミッションタブ描画（仮）
+// 実機試験未完了のため外部リンクを表示
 // =============================================
 function renderMission() {
-  const cont   = document.getElementById('mission');
-  const events = saleData.flatMap(entry => expandSaleEntry(entry, true));
-  const filtered = filterAndSort(events);
-  if (filtered.length === 0) {
-    cont.innerHTML = '<div class="empty">🐈 表示するミッションがありません</div>'; return;
-  }
-  cont.innerHTML = `<div class="count-label">${filtered.length} 件</div>` + buildCards(filtered);
+  const cont = document.getElementById('mission');
+  cont.innerHTML = `
+    <div class="placeholder-notice">
+      <div class="placeholder-label">仮</div>
+      <p>missionの表示は現在準備中です。</p>
+      <p>現在は下記のサイトをご利用ください。</p>
+      <a class="placeholder-link"
+         href="https://bc-event.vercel.app/?tab=mission"
+         target="_blank" rel="noopener">
+        bc-event.vercel.app → mission タブ ›
+      </a>
+    </div>`;
 }
 
 // =============================================
