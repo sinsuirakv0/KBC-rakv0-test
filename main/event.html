@@ -53,6 +53,10 @@
         <input type="checkbox" id="sortByDate">
         日付順に並べる
       </label>
+      <label>
+        <input type="checkbox" id="sortById">
+        ID順に並べる
+      </label>
       <label id="label-showAllSale">
         <input type="checkbox" id="showAllSale">
         常設を含む全イベントを表示
@@ -102,7 +106,7 @@ const DOW_JP     = ['日','月','火','水','木','金','土'];
 // =============================================
 const SALE_HIDDEN_CONFIG = {
   ranges: [
-    { from: 1000, to: 1099 }, // 常設イベント群
+  //  { from: 1000, to: 1001 }, // 常設イベント群
   ],
   ids: [
     // 例: 1004,
@@ -330,7 +334,9 @@ function filterAndSort(events) {
     return false;
   });
 
+  const sortById = document.getElementById('sortById').checked;
   if (sortByDate) filtered.sort((a, b) => a.start - b.start);
+  else if (sortById) filtered.sort((a, b) => (a.detail?.id ?? 0) - (b.detail?.id ?? 0));
   return filtered;
 }
 
@@ -749,8 +755,15 @@ function updateNow() {
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => showTab(tab.dataset.tab));
 });
-['showCurrent', 'showPast', 'sortByDate'].forEach(id => {
+['showCurrent', 'showPast', 'sortByDate', 'sortById'].forEach(id => {
   document.getElementById(id).addEventListener('change', renderAll);
+});
+// 日付順・ID順の排他制御
+document.getElementById('sortByDate').addEventListener('change', function() {
+  if (this.checked) document.getElementById('sortById').checked = false;
+});
+document.getElementById('sortById').addEventListener('change', function() {
+  if (this.checked) document.getElementById('sortByDate').checked = false;
 });
 document.getElementById('showAllSale').addEventListener('change', renderSale);
 document.getElementById('overlay-close').addEventListener('click', closeOverlay);
