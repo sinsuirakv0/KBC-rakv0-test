@@ -19,6 +19,9 @@
 <meta name="twitter:image" content="../assets/preview.png">
 
 <body>
+  <!-- fade-in を container に移動
+       transform を持つ親の中では position:fixed がビューポート基準にならないため
+       オーバーレイは container の外に出す -->
   <div class="container fade-in">
     <header class="header">
       <div class="header-left">
@@ -28,51 +31,52 @@
       <nav class="nav">
         <a href="../index.html">Home</a>
       </nav>
-</header>
+    </header>
 
-<div class="tabs">
-  <div class="tab active" data-tab="gatya">ガチャ</div>
-  <div class="tab" data-tab="sale">イベント</div>
-  <div class="tab" data-tab="item">アイテム</div>
-  <div class="tab" data-tab="mission">ミッション</div>
-</div>
+    <div class="tabs">
+      <div class="tab active" data-tab="gatya">ガチャ</div>
+      <div class="tab" data-tab="sale">イベント</div>
+      <div class="tab" data-tab="item">アイテム</div>
+      <div class="tab" data-tab="mission">ミッション</div>
+    </div>
 
-<div class="controls">
-  <label>
-    <input type="checkbox" id="showCurrent">
-    開催中も表示
-  </label>
-  <label>
-    <input type="checkbox" id="showPast">
-    過去も表示
-  </label>
-  <label>
-    <input type="checkbox" id="sortByDate">
-    日付順に並べる
-  </label>
-  <label id="label-showAllSale">
-    <input type="checkbox" id="showAllSale">
-    常設を含む全イベントを表示
-  </label>
-  <span id="now-display"></span>
-</div>
+    <div class="controls">
+      <label>
+        <input type="checkbox" id="showCurrent">
+        開催中も表示
+      </label>
+      <label>
+        <input type="checkbox" id="showPast">
+        過去も表示
+      </label>
+      <label>
+        <input type="checkbox" id="sortByDate">
+        日付順に並べる
+      </label>
+      <label id="label-showAllSale">
+        <input type="checkbox" id="showAllSale">
+        常設を含む全イベントを表示
+      </label>
+      <span id="now-display"></span>
+    </div>
 
-<main>
-  <div id="gatya" class="content active"><div class="loading">読み込み中...</div></div>
-  <div id="sale"    class="content"><div class="loading">読み込み中...</div></div>
-  <div id="item"    class="content"><div class="loading">読み込み中...</div></div>
-  <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
-</main>
+    <main>
+      <div id="gatya" class="content active"><div class="loading">読み込み中...</div></div>
+      <div id="sale"    class="content"><div class="loading">読み込み中...</div></div>
+      <div id="item"    class="content"><div class="loading">読み込み中...</div></div>
+      <div id="mission" class="content"><div class="loading">読み込み中...</div></div>
+    </main>
+  </div><!-- /.container ここで閉じる -->
 
-<!-- オーバーレイ -->
-<div id="overlay" class="overlay-backdrop">
-  <div class="overlay-panel">
-    <span class="overlay-close" id="overlay-close">&times;</span>
-    <div class="overlay-title" id="overlay-title"></div>
-    <hr class="overlay-divider">
-    <div id="overlay-body"></div>
+  <!-- オーバーレイは container の外 → position:fixed がビューポート基準になる -->
+  <div id="overlay" class="overlay-backdrop">
+    <div class="overlay-panel">
+      <span class="overlay-close" id="overlay-close">&times;</span>
+      <div class="overlay-title" id="overlay-title"></div>
+      <hr class="overlay-divider">
+      <div id="overlay-body"></div>
+    </div>
   </div>
-</div>
 
 <script>
 // =============================================
@@ -471,10 +475,8 @@ function openOverlay(jsonStr) {
 // =============================================
 function handleIframeLoad(iframe) {
   try {
-    // クロスオリジン正常読み込みはここでSecurityErrorになる→ページ存在
     const doc = iframe.contentDocument;
     if (doc && doc.body && doc.body.innerHTML.trim() === '') {
-      // 空ページ = エラーページの可能性 → 非表示
       document.getElementById('overlay-iframe-wrap')?.remove();
       return;
     }
@@ -551,14 +553,12 @@ function gachaTypeToSub(t) {
 function renderGatya() {
   const cont = document.getElementById('gatya');
 
-  // type 2,3 は除外して振り分け
   const buckets = { normal: [], rare: [], event: [] };
 
   for (const entry of gatyaData) {
     const h    = entry.header;
     const type = h.gachaType;
 
-    // type 2,3 は非表示
     if (type === 2 || type === 3) continue;
 
     const sub   = gachaTypeToSub(type);
@@ -574,7 +574,6 @@ function renderGatya() {
       const rateText  = formatRates(g.rates || {});
       const msgText   = (g.message && g.message !== '0') ? g.message : '';
 
-      // infoUrl: レア→R{id}, イベント→E{id}, ノーマル→null
       const infoPrefix = h.gachaType === 1 ? 'R' : h.gachaType === 4 ? 'E' : null;
       const infoUrl = infoPrefix
         ? `https://ponosgames.com/information/appli/battlecats/gacha/rare/${infoPrefix}${g.id}.html`
@@ -598,7 +597,6 @@ function renderGatya() {
     }
   }
 
-  // セクション定義（表示順）
   const sections = [
     { key: 'normal', label: 'ノーマル' },
     { key: 'rare',   label: 'レア' },
@@ -641,7 +639,6 @@ function renderSale() {
 
 // =============================================
 // アイテムタブ描画（仮）
-// 実機試験未完了のため外部リンクを表示
 // =============================================
 function renderItem() {
   const cont = document.getElementById('item');
@@ -660,7 +657,6 @@ function renderItem() {
 
 // =============================================
 // ミッションタブ描画（仮）
-// 実機試験未完了のため外部リンクを表示
 // =============================================
 function renderMission() {
   const cont = document.getElementById('mission');
@@ -697,7 +693,6 @@ function showTab(tabName) {
   document.querySelectorAll('.content').forEach(c => {
     c.classList.toggle('active', c.id === tabName);
   });
-
 }
 
 // =============================================
@@ -721,7 +716,6 @@ async function loadData() {
     const saleNameText  = await saleNameRes.text();
     saleNames = parseCSV(saleNameText);
 
-    // gatya_name.csv（空でもエラーにしない）
     const gatyaNameText = await gatyaNameRes.text().catch(() => '');
     gatyaNames = parseCSV(gatyaNameText);
 
