@@ -655,6 +655,9 @@ function expandSaleEntry(entry, missionOnly) {
     const isMission = isMissionId(id);
     if (missionOnly !== isMission) continue;
 
+    // sale タブ: 非表示設定IDはチェックなければスキップ
+    if (!missionOnly && !document.getElementById('showAllSale').checked && isSaleHidden(id)) continue;
+
     const start   = parseDateTime(entry.header.startDate, entry.header.startTime);
     const end     = parseDateTime(entry.header.endDate,   entry.header.endTime);
     const name    = saleNames.get(id) ?? `ID:${id}`;
