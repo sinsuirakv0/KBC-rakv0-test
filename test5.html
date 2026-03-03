@@ -459,6 +459,40 @@ const SALE_HIDDEN_CONFIG = {
   ],
 };
 
+// =============================================
+// sale ステージタイプマップ
+// IDの範囲からタイプ文字列とナンバーを生成
+// URL: /api/stage-proxy?type=XX&num=NNN
+// =============================================
+const STAGE_TYPE_MAP = [
+  { from:  1000, to:  1999, type: 'S'  },
+  { from:  2000, to:  2999, type: 'C'  },
+  { from:  4000, to:  4999, type: 'E'  },
+  { from:  6000, to:  6999, type: 'T'  },
+  { from:  7000, to:  7999, type: 'V'  },
+  { from: 11000, to: 11999, type: 'R'  },
+  { from: 12000, to: 12999, type: 'M'  },
+  { from: 13000, to: 13999, type: 'NA' },
+  { from: 14000, to: 14999, type: 'B'  },
+  { from: 16000, to: 16999, type: 'D'  },
+  { from: 24000, to: 24999, type: 'A'  },
+  { from: 25000, to: 25999, type: 'H'  },
+  { from: 27000, to: 27999, type: 'CA' },
+  { from: 30000, to: 30999, type: 'DM' },
+  { from: 31000, to: 31999, type: 'Q'  },
+  { from: 33000, to: 33999, type: 'L'  },
+  { from: 34000, to: 34999, type: 'ND' },
+  { from: 36000, to: 36999, type: 'SR' },
+  { from: 37000, to: 37999, type: 'G'  },
+];
+
+function getStageProxyUrl(id) {
+  const entry = STAGE_TYPE_MAP.find(e => id >= e.from && id <= e.to);
+  if (!entry) return null;
+  const num = String(id - entry.from).padStart(3, '0');
+  return `https://kbc-rakv0.vercel.app/api/stage-proxy?type=${entry.type}&num=${num}`;
+}
+
 function isSaleHidden(id) {
   for (const r of SALE_HIDDEN_CONFIG.ranges) {
     if (id >= r.from && id <= r.to) return true;
@@ -699,6 +733,7 @@ function expandSaleEntry(entry, missionOnly) {
       period: `${formatDetailDate(entry.header.startDate, entry.header.startTime)} ~ ${formatDetailDate(entry.header.endDate, entry.header.endTime)}`,
       ver:    `${entry.header.minVersion}~${entry.header.maxVersion}`,
       schedule: formatTimeBlocks(entry.timeBlocks),
+      stageProxyUrl: getStageProxyUrl(id),
     };
     result.push({ start, end, name, period, detail });
   }
@@ -765,7 +800,17 @@ function openOverlay(jsonStr) {
       <div class="overlay-section">
         <div class="overlay-label">開催期間</div>
         <div class="overlay-value">${d.schedule}</div>
-      </div>`;
+      </div>
+      ${d.stageProxyUrl ? `<hr class="overlay-divider">
+      <div id="overlay-iframe-wrap" class="overlay-iframe-wrap">
+        <div class="overlay-iframe-loading" id="overlay-iframe-loading">読み込み中...</div>
+        <iframe
+          id="overlay-iframe"
+          src="${d.stageProxyUrl}"
+          onload="handleIframeLoad(this)"
+          onerror="handleIframeError(this)">
+        </iframe>
+      </div>` : ''}`;
   }
 
   document.getElementById('overlay-body').innerHTML = bodyHtml;
