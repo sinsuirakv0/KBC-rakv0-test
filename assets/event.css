@@ -323,3 +323,8 @@ main { max-width: 800px; margin: 0 auto; padding: 12px 12px 40px; }
 .gatya-section:first-child .gatya-section-header {
   margin-top: 0;
 }
+
+/* オーバーレイ表示中はbodyスクロール固定 */
+body.overlay-open {
+  overflow: hidden;
+}
