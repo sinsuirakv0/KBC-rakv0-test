@@ -461,6 +461,7 @@ function openOverlay(jsonStr) {
   }
 
   document.getElementById('overlay-body').innerHTML = bodyHtml;
+  document.body.classList.add('overlay-open');
   el.classList.add('show');
 }
 
@@ -490,6 +491,7 @@ function handleIframeError(iframe) {
 }
 
 function closeOverlay() {
+  document.body.classList.remove('overlay-open');
   document.getElementById('overlay').classList.remove('show');
 }
 
