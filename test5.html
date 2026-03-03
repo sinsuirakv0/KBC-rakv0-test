@@ -377,6 +377,10 @@
     <input type="checkbox" id="sortByDate">
     日付順に並べる
   </label>
+  <label id="label-showAllSale">
+    <input type="checkbox" id="showAllSale">
+    常設を含む全イベントを表示
+  </label>
   <span id="now-display"></span>
 </div>
 
@@ -412,6 +416,28 @@ let gatyaNames = new Map(); // gacha id -> 名前
 // =============================================
 const WEEKDAY_JP = { Mon:'月', Tue:'火', Wed:'水', Thu:'木', Fri:'金', Sat:'土', Sun:'日' };
 const DOW_JP     = ['日','月','火','水','木','金','土'];
+
+// =============================================
+// sale 非表示設定（常設イベントなど）
+// デフォルトで非表示にしたいIDを設定する
+// ranges: { from, to } の形式で範囲指定
+// ids:    個別IDを指定
+// =============================================
+const SALE_HIDDEN_CONFIG = {
+  ranges: [
+    { from: 1000, to: 1999 }, // 常設イベント群
+  ],
+  ids: [
+    // 例: 1004,
+  ],
+};
+
+function isSaleHidden(id) {
+  for (const r of SALE_HIDDEN_CONFIG.ranges) {
+    if (id >= r.from && id <= r.to) return true;
+  }
+  return SALE_HIDDEN_CONFIG.ids.includes(id);
+}
 
 // =============================================
 // ミッション判定
@@ -906,6 +932,7 @@ function showTab(tabName) {
   document.querySelectorAll('.content').forEach(c => {
     c.classList.toggle('active', c.id === tabName);
   });
+
 }
 
 // =============================================
@@ -966,6 +993,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 ['showCurrent', 'showPast', 'sortByDate'].forEach(id => {
   document.getElementById(id).addEventListener('change', renderAll);
 });
+document.getElementById('showAllSale').addEventListener('change', renderSale);
 document.getElementById('overlay-close').addEventListener('click', closeOverlay);
 document.getElementById('overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeOverlay();
