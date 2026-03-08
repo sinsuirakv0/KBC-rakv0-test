@@ -5,6 +5,35 @@
   --muted: #94a3b8;
   --accent: #3b82f6;
   --border: rgba(255, 255, 255, 0.1);
+  --body-gradient: radial-gradient(circle at top right, #0d2550, #051026);
+  --links-a-color: #fff;
+  --input-color: white;
+}
+
+/* ライトモード */
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #1a202c;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --border: rgba(0, 0, 0, 0.1);
+  --body-gradient: radial-gradient(circle at top right, #dbeafe, #f0f4f8);
+  --links-a-color: #1a202c;
+  --input-color: #1a202c;
+}
+
+/* ダークモード */
+[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --card: #1a1a1a;
+  --text: #e5e5e5;
+  --muted: #888888;
+  --accent: #60a5fa;
+  --border: rgba(255, 255, 255, 0.08);
+  --body-gradient: radial-gradient(circle at top right, #1c1c1c, #0d0d0d);
+  --links-a-color: #e5e5e5;
+  --input-color: #e5e5e5;
 }
 
 * { box-sizing: border-box; }
@@ -13,9 +42,10 @@ body {
   margin: 0;
   font-family: 'Noto Sans JP', sans-serif;
   background-color: var(--bg);
-  background-image: radial-gradient(circle at top right, #0d2550, #051026);
+  background-image: var(--body-gradient);
   color: var(--text);
   line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
@@ -58,6 +88,7 @@ body {
 .nav {
   display: flex;
   gap: 20px;
+  align-items: center;
 }
 
 .nav a {
@@ -68,6 +99,67 @@ body {
 }
 
 .nav a:hover { color: var(--accent); }
+
+/* --- テーマ切り替えボタン --- */
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 4px;
+  gap: 2px;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s, transform 0.2s;
+  color: var(--muted);
+  position: relative;
+}
+
+.theme-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  transform: scale(1.1);
+}
+
+.theme-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.theme-btn[title]::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  white-space: nowrap;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.theme-btn:hover[title]::after {
+  opacity: 1;
+}
 
 /* --- グリッドとカード --- */
 .grid {
@@ -81,7 +173,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
-  transition: transform 0.3s, border-color 0.3s;
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
 }
 
 .card:hover {
@@ -118,15 +210,20 @@ body {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 10px;
-  color: #fff;
+  color: var(--links-a-color);
   text-decoration: none;
   font-size: 14px;
   transition: all 0.2s;
 }
 
+[data-theme="light"] .links a {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 .links a:hover {
   background: var(--accent);
   border-color: var(--accent);
+  color: #fff;
   transform: scale(1.02);
 }
 
@@ -148,7 +245,7 @@ footer {
 input[type="text"], input[type="number"], select {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--input-color);
   padding: 8px 12px;
   border-radius: 6px;
   margin-top: 4px;
@@ -161,20 +258,20 @@ label {
 /* お知らせを表示するエリアのスタイル */
 .content-area {
     width: 100%;
-    max-width: 1200px; /* PCでの最大幅 */
-    margin: 20px auto; /* 上下に余白を作り、左右中央寄せ */
-    padding: 0 10px;    /* 画面端に少し隙間を作る */
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 10px;
     box-sizing: border-box;
 }
 
 .iframe-wrapper {
     position: relative;
     width: 100%;
-    height: 80vh; /* 画面の高さの80%分を表示（大きく見せる） */
-    border: 2px solid #ccc; /* 枠線（お好みで消してもOK） */
-    border-radius: 8px;      /* 角を丸くする */
-    overflow: hidden;        /* はみ出た部分を隠す */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 少し影をつけて浮かせる */
+    height: 80vh;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .iframe-wrapper iframe {
@@ -184,10 +281,10 @@ label {
 }
 
 .gacha-section {
-    margin-top: 40px;
-    padding: 20px;
-    background: #f9f9f9;
-    border-top: 1px solid #ddd;
+    margin-top: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
 }
 
 .search-controls {
@@ -219,22 +316,23 @@ label {
 }
 
 .gacha-view {
-    height: 60vh; /* ガチャ画面は少し小さめに設定 */
+    height: 60vh;
+    border: 1px solid var(--border);
 }
 
 .lang-selector {
     margin-bottom: 10px;
-    padding: 10px 0; /* 左右のパディングを0にしてスッキリさせる */
-    background: none; /* 背景を透明にする */
-    box-shadow: none; /* 影を消す */
+    padding: 10px 0;
+    background: none;
+    box-shadow: none;
 }
 
 .lang-selector p {
     margin: 0 0 8px 0;
     font-size: 14px;
     font-weight: bold;
-    color: #ffffff; /* 背景が暗い場合は白、明るい場合は #333 などに調整してください */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 文字を見やすくするための軽い影 */
+    color: var(--text);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 .lang-buttons {
@@ -246,10 +344,10 @@ label {
 .lang-buttons button {
     padding: 5px 15px;
     cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.5); /* 枠線を少し透けさせる */
-    background: rgba(255,255,255,0.2);     /* ボタン自体も少し透けさせる（お好みで） */
-    color: white;                           /* 文字を白に */
-    border-radius: 20px;                   /* 丸みをつけておしゃれに */
+    border: 1px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 20px;
     font-size: 13px;
     transition: 0.3s;
 }
@@ -266,15 +364,14 @@ label {
     max-width: 1200px;
 }
 
-/* クリックする見出し部分 */
 .gacha-details summary {
-    background-color: rgba(0, 123, 255, 0.8); /* 青色の半透明 */
+    background-color: rgba(0, 123, 255, 0.8);
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    list-style: none; /* デフォルトの三角形を消す（ブラウザによる） */
+    list-style: none;
     text-align: center;
     transition: 0.3s;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -284,35 +381,17 @@ label {
     background-color: rgba(0, 123, 255, 1);
 }
 
-/* 三角形アイコンを自作する場合（任意） */
 .gacha-details summary::before {
     content: "🔍 ";
 }
 
-/* 開いている時の検索入力エリアの調整 */
-/* --- ここを修正 --- */
-/* 開いている時の検索入力エリアの調整 */
 .gacha-details[open] .external-search-controls {
     margin-top: 10px;
-    background-color: transparent; /* 背景を白(0.9)から透明に変更 */
+    background-color: transparent;
     padding: 15px;
     border-radius: 10px;
     display: flex;
     justify-content: center;
-}
-
-/* ついでに、ガチャ表示セクション自体の背景色(f9f9f9)も透明にしましょう */
-.gacha-section {
-    margin-top: 20px;
-    padding: 0;           /* 余白をリセット */
-    background: transparent; /* 白っぽい背景を透明に */
-    border: none;         /* 線を消す */
-}
-
-/* ガチャ用iframeの枠線が明るすぎる場合はここを調整 */
-.gacha-view {
-    height: 60vh;
-    border: 1px solid var(--border); /* style.cssで定義した薄い線に合わせる */
 }
 
 .gacha-container-inner {
@@ -323,7 +402,7 @@ label {
 /* プルダウンメニューのデザイン */
 #stageType {
     background: rgba(255, 255, 255, 0.1);
-    color: white;
+    color: var(--text);
     padding: 8px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
@@ -332,11 +411,9 @@ label {
 }
 
 #stageType option {
-    background-color: #0a1931; /* 背景色に合わせる */
-    color: white;
+    background-color: var(--card);
+    color: var(--text);
 }
-
-
 
 .mini-player { position: fixed; bottom: 0; width: 100%; height: 65px; background: #222539; display: none; align-items: center; padding: 0 15px; z-index: 100; border-top: 2px solid #f39800; }
 .full-player { position: fixed; top: 100%; left: 0; width: 100%; height: 100%; background: #1a1c2c; transition: 0.4s; z-index: 200; overflow: hidden; color: white; }
