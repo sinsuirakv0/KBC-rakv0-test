@@ -17,6 +17,16 @@
 <meta name="twitter:title" content="KBC HOME">
 <meta name="twitter:description" content="AIを使い、趣味で作成したサイト達">
 <meta name="twitter:image" content="/assets/preview.png">
+
+<script>
+  // ページ読み込み前にテーマを適用（チラつき防止）
+  (function() {
+    const saved = localStorage.getItem('kbc-theme') || 'original';
+    if (saved !== 'original') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  })();
+</script>
   
 </head>
 <body class="fade-in">
@@ -31,6 +41,13 @@
         <a href="index.html">Home</a>
         <a href="https://kbc-rakv0-announce.vercel.app/"></a>
         <a href="#"></a>
+
+        <!-- テーマ切り替えボタン -->
+        <div class="theme-switcher" role="group" aria-label="テーマ切り替え">
+          <button class="theme-btn" id="btn-original" data-theme="original" title="サイト本来の色" aria-label="オリジナルテーマ">🎨</button>
+          <button class="theme-btn" id="btn-light"    data-theme="light"    title="ライトモード"    aria-label="ライトモード">☀️</button>
+          <button class="theme-btn" id="btn-dark"     data-theme="dark"     title="ダークモード"    aria-label="ダークモード">🌙</button>
+        </div>
       </nav>
     </header>
 
@@ -77,10 +94,35 @@
       <p></p>
     </footer>
   </div>
- </body>
-
 
 <script src="js/secret.js"></script>
 
-</html>
+<script>
+  // テーマ切り替えロジック
+  const buttons = document.querySelectorAll('.theme-btn');
 
+  function applyTheme(theme) {
+    if (theme === 'original') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    localStorage.setItem('kbc-theme', theme);
+
+    // アクティブボタンの更新
+    buttons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+  }
+
+  // ボタンにクリックイベントを設定
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+  });
+
+  // 保存済みテーマを読み込んで初期状態を反映
+  const saved = localStorage.getItem('kbc-theme') || 'original';
+  applyTheme(saved);
+</script>
+
+</html>
