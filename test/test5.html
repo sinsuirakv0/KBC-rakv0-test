@@ -348,7 +348,7 @@ footer {
           <input type="radio" name="range" id="range-other" value="Other"> Other
         </label>
       </div>
-      <div class="field-hint" id="range-hint">gg.REGION_CODE_APP で検索します</div>
+      <div class="field-hint" id="range-hint">gg.REGION_C_BSS (Cb) で検索します</div>
     </div>
   </div>
 </div>
@@ -385,132 +385,123 @@ footer {
 // STATUS DEFINITIONS (A〜DM, offset = cost(0)基準)
 // ============================================================
 const STATUS = [
-  // カテゴリ: basic (基本部)
-  { offset:-24, name:'体力',                        cat:'基本部' },
-  { offset:-20, name:'KB数',                        cat:'基本部' },
-  { offset:-16, name:'速度',                        cat:'基本部' },
-  { offset:-12, name:'攻撃力',                      cat:'基本部' },
-  { offset: -8, name:'攻撃終了～移動(pf)',           cat:'基本部' },
-  { offset: -4, name:'射程',                        cat:'基本部' },
-  { offset:  0, name:'コスト(お金)',                 cat:'基本部' },
-  { offset:  4, name:'再生産(pf)',                  cat:'基本部' },
-  { offset:  8, name:'当たり判定の位置',             cat:'基本部' },
-  { offset: 12, name:'当たり判定の幅',               cat:'基本部' },
-  // カテゴリ: 攻撃・属性
-  { offset: 16, name:'赤い敵',                      cat:'攻撃・属性' },
-  { offset: 20, name:'？？？',                      cat:'攻撃・属性' },
-  { offset: 24, name:'範囲攻撃(0=単/1=範)',          cat:'攻撃・属性' },
-  { offset: 28, name:'攻撃感知～攻撃発生(f)',        cat:'攻撃・属性' },
-  { offset: 32, name:'最小レイヤー(手前50/奥0)',     cat:'攻撃・属性' },
-  { offset: 36, name:'最大レイヤー',                cat:'攻撃・属性' },
-  { offset: 40, name:'浮いている敵',                cat:'攻撃・属性' },
-  { offset: 44, name:'黒い敵',                      cat:'攻撃・属性' },
-  { offset: 48, name:'メタルな敵',                  cat:'攻撃・属性' },
-  { offset: 52, name:'無属性',                      cat:'攻撃・属性' },
-  { offset: 56, name:'天使',                        cat:'攻撃・属性' },
-  { offset: 60, name:'エイリアン',                  cat:'攻撃・属性' },
-  { offset: 64, name:'ゾンビ',                      cat:'攻撃・属性' },
-  // カテゴリ: 特殊能力①
-  { offset: 68, name:'めっぽう強い',                cat:'特殊能力①' },
-  { offset: 72, name:'ふっとばす 確率(%)',           cat:'特殊能力①' },
-  { offset: 76, name:'動きを止める 確率(%)',         cat:'特殊能力①' },
-  { offset: 80, name:'動きを止める 時間(f)',         cat:'特殊能力①' },
-  { offset: 84, name:'動きを遅くする 確率(%)',       cat:'特殊能力①' },
-  { offset: 88, name:'動きを遅くする 時間(f)',       cat:'特殊能力①' },
-  { offset: 92, name:'打たれ強い',                  cat:'特殊能力①' },
-  { offset: 96, name:'超ダメージ',                  cat:'特殊能力①' },
-  { offset:100, name:'クリティカル 確率(%)',         cat:'特殊能力①' },
-  { offset:104, name:'ターゲット限定',              cat:'特殊能力①' },
-  { offset:108, name:'撃破時お金アップ',            cat:'特殊能力①' },
-  { offset:112, name:'城破壊が得意',               cat:'特殊能力①' },
-  // カテゴリ: 特殊能力②
-  { offset:116, name:'波動攻撃 確率(%)',            cat:'特殊能力②' },
-  { offset:120, name:'波動Lv',                     cat:'特殊能力②' },
-  { offset:124, name:'攻撃力ダウン 確率(%)',        cat:'特殊能力②' },
-  { offset:128, name:'攻撃力ダウン 時間(f)',        cat:'特殊能力②' },
-  { offset:132, name:'攻撃力ダウン 割合(%)',        cat:'特殊能力②' },
-  { offset:136, name:'攻撃力アップ 体力割合(%)',    cat:'特殊能力②' },
-  { offset:140, name:'攻撃力アップ 増加割合(%)',    cat:'特殊能力②' },
-  { offset:144, name:'生き残る 確率(%)',            cat:'特殊能力②' },
-  { offset:148, name:'メタル',                     cat:'特殊能力②' },
-  { offset:152, name:'遠方攻撃 最短射程',           cat:'特殊能力②' },
-  { offset:156, name:'遠方攻撃 最短～最長距離',     cat:'特殊能力②' },
-  // カテゴリ: 無効系
-  { offset:160, name:'波動ダメージ無効',            cat:'無効系' },
-  { offset:164, name:'波動ダメージ耐性',            cat:'無効系' },
-  { offset:168, name:'ふっとばす無効',              cat:'無効系' },
-  { offset:172, name:'動きを止める無効',            cat:'無効系' },
-  { offset:176, name:'動きを遅くする無効',          cat:'無効系' },
-  { offset:180, name:'攻撃力ダウン無効',            cat:'無効系' },
-  { offset:200, name:'衝撃波無効',                  cat:'無効系' },
-  { offset:276, name:'ワープ無効',                  cat:'無効系' },
-  { offset:292, name:'古代の呪い無効',              cat:'無効系' },
-  { offset:336, name:'毒撃ダメージ無効',            cat:'無効系' },
-  { offset:340, name:'烈波ダメージ無効',            cat:'無効系' },
-  { offset:440, name:'爆波無効',                    cat:'無効系' },
-  // カテゴリ: キラー・多段
-  { offset:184, name:'ゾンビキラー',               cat:'キラー・多段' },
-  { offset:188, name:'魔女キラー',                  cat:'キラー・多段' },
-  { offset:192, name:'魔女(属性フラグ)',            cat:'キラー・多段' },
-  { offset:196, name:'Attacks before',              cat:'キラー・多段' },
-  { offset:204, name:'Time before dying',           cat:'キラー・多段' },
-  { offset:208, name:'Unit state',                  cat:'キラー・多段' },
-  { offset:212, name:'攻撃力 二撃目',               cat:'キラー・多段' },
-  { offset:216, name:'攻撃力 三撃目',               cat:'キラー・多段' },
-  { offset:220, name:'攻撃発生 二撃目(f)',          cat:'キラー・多段' },
-  { offset:224, name:'攻撃発生 三撃目(f)',          cat:'キラー・多段' },
-  { offset:228, name:'効果・能力 一撃目',           cat:'キラー・多段' },
-  { offset:232, name:'効果・能力 二撃目',           cat:'キラー・多段' },
-  { offset:236, name:'効果・能力 三撃目',           cat:'キラー・多段' },
-  { offset:240, name:'生産アニメーション(-1:unit 0:モンハン)', cat:'キラー・多段' },
-  { offset:244, name:'昇天エフェクト',              cat:'キラー・多段' },
-  { offset:248, name:'生産アニメーション2',         cat:'キラー・多段' },
-  { offset:252, name:'昇天エフェクト2(1:無効 2:有効)',cat:'キラー・多段' },
-  // カテゴリ: ワープ・使徒・古代
-  { offset:256, name:'バリアブレイカー 確率(%)',    cat:'ワープ・使徒・古代' },
-  { offset:260, name:'ワープ 確率(%)',              cat:'ワープ・使徒・古代' },
-  { offset:264, name:'ワープ 時間(f)',              cat:'ワープ・使徒・古代' },
-  { offset:268, name:'ワープ 最短射程',             cat:'ワープ・使徒・古代' },
-  { offset:272, name:'ワープ 最短～最長距離',       cat:'ワープ・使徒・古代' },
-  { offset:280, name:'使徒(属性フラグ)',            cat:'ワープ・使徒・古代' },
-  { offset:284, name:'使徒キラー',                  cat:'ワープ・使徒・古代' },
-  { offset:288, name:'古代種(属性フラグ)',           cat:'ワープ・使徒・古代' },
-  // カテゴリ: 上級特殊
-  { offset:296, name:'超打たれ強い',               cat:'上級特殊' },
-  { offset:300, name:'極ダメージ',                  cat:'上級特殊' },
-  { offset:304, name:'渾身の一撃 確率(%)',          cat:'上級特殊' },
-  { offset:308, name:'渾身の一撃 増加割合(%)',      cat:'上級特殊' },
-  { offset:312, name:'攻撃無効 確率(%)',            cat:'上級特殊' },
-  { offset:316, name:'攻撃無効 時間(f)',            cat:'上級特殊' },
-  { offset:320, name:'烈波攻撃 確率(%)',            cat:'上級特殊' },
-  { offset:324, name:'烈波攻撃 最短射程',           cat:'上級特殊' },
-  { offset:328, name:'烈波攻撃 最短～最長距離',     cat:'上級特殊' },
-  { offset:332, name:'烈波Lv',                     cat:'上級特殊' },
-  { offset:344, name:'呪い(フラグ)',                cat:'上級特殊' },
-  { offset:348, name:'呪い 時間(f)',                cat:'上級特殊' },
-  { offset:352, name:'小波動(波動onの時のみ有効)',  cat:'上級特殊' },
-  { offset:356, name:'シールドブレイカー 確率(%)', cat:'上級特殊' },
-  { offset:360, name:'悪魔(属性フラグ)',            cat:'上級特殊' },
-  { offset:364, name:'超生命体特攻',               cat:'上級特殊' },
-  { offset:368, name:'魂攻撃',                     cat:'上級特殊' },
-  // カテゴリ: 最新特殊
-  { offset:372, name:'遠方攻撃 二撃目(フラグ)',     cat:'最新特殊' },
-  { offset:376, name:'遠方攻撃 二撃目 最短射程',    cat:'最新特殊' },
-  { offset:380, name:'遠方攻撃 二撃目 最短～最長距離',cat:'最新特殊' },
-  { offset:384, name:'遠方攻撃 三撃目(フラグ)',     cat:'最新特殊' },
-  { offset:388, name:'遠方攻撃 三撃目 最短射程',    cat:'最新特殊' },
-  { offset:392, name:'遠方攻撃 三撃目 最短～最長距離',cat:'最新特殊' },
-  { offset:396, name:'超獣特攻',                   cat:'最新特殊' },
-  { offset:400, name:'超獣特攻 確率(%)',            cat:'最新特殊' },
-  { offset:404, name:'超獣特攻 攻撃無効(f)',        cat:'最新特殊' },
-  { offset:408, name:'小烈波',                     cat:'最新特殊' },
-  { offset:412, name:'烈波カウンター',              cat:'最新特殊' },
-  { offset:416, name:'召喚するunit番号',            cat:'最新特殊' },
-  { offset:420, name:'超賢者特攻',                 cat:'最新特殊' },
-  { offset:424, name:'メタルキラー',               cat:'最新特殊' },
-  { offset:428, name:'爆波 確率(%)',               cat:'最新特殊' },
-  { offset:432, name:'爆波 範囲の前方(×4)',        cat:'最新特殊' },
-  { offset:436, name:'爆波 範囲の後方(×4)',        cat:'最新特殊' },
+  { offset:-24, name:'体力' },
+  { offset:-20, name:'KB数' },
+  { offset:-16, name:'速度' },
+  { offset:-12, name:'攻撃力' },
+  { offset: -8, name:'攻撃終了～移動(pf)' },
+  { offset: -4, name:'射程' },
+  { offset:  0, name:'コスト(お金)' },
+  { offset:  4, name:'再生産(pf)' },
+  { offset:  8, name:'当たり判定の位置' },
+  { offset: 12, name:'当たり判定の幅' },
+  { offset: 16, name:'赤い敵' },
+  { offset: 20, name:'？？？' },
+  { offset: 24, name:'範囲攻撃(0=単/1=範)' },
+  { offset: 28, name:'攻撃感知～攻撃発生(f)' },
+  { offset: 32, name:'最小レイヤー(手前50/奥0)' },
+  { offset: 36, name:'最大レイヤー' },
+  { offset: 40, name:'浮いている敵' },
+  { offset: 44, name:'黒い敵' },
+  { offset: 48, name:'メタルな敵' },
+  { offset: 52, name:'無属性' },
+  { offset: 56, name:'天使' },
+  { offset: 60, name:'エイリアン' },
+  { offset: 64, name:'ゾンビ' },
+  { offset: 68, name:'めっぽう強い' },
+  { offset: 72, name:'ふっとばす 確率(%)' },
+  { offset: 76, name:'動きを止める 確率(%)' },
+  { offset: 80, name:'動きを止める 時間(f)' },
+  { offset: 84, name:'動きを遅くする 確率(%)' },
+  { offset: 88, name:'動きを遅くする 時間(f)' },
+  { offset: 92, name:'打たれ強い' },
+  { offset: 96, name:'超ダメージ' },
+  { offset:100, name:'クリティカル 確率(%)' },
+  { offset:104, name:'ターゲット限定' },
+  { offset:108, name:'撃破時お金アップ' },
+  { offset:112, name:'城破壊が得意' },
+  { offset:116, name:'波動攻撃 確率(%)' },
+  { offset:120, name:'波動Lv' },
+  { offset:124, name:'攻撃力ダウン 確率(%)' },
+  { offset:128, name:'攻撃力ダウン 時間(f)' },
+  { offset:132, name:'攻撃力ダウン 割合(%)' },
+  { offset:136, name:'攻撃力アップ 体力割合(%)' },
+  { offset:140, name:'攻撃力アップ 増加割合(%)' },
+  { offset:144, name:'生き残る 確率(%)' },
+  { offset:148, name:'メタル' },
+  { offset:152, name:'遠方攻撃 最短射程' },
+  { offset:156, name:'遠方攻撃 最短～最長距離' },
+  { offset:160, name:'波動ダメージ無効' },
+  { offset:164, name:'波動ダメージ耐性' },
+  { offset:168, name:'ふっとばす無効' },
+  { offset:172, name:'動きを止める無効' },
+  { offset:176, name:'動きを遅くする無効' },
+  { offset:180, name:'攻撃力ダウン無効' },
+  { offset:184, name:'ゾンビキラー' },
+  { offset:188, name:'魔女キラー' },
+  { offset:192, name:'魔女(属性フラグ)' },
+  { offset:196, name:'Attacks before' },
+  { offset:200, name:'衝撃波無効' },
+  { offset:204, name:'Time before dying' },
+  { offset:208, name:'Unit state' },
+  { offset:212, name:'攻撃力 二撃目' },
+  { offset:216, name:'攻撃力 三撃目' },
+  { offset:220, name:'攻撃発生 二撃目(f)' },
+  { offset:224, name:'攻撃発生 三撃目(f)' },
+  { offset:228, name:'効果・能力 一撃目' },
+  { offset:232, name:'効果・能力 二撃目' },
+  { offset:236, name:'効果・能力 三撃目' },
+  { offset:240, name:'生産アニメーション(-1:unit 0:モンハン)' },
+  { offset:244, name:'昇天エフェクト' },
+  { offset:248, name:'生産アニメーション2' },
+  { offset:252, name:'昇天エフェクト2(1:無効 2:有効)' },
+  { offset:256, name:'バリアブレイカー 確率(%)' },
+  { offset:260, name:'ワープ 確率(%)' },
+  { offset:264, name:'ワープ 時間(f)' },
+  { offset:268, name:'ワープ 最短射程' },
+  { offset:272, name:'ワープ 最短～最長距離' },
+  { offset:276, name:'ワープ無効' },
+  { offset:280, name:'使徒(属性フラグ)' },
+  { offset:284, name:'使徒キラー' },
+  { offset:288, name:'古代種(属性フラグ)' },
+  { offset:292, name:'古代の呪い無効' },
+  { offset:296, name:'超打たれ強い' },
+  { offset:300, name:'極ダメージ' },
+  { offset:304, name:'渾身の一撃 確率(%)' },
+  { offset:308, name:'渾身の一撃 増加割合(%)' },
+  { offset:312, name:'攻撃無効 確率(%)' },
+  { offset:316, name:'攻撃無効 時間(f)' },
+  { offset:320, name:'烈波攻撃 確率(%)' },
+  { offset:324, name:'烈波攻撃 最短射程' },
+  { offset:328, name:'烈波攻撃 最短～最長距離' },
+  { offset:332, name:'烈波Lv' },
+  { offset:336, name:'毒撃ダメージ無効' },
+  { offset:340, name:'烈波ダメージ無効' },
+  { offset:344, name:'呪い(フラグ)' },
+  { offset:348, name:'呪い 時間(f)' },
+  { offset:352, name:'小波動(波動onの時のみ有効)' },
+  { offset:356, name:'シールドブレイカー 確率(%)' },
+  { offset:360, name:'悪魔(属性フラグ)' },
+  { offset:364, name:'超生命体特攻' },
+  { offset:368, name:'魂攻撃' },
+  { offset:372, name:'遠方攻撃 二撃目(フラグ)' },
+  { offset:376, name:'遠方攻撃 二撃目 最短射程' },
+  { offset:380, name:'遠方攻撃 二撃目 最短～最長距離' },
+  { offset:384, name:'遠方攻撃 三撃目(フラグ)' },
+  { offset:388, name:'遠方攻撃 三撃目 最短射程' },
+  { offset:392, name:'遠方攻撃 三撃目 最短～最長距離' },
+  { offset:396, name:'超獣特攻' },
+  { offset:400, name:'超獣特攻 確率(%)' },
+  { offset:404, name:'超獣特攻 攻撃無効(f)' },
+  { offset:408, name:'小烈波' },
+  { offset:412, name:'烈波カウンター' },
+  { offset:416, name:'召喚するunit番号' },
+  { offset:420, name:'超賢者特攻' },
+  { offset:424, name:'メタルキラー' },
+  { offset:428, name:'爆波 確率(%)' },
+  { offset:432, name:'爆波 範囲の前方(×4)' },
+  { offset:436, name:'爆波 範囲の後方(×4)' },
+  { offset:440, name:'爆波無効' },
 ];
 
 // ============================================================
@@ -529,8 +520,8 @@ function toHex4(n) {
 // RANGE CHIPS（ラジオボタン式・排他選択）
 // ============================================================
 const rangeHints = {
-  cb:    'gg.REGION_CODE_APP で検索します',
-  other: 'gg.REGION_OTHER で検索します'
+  cb:    'gg.REGION_C_BSS (Cb) で検索します',
+  other: 'gg.REGION_OTHER (Other) で検索します'
 };
 function syncRangeChips() {
   ['cb','other'].forEach(k => {
@@ -584,7 +575,7 @@ $('gen-btn').addEventListener('click', () => {
   const hexPattern = 'h ' + rawVals.map(toHex4).join(' ');
 
   const range = $('range-cb').checked
-    ? 'gg.REGION_CODE_APP'
+    ? 'gg.REGION_C_BSS'
     : 'gg.REGION_OTHER';
 
   const lua = buildLua(hexPattern, refine, range);
@@ -623,19 +614,9 @@ $('dl-btn').addEventListener('click', () => {
 // ============================================================
 function buildLua(hexPattern, refine, range) {
 
-  // Build STATUS table string for Lua
-  const catGroups = {};
-  STATUS.forEach(s => {
-    if (!catGroups[s.cat]) catGroups[s.cat] = [];
-    catGroups[s.cat].push(s);
-  });
-
   const statusLines = STATUS.map(s =>
-    `  {offset=${String(s.offset).padStart(4)}, name="${s.name.replace(/"/g,'\\"')}", cat="${s.cat}"}`
+    `  {offset=${String(s.offset).padStart(4)}, name="${s.name.replace(/"/g,'\\"')}"}`
   ).join(',\n');
-
-  const catList = Object.keys(catGroups);
-  const catLuaList = catList.map(c => `"${c}"`).join(', ');
 
 return `-- ============================================================
 -- にゃんこ大戦争 ステータスエディタ (GameGuardian Lua)
@@ -643,14 +624,9 @@ return `-- ============================================================
 -- ステータス項目数: ${STATUS.length}
 -- ============================================================
 
--- ==============================
--- 全ステータス定義
--- ==============================
 local STATUS = {
 ${statusLines}
 }
-
-local CATEGORIES = {${catLuaList}}
 
 -- ==============================
 -- 1. 自動検索・リファイン
@@ -694,7 +670,7 @@ end
 gg.toast("対象: " .. #refined .. "件 ✓", true)
 
 -- ==============================
--- 2. バックアップ（元の値を保存）
+-- 2. バックアップ
 -- ==============================
 local backup = {}
 for _, ref in ipairs(refined) do
@@ -702,8 +678,7 @@ for _, ref in ipairs(refined) do
   for _, s in ipairs(STATUS) do
     table.insert(readList, {address = ref.address + s.offset, flags = gg.TYPE_DWORD})
   end
-  local vals = gg.getValues(readList)
-  table.insert(backup, {baseAddr = ref.address, values = vals})
+  table.insert(backup, gg.getValues(readList))
 end
 
 -- ==============================
@@ -725,10 +700,9 @@ local function loadPreset()
 end
 
 -- ==============================
--- 4. 値の書き換え処理
+-- 4. 値の書き換え
 -- ==============================
 local function applyEdits(edits)
-  -- edits = { [offset] = value, ... }
   local count = 0
   for _, ref in ipairs(refined) do
     local editList = {}
@@ -748,60 +722,37 @@ local function applyEdits(edits)
 end
 
 -- ==============================
--- 5. カテゴリ内の項目編集
+-- 5. ステータス編集（フラット一覧）
 -- ==============================
-local function editCategory(catName)
-  -- そのカテゴリの項目を集める
-  local items = {}
-  for _, s in ipairs(STATUS) do
-    if s.cat == catName then table.insert(items, s) end
-  end
-  if #items == 0 then return end
-
+local function editStatus()
   while true do
-    -- 現在値を読んで表示
+    -- 現在値を取得
     local readList = {}
-    for _, s in ipairs(items) do
+    for _, s in ipairs(STATUS) do
       table.insert(readList, {address = refined[1].address + s.offset, flags = gg.TYPE_DWORD})
     end
     local currentVals = gg.getValues(readList)
 
-    -- メニュー用ラベル（現在値付き）
+    -- 項目一覧を現在値付きで表示
     local menuItems = {}
-    for i, s in ipairs(items) do
+    for i, s in ipairs(STATUS) do
       local cv = currentVals[i] and tostring(currentVals[i].value) or "?"
-      table.insert(menuItems, s.name .. "  [現在: " .. cv .. "]")
+      table.insert(menuItems, s.name .. "  [" .. cv .. "]")
     end
-    table.insert(menuItems, "── 一括入力（このカテゴリ全項目）")
     table.insert(menuItems, "← 戻る")
 
-    local choice = gg.choice(menuItems, nil, catName .. " の編集")
+    local choice = gg.choice(menuItems, nil, "ステータス一覧 (対象: " .. #refined .. "件)")
     if choice == nil or menuItems[choice] == "← 戻る" then return end
 
-    -- 一括入力
-    if menuItems[choice]:find("一括入力") then
-      local inputs = gg.prompt(
-        {"全項目に入れる値（0で変更なし）"},
-        {"0"},
-        {"number"}
-      )
-      if inputs and inputs[1] and tonumber(inputs[1]) ~= 0 then
-        local edits = {}
-        for _, s in ipairs(items) do edits[s.offset] = inputs[1] end
-        applyEdits(edits)
-      end
-    else
-      -- 個別編集
-      local s = items[choice]
-      local cv = currentVals[choice] and tostring(currentVals[choice].value) or "0"
-      local inputs = gg.prompt(
-        {s.name .. " (offset " .. s.offset .. ")"},
-        {cv},
-        {"number"}
-      )
-      if inputs and inputs[1] ~= nil then
-        applyEdits({[s.offset] = inputs[1]})
-      end
+    local s = STATUS[choice]
+    local cv = currentVals[choice] and tostring(currentVals[choice].value) or "0"
+    local inputs = gg.prompt(
+      {s.name .. "  (offset " .. s.offset .. ")"},
+      {cv},
+      {"number"}
+    )
+    if inputs and inputs[1] ~= nil then
+      applyEdits({[s.offset] = inputs[1]})
     end
   end
 end
@@ -810,42 +761,32 @@ end
 -- 6. メインメニュー
 -- ==============================
 while true do
-  local mainMenu = {
-    "📝 ステータスを変更する",
-    "↩️  元の値に戻す",
-    "💾 プリセットを保存する",
-    "📂 プリセットを読み込む",
-    "❌ 終了"
-  }
-
-  local choice = gg.choice(mainMenu, nil,
-    "にゃんこ大戦争 エディタ v5\\n対象キャラ: " .. #refined .. "件")
+  local choice = gg.choice(
+    {
+      "📝 ステータスを変更する",
+      "↩️  元の値に戻す",
+      "💾 プリセットを保存する",
+      "📂 プリセットを読み込む",
+      "❌ 終了"
+    },
+    nil,
+    "にゃんこ大戦争 エディタ v5\\n対象: " .. #refined .. "件"
+  )
 
   if choice == nil or choice == 5 then
-    gg.toast("スクリプトを終了します")
+    gg.toast("終了します")
     break
 
   elseif choice == 1 then
-    -- カテゴリ選択
-    while true do
-      local catMenu = {}
-      for _, c in ipairs(CATEGORIES) do table.insert(catMenu, c) end
-      table.insert(catMenu, "← 戻る")
-
-      local catChoice = gg.choice(catMenu, nil, "カテゴリを選択")
-      if catChoice == nil or catMenu[catChoice] == "← 戻る" then break end
-      editCategory(catMenu[catChoice])
-    end
+    editStatus()
 
   elseif choice == 2 then
-    -- 元に戻す
-    for _, bk in ipairs(backup) do
-      gg.setValues(bk.values)
+    for i, bk in ipairs(backup) do
+      gg.setValues(bk)
     end
-    gg.toast("↩️ 元の値に戻しました (" .. #backup .. "件)")
+    gg.toast("↩️ 元の値に戻しました")
 
   elseif choice == 3 then
-    -- プリセット保存（現在値）
     local snap = {}
     for _, s in ipairs(STATUS) do
       local r = gg.getValues({{address = refined[1].address + s.offset, flags = gg.TYPE_DWORD}})
@@ -854,7 +795,6 @@ while true do
     savePreset(snap)
 
   elseif choice == 4 then
-    -- プリセット読み込み
     local saved = loadPreset()
     if saved then
       local edits = {}
