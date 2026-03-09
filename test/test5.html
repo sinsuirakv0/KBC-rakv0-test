@@ -145,21 +145,34 @@ body {
 .range-row { display: flex; gap: 8px; }
 .range-chip {
   flex: 1;
-  padding: 10px;
+  padding: 12px 10px;
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text2);
   transition: all 0.18s;
   user-select: none;
+  position: relative;
 }
-.range-chip input { display: none; }
-.range-chip.on { border-color: var(--blue); background: rgba(88,166,255,0.1); color: var(--blue); }
-.range-chip:hover { border-color: var(--text3); }
+.range-chip input[type="radio"] { display: none; }
+.range-chip.selected {
+  border-color: var(--blue);
+  background: rgba(88,166,255,0.12);
+  color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.1);
+}
+.range-chip.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 6px; right: 8px;
+  font-size: 11px;
+  color: var(--blue);
+}
+.range-chip:not(.selected):hover { border-color: var(--text3); color: var(--text); }
 
 /* ── Generate Button ── */
 .btn-gen {
@@ -328,13 +341,14 @@ footer {
     <div class="field">
       <label>検索範囲</label>
       <div class="range-row">
-        <label class="range-chip" id="lbl-cb">
-          <input type="checkbox" id="range-cb"> Cb（CODE_APP）
+        <label class="range-chip selected" id="lbl-cb">
+          <input type="radio" name="range" id="range-cb" value="Cb" checked> Cb（CODE_APP）
         </label>
-        <label class="range-chip on" id="lbl-other">
-          <input type="checkbox" id="range-other" checked> Other
+        <label class="range-chip" id="lbl-other">
+          <input type="radio" name="range" id="range-other" value="Other"> Other
         </label>
       </div>
+      <div class="field-hint" id="range-hint">gg.REGION_CODE_APP で検索します</div>
     </div>
   </div>
 </div>
@@ -512,14 +526,28 @@ function toHex4(n) {
 }
 
 // ============================================================
-// RANGE CHIPS
+// RANGE CHIPS（ラジオボタン式・排他選択）
 // ============================================================
+const rangeHints = {
+  cb:    'gg.REGION_CODE_APP で検索します',
+  other: 'gg.REGION_OTHER で検索します'
+};
+function syncRangeChips() {
+  ['cb','other'].forEach(k => {
+    const inp = $('range-'+k);
+    $('lbl-'+k).classList.toggle('selected', inp.checked);
+  });
+  const selected = $('range-cb').checked ? 'cb' : 'other';
+  $('range-hint').textContent = rangeHints[selected];
+}
 ['cb','other'].forEach(k => {
-  const inp = $('range-'+k), lbl = $('lbl-'+k);
-  const sync = () => lbl.classList.toggle('on', inp.checked);
-  sync();
-  inp.addEventListener('change', sync);
+  $('range-'+k).addEventListener('change', syncRangeChips);
+  $('lbl-'+k).addEventListener('click', () => {
+    $('range-'+k).checked = true;
+    syncRangeChips();
+  });
 });
+syncRangeChips();
 
 // ============================================================
 // AUTO REFINE
@@ -555,10 +583,9 @@ $('gen-btn').addEventListener('click', () => {
 
   const hexPattern = 'h ' + rawVals.map(toHex4).join(' ');
 
-  const rangeParts = [];
-  if ($('range-cb').checked)    rangeParts.push('gg.REGION_CODE_APP');
-  if ($('range-other').checked) rangeParts.push('gg.REGION_OTHER');
-  const range = rangeParts.length ? rangeParts.join(' | ') : 'gg.REGION_OTHER';
+  const range = $('range-cb').checked
+    ? 'gg.REGION_CODE_APP'
+    : 'gg.REGION_OTHER';
 
   const lua = buildLua(hexPattern, refine, range);
 
