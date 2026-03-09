@@ -299,7 +299,7 @@ footer {
 <body>
 
 <div class="header">
-  <div class="version-badge">v5.1 ator</div>
+  <div class="version-badge">v5.1 — GameGuardian Lua Generator</div>
   <h1>にゃんこ大戦争<br><span>Lua</span>スクリプトジェネレーター</h1>
   <p>検索パターンとリファイン値を入力するだけで、GG上で動くスクリプトを生成</p>
 </div>
@@ -572,23 +572,19 @@ $('gen-btn').addEventListener('click', () => {
     return;
   }
 
-  // リファイン値がパターン内のどの位置にあるか特定する
+  // リファイン値がパターン内のどの位置にあるか特定
   const refineIndex = rawVals.indexOf(refine);
   if (refineIndex === -1) {
     $('refine-in').classList.add('invalid');
-    alert('リファイン値がパターン内に見つかりません。\nパターン内に含まれるコスト値をリファイン値に入力してください。');
+    alert('リファイン値がパターン内に含まれていません。');
     return;
   }
-  // パターン先頭からコスト(offset=0)アドレスまでのバイト数
-  const refineOffset = refineIndex * 4;
-
-  const hexPattern = 'h ' + rawVals.map(toHex4).join(' ');
 
   const range = $('range-cb').checked
     ? 'gg.REGION_C_BSS'
     : 'gg.REGION_OTHER';
 
-  const lua = buildLua(hexPattern, refine, refineOffset, range);
+  const lua = buildLua(rawVals, refine, refineIndex, range);
 
   $('result-code').textContent = lua;
   $('result-card').style.display = 'block';
@@ -622,7 +618,13 @@ $('dl-btn').addEventListener('click', () => {
 // ============================================================
 // LUA BUILDER
 // ============================================================
-function buildLua(hexPattern, refine, refineOffset, range) {
+function buildLua(rawVals, refine, refineIndex, range) {
+
+  // Luaテーブル用: 各パターン値とコストからの相対オフセット
+  const patternLines = rawVals.map((v, i) => {
+    const relOffset = (i - refineIndex) * 4;
+    return `  {offset=${String(relOffset).padStart(5)}, value=${v}}`;
+  }).join(',\n');
 
   const statusLines = STATUS.map(s =>
     `  {offset=${String(s.offset).padStart(4)}, name="${s.name.replace(/"/g,'\\"')}"}`
@@ -634,53 +636,69 @@ return `-- ============================================================
 -- ステータス項目数: ${STATUS.length}
 -- ============================================================
 
+-- ==============================
+-- 検索パターン（コストアドレスからの相対オフセット付き）
+-- ==============================
+local PATTERN = {
+${patternLines}
+}
+
+-- ==============================
+-- 全ステータス定義
+-- ==============================
 local STATUS = {
 ${statusLines}
 }
 
 -- ==============================
--- 1. 自動検索・リファイン
+-- 1. DWORDで検索してパターン照合
 -- ==============================
 gg.clearResults()
 gg.setRanges(${range})
 
--- HEXパターン（連続するDWORD列をバイト列に変換したもの）
-local HEX_PATTERN = "${hexPattern}"
--- コスト値（リファイン値）
 local REFINE_VALUE = ${refine}
--- パターン先頭からコストアドレスまでのオフセット（バイト単位）
-local REFINE_OFFSET = ${refineOffset}
 
--- HEXパターンで連続するDWORD列を検索
-gg.searchNumber(HEX_PATTERN, gg.TYPE_HEX)
-local hexResults = gg.getResults(99999)
+-- コスト値をDWORDで検索
+gg.searchNumber(tostring(REFINE_VALUE), gg.TYPE_DWORD)
+local results = gg.getResults(99999)
+gg.clearResults()
 
-if not hexResults or #hexResults == 0 then
-  gg.alert("パターンが見つかりませんでした\\n検索パターンを確認してください")
-  gg.clearResults()
+if not results or #results == 0 then
+  gg.alert("コスト値 [" .. REFINE_VALUE .. "] が見つかりませんでした")
   return
 end
 
-gg.toast("パターン検索: " .. #hexResults .. "件ヒット", true)
+gg.toast("DWORD検索: " .. #results .. "件ヒット", true)
 
--- 各ヒットの「コスト位置」のDWORDを読み取る
-local checkList = {}
-for _, v in ipairs(hexResults) do
-  table.insert(checkList, {address = v.address + REFINE_OFFSET, flags = gg.TYPE_DWORD})
-end
-gg.clearResults()
-checkList = gg.getValues(checkList)
-
--- コスト値と一致するアドレスのみ残す（= コストのアドレスがoffset 0の基準）
+-- 各ヒットアドレスを「コストアドレス(offset=0)の候補」として
+-- 周辺のDWORDをパターンと照合する
 local refined = {}
-for _, v in ipairs(checkList) do
-  if v.value == REFINE_VALUE then
-    table.insert(refined, v)
+for _, r in ipairs(results) do
+  local baseAddr = r.address  -- これがoffset=0（コスト）のアドレス
+
+  -- パターン全値を読み取る
+  local readList = {}
+  for _, p in ipairs(PATTERN) do
+    table.insert(readList, {address = baseAddr + p.offset, flags = gg.TYPE_DWORD})
+  end
+  local vals = gg.getValues(readList)
+
+  -- 全パターン値と一致するか確認
+  local match = true
+  for i, p in ipairs(PATTERN) do
+    if not vals[i] or vals[i].value ~= p.value then
+      match = false
+      break
+    end
+  end
+
+  if match then
+    table.insert(refined, {address = baseAddr, flags = gg.TYPE_DWORD, value = baseAddr})
   end
 end
 
 if #refined == 0 then
-  gg.alert("リファイン値 [" .. REFINE_VALUE .. "] が見つかりませんでした")
+  gg.alert("パターンに一致するアドレスが見つかりませんでした")
   return
 end
 
@@ -743,14 +761,12 @@ end
 -- ==============================
 local function editStatus()
   while true do
-    -- 現在値を取得
     local readList = {}
     for _, s in ipairs(STATUS) do
       table.insert(readList, {address = refined[1].address + s.offset, flags = gg.TYPE_DWORD})
     end
     local currentVals = gg.getValues(readList)
 
-    -- 項目一覧を現在値付きで表示
     local menuItems = {}
     for i, s in ipairs(STATUS) do
       local cv = currentVals[i] and tostring(currentVals[i].value) or "?"
@@ -798,7 +814,7 @@ while true do
     editStatus()
 
   elseif choice == 2 then
-    for i, bk in ipairs(backup) do
+    for _, bk in ipairs(backup) do
       gg.setValues(bk)
     end
     gg.toast("↩️ 元の値に戻しました")
