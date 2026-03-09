@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>にゃんこ大戦争 Luaジェネレーター v.1</title>
+<title>にゃんこ大戦争 Luaジェネレーター v5.1</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -299,7 +299,7 @@ footer {
 <body>
 
 <div class="header">
-  <div class="version-badge">v5.1 — GameGuardian Lua Generator</div>
+  <div class="version-badge">v5.1 ator</div>
   <h1>にゃんこ大戦争<br><span>Lua</span>スクリプトジェネレーター</h1>
   <p>検索パターンとリファイン値を入力するだけで、GG上で動くスクリプトを生成</p>
 </div>
@@ -572,13 +572,23 @@ $('gen-btn').addEventListener('click', () => {
     return;
   }
 
+  // リファイン値がパターン内のどの位置にあるか特定する
+  const refineIndex = rawVals.indexOf(refine);
+  if (refineIndex === -1) {
+    $('refine-in').classList.add('invalid');
+    alert('リファイン値がパターン内に見つかりません。\nパターン内に含まれるコスト値をリファイン値に入力してください。');
+    return;
+  }
+  // パターン先頭からコスト(offset=0)アドレスまでのバイト数
+  const refineOffset = refineIndex * 4;
+
   const hexPattern = 'h ' + rawVals.map(toHex4).join(' ');
 
   const range = $('range-cb').checked
     ? 'gg.REGION_C_BSS'
     : 'gg.REGION_OTHER';
 
-  const lua = buildLua(hexPattern, refine, range);
+  const lua = buildLua(hexPattern, refine, refineOffset, range);
 
   $('result-code').textContent = lua;
   $('result-card').style.display = 'block';
@@ -612,7 +622,7 @@ $('dl-btn').addEventListener('click', () => {
 // ============================================================
 // LUA BUILDER
 // ============================================================
-function buildLua(hexPattern, refine, range) {
+function buildLua(hexPattern, refine, refineOffset, range) {
 
   const statusLines = STATUS.map(s =>
     `  {offset=${String(s.offset).padStart(4)}, name="${s.name.replace(/"/g,'\\"')}"}`
@@ -634,29 +644,36 @@ ${statusLines}
 gg.clearResults()
 gg.setRanges(${range})
 
+-- HEXパターン（連続するDWORD列をバイト列に変換したもの）
 local HEX_PATTERN = "${hexPattern}"
+-- コスト値（リファイン値）
 local REFINE_VALUE = ${refine}
+-- パターン先頭からコストアドレスまでのオフセット（バイト単位）
+local REFINE_OFFSET = ${refineOffset}
 
+-- HEXパターンで連続するDWORD列を検索
 gg.searchNumber(HEX_PATTERN, gg.TYPE_HEX)
 local hexResults = gg.getResults(99999)
 
 if not hexResults or #hexResults == 0 then
-  gg.alert("HEXパターンが見つかりませんでした\\n検索パターンを確認してください")
+  gg.alert("パターンが見つかりませんでした\\n検索パターンを確認してください")
   gg.clearResults()
   return
 end
 
-gg.toast("HEX検索: " .. #hexResults .. "件ヒット", true)
+gg.toast("パターン検索: " .. #hexResults .. "件ヒット", true)
 
-local dwordList = {}
+-- 各ヒットの「コスト位置」のDWORDを読み取る
+local checkList = {}
 for _, v in ipairs(hexResults) do
-  table.insert(dwordList, {address = v.address, flags = gg.TYPE_DWORD})
+  table.insert(checkList, {address = v.address + REFINE_OFFSET, flags = gg.TYPE_DWORD})
 end
 gg.clearResults()
-dwordList = gg.getValues(dwordList)
+checkList = gg.getValues(checkList)
 
+-- コスト値と一致するアドレスのみ残す（= コストのアドレスがoffset 0の基準）
 local refined = {}
-for _, v in ipairs(dwordList) do
+for _, v in ipairs(checkList) do
   if v.value == REFINE_VALUE then
     table.insert(refined, v)
   end
