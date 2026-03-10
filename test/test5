@@ -2,7 +2,7 @@
 -- nyanko status editor
 -- ============================================================
 
-local SEARCH_PATTERN = "0;800;300,000;3,200;0:17"
+local SEARCH_PATTERN = "0;800;300000;3;200;0;17"
 local REFINE_VALUE   = 300000
 local SEARCH_RANGE   = gg.REGION_C_BSS
 
@@ -200,15 +200,22 @@ end
 -- リストに保存
 -- ============================================================
 local function saveToList()
-  local listItems = {}
+  -- 現在値を読んでからリストに追加
+  local readList = {}
   for _, s in ipairs(STATUS) do
+    table.insert(readList, {address = baseAddr + s.offset, flags = gg.TYPE_DWORD})
+  end
+  local cur = gg.getValues(readList)
+
+  local listItems = {}
+  for i, s in ipairs(STATUS) do
     table.insert(listItems, {
       address = baseAddr + s.offset,
       flags   = gg.TYPE_DWORD,
+      value   = cur[i] and cur[i].value or 0,
       name    = s.name
     })
   end
-  gg.clearResults()
   gg.addListItems(listItems)
   gg.toast("リストに追加しました (" .. #listItems .. "件)")
 end
@@ -220,7 +227,7 @@ local SAVE_KEY = "nyanko_saves_v1"
 
 -- 保存データ全体を取得（なければ空テーブル）
 local function getSaves()
-  local ok, data = pcall(gg.loadVariable, SAVE_KEY)
+  local ok, data = pcall(gg.loadVariable, SAVE_KEY, {})
   if ok and type(data) == "table" then
     return data
   end
@@ -229,12 +236,14 @@ end
 
 -- 現在値をスナップショット（offset→value のテーブル）
 local function snapshot()
-  local snap = {}
+  local readList = {}
   for _, s in ipairs(STATUS) do
-    local r = gg.getValues({{address = refined[1].address + s.offset, flags = gg.TYPE_DWORD}})
-    if r and r[1] then
-      snap[tostring(s.offset)] = r[1].value
-    end
+    table.insert(readList, {address = refined[1].address + s.offset, flags = gg.TYPE_DWORD})
+  end
+  local cur = gg.getValues(readList)
+  local snap = {}
+  for i, s in ipairs(STATUS) do
+    snap[tostring(s.offset)] = cur[i] and cur[i].value or 0
   end
   return snap
 end
@@ -243,27 +252,40 @@ end
 local function menuSave()
   local saves = getSaves()
 
-  -- スロット名一覧（最大10件）+ 新規
-  local slotNames = {}
-  for i = 1, 10 do
-    slotNames[i] = saves[tostring(i)] and saves[tostring(i)].label or "（空き）"
-  end
-
+  -- 既存スロット一覧 + 新規
   local items = {}
-  for i = 1, 10 do
-    table.insert(items, "スロット " .. i .. ": " .. slotNames[i])
+  local slotKeys = {}
+  for k, slot in pairs(saves) do
+    table.insert(items, slot.label)
+    table.insert(slotKeys, k)
   end
+  table.insert(items, "++ 新規スロットに保存 ++")
   table.insert(items, "-- キャンセル --")
 
-  local sc = gg.choice(items, nil, "保存するスロットを選択")
+  local sc = gg.choice(items, nil, "保存先を選択")
   if sc == nil or sc == #items then return end
 
+  -- 保存先キーを決める
+  local saveKey
+  if sc == #items - 1 then
+    -- 新規: 現在の最大番号+1
+    local maxN = 0
+    for k, _ in pairs(saves) do
+      local n = tonumber(k) or 0
+      if n > maxN then maxN = n end
+    end
+    saveKey = tostring(maxN + 1)
+  else
+    saveKey = slotKeys[sc]
+  end
+
   -- 名前入力
-  local inp = gg.prompt({"セーブ名"}, {slotNames[sc] == "（空き）" and "" or slotNames[sc]}, {"text"})
+  local defaultName = saves[saveKey] and saves[saveKey].label or ""
+  local inp = gg.prompt({"セーブ名"}, {defaultName}, {"text"})
   if not inp or inp[1] == "" then return end
 
-  saves[tostring(sc)] = {label = inp[1], data = snapshot()}
-  local ok, err = pcall(gg.saveVariable, saves, SAVE_KEY)
+  saves[saveKey] = {label = inp[1], data = snapshot()}
+  local ok, err = pcall(gg.saveVariable, SAVE_KEY, saves)
   if ok then
     gg.toast("セーブしました: " .. inp[1])
   else
