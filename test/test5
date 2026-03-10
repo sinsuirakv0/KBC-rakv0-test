@@ -283,17 +283,20 @@ while true do
     local sc = gg.choice(items, lastStatusPos, "ステータス一覧  対象: " .. #refined .. "件")
 
     if sc == nil then
-      -- 画面外タップ → 非表示
+      -- 画面外タップ → スクロール位置をそのまま保持して非表示
+      -- lastStatusPos は変更しない
       gg.setVisible(false)
     elseif sc == 1 then
       -- メニューに戻る
+      lastStatusPos = nil  -- 次回ステータス一覧を開く時は先頭から
       currentScreen = "main"
     else
-      lastStatusPos = sc
+      lastStatusPos = sc  -- 選択位置を記憶
       local i = sc - 1
       local s  = STATUS[i]
       local cv = cur[i] and tostring(cur[i].value) or "0"
       local inp = gg.prompt({s.name .. " (offset " .. s.offset .. ")"}, {cv}, {"number"})
+      -- promptから戻った後もlastStatusPosは維持される（変更しない）
       if inp and inp[1] ~= nil then
         applyEdit(s.offset, inp[1])
       end
@@ -314,6 +317,7 @@ while true do
 
     elseif mc == 1 then
       lastMainPos   = mc
+      -- lastStatusPos はリセットしない（前回の位置を維持）
       currentScreen = "status"
 
     elseif mc == 2 then
