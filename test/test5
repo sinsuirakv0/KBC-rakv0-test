@@ -228,19 +228,21 @@ local SAVE_FILE = "/storage/emulated/0/[KBC_character_status_saves]"
 -- テーブル→文字列（簡易シリアライズ）
 local function serialize(t, indent)
   indent = indent or ""
-  local s = "{
-"
+  local s = "{\n"
   for k, v in pairs(t) do
-    local key = type(k) == "number" and ("[" .. k .. "]") or ('["' .. tostring(k) .. '"]')
-    if type(v) == "table" then
-      s = s .. indent .. "  " .. key .. " = " .. serialize(v, indent .. "  ") .. ",
-"
-    elseif type(v) == "number" then
-      s = s .. indent .. "  " .. key .. " = " .. tostring(v) .. ",
-"
+    local key
+    if type(k) == "number" then
+      key = "[" .. k .. "]"
     else
-      s = s .. indent .. "  " .. key .. ' = "' .. tostring(v):gsub('"', '\"') .. '",
-'
+      key = '["' .. tostring(k) .. '"]'
+    end
+    if type(v) == "table" then
+      s = s .. indent .. "  " .. key .. " = " .. serialize(v, indent .. "  ") .. ",\n"
+    elseif type(v) == "number" then
+      s = s .. indent .. "  " .. key .. " = " .. tostring(v) .. ",\n"
+    else
+      local escaped = tostring(v):gsub('\\', '\\\\'):gsub('"', '\\"')
+      s = s .. indent .. '  ' .. key .. ' = "' .. escaped .. '",\n'
     end
   end
   return s .. indent .. "}"
