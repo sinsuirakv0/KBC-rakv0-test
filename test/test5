@@ -227,7 +227,7 @@ local SAVE_KEY = "nyanko_saves_v1"
 
 -- 保存データ全体を取得（なければ空テーブル）
 local function getSaves()
-  local ok, data = pcall(gg.loadVariable, SAVE_KEY, {})
+  local ok, data = pcall(gg.loadVariable, SAVE_KEY)
   if ok and type(data) == "table" then
     return data
   end
@@ -285,7 +285,7 @@ local function menuSave()
   if not inp or inp[1] == "" then return end
 
   saves[saveKey] = {label = inp[1], data = snapshot()}
-  local ok, err = pcall(gg.saveVariable, SAVE_KEY, saves)
+  local ok, err = pcall(gg.saveVariable, saves, SAVE_KEY)
   if ok then
     gg.toast("セーブしました: " .. inp[1])
   else
