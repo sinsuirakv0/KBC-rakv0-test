@@ -221,20 +221,60 @@ local function saveToList()
 end
 
 -- ============================================================
--- セーブ・ロード (gg.saveVariable / gg.loadVariable)
+-- セーブ・ロード (ファイル保存)
 -- ============================================================
-local SAVE_KEY = "nyanko_saves_v1"
+local SAVE_FILE = "/storage/emulated/0/[KBC_character_status_saves]"
 
--- 保存データ全体を取得（なければ空テーブル）
+-- テーブル→文字列（簡易シリアライズ）
+local function serialize(t, indent)
+  indent = indent or ""
+  local s = "{
+"
+  for k, v in pairs(t) do
+    local key = type(k) == "number" and ("[" .. k .. "]") or ('["' .. tostring(k) .. '"]')
+    if type(v) == "table" then
+      s = s .. indent .. "  " .. key .. " = " .. serialize(v, indent .. "  ") .. ",
+"
+    elseif type(v) == "number" then
+      s = s .. indent .. "  " .. key .. " = " .. tostring(v) .. ",
+"
+    else
+      s = s .. indent .. "  " .. key .. ' = "' .. tostring(v):gsub('"', '\"') .. '",
+'
+    end
+  end
+  return s .. indent .. "}"
+end
+
+-- ファイルから読み込み
 local function getSaves()
-  local ok, data = pcall(gg.loadVariable, SAVE_KEY)
-  if ok and type(data) == "table" then
-    return data
+  local f = io.open(SAVE_FILE, "r")
+  if not f then return {} end
+  local src = f:read("*a")
+  f:close()
+  if not src or src == "" then return {} end
+  local fn, err = load("return " .. src)
+  if fn then
+    local ok, data = pcall(fn)
+    if ok and type(data) == "table" then return data end
   end
   return {}
 end
 
--- 現在値をスナップショット（offset→value のテーブル）
+-- ファイルに書き込み
+local function putSaves(saves)
+  local f = io.open(SAVE_FILE, "w")
+  if not f then
+    gg.alert("ファイルの書き込みに失敗しました
+" .. SAVE_FILE)
+    return false
+  end
+  f:write(serialize(saves))
+  f:close()
+  return true
+end
+
+-- 現在値をスナップショット
 local function snapshot()
   local readList = {}
   for _, s in ipairs(STATUS) do
@@ -256,8 +296,10 @@ local function menuSave()
   local items = {}
   local slotKeys = {}
   for k, slot in pairs(saves) do
-    table.insert(items, slot.label)
-    table.insert(slotKeys, k)
+    if type(slot) == "table" and slot.label then
+      table.insert(items, slot.label)
+      table.insert(slotKeys, k)
+    end
   end
   table.insert(items, "++ 新規スロットに保存 ++")
   table.insert(items, "-- キャンセル --")
@@ -268,7 +310,6 @@ local function menuSave()
   -- 保存先キーを決める
   local saveKey
   if sc == #items - 1 then
-    -- 新規: 現在の最大番号+1
     local maxN = 0
     for k, _ in pairs(saves) do
       local n = tonumber(k) or 0
@@ -285,11 +326,8 @@ local function menuSave()
   if not inp or inp[1] == "" then return end
 
   saves[saveKey] = {label = inp[1], data = snapshot()}
-  local ok, err = pcall(gg.saveVariable, saves, SAVE_KEY)
-  if ok then
+  if putSaves(saves) then
     gg.toast("セーブしました: " .. inp[1])
-  else
-    gg.alert("セーブ失敗: " .. tostring(err))
   end
 end
 
@@ -328,28 +366,25 @@ local function menuLoad()
     if not entry then return end
     local slot = entry.slot
 
-    -- 保存内容をプレビュー表示
-    -- offset→name のマップを作る
-    local offsetToName = {}
-    for _, s in ipairs(STATUS) do
-      offsetToName[tostring(s.offset)] = s.name
-    end
-
-    -- 保存値の一覧を作る
+    -- 保存内容をプレビュー表示（ボタンを上、内容を下）
     local previewItems = {}
+    table.insert(previewItems, "-- 戻る --")
+    table.insert(previewItems, ">> このデータをロードする <<")
+    table.insert(previewItems, "!! このデータを削除する !!")
+    table.insert(previewItems, "ー 内容 ー")
     for _, s in ipairs(STATUS) do
       local val = slot.data[tostring(s.offset)]
       if val ~= nil then
         table.insert(previewItems, s.name .. " = " .. tostring(val))
       end
     end
-    table.insert(previewItems, ">> このデータをロードする <<")
-    table.insert(previewItems, "-- 戻る --")
 
     local pc = gg.choice(previewItems, nil, "[" .. slot.label .. "] の内容")
-    if pc == nil or pc == #previewItems then
+
+    if pc == nil or pc == 1 then
       -- 戻る → スロット選択に戻る
-    elseif pc == #previewItems - 1 then
+
+    elseif pc == 2 then
       -- ロード実行
       local editList = {}
       for _, ref in ipairs(refined) do
@@ -364,7 +399,21 @@ local function menuLoad()
       gg.setValues(editList)
       gg.toast("ロードしました: " .. slot.label .. " (" .. #editList .. "件)")
       return
+
+    elseif pc == 3 then
+      -- 削除確認
+      local cf = gg.choice({"はい", "いいえ"}, nil,
+        "「" .. slot.label .. "」を削除しますか？\nこの操作は取り消せません")
+      if cf == 1 then
+        local saves = getSaves()
+        saves[entry.key] = nil
+        if putSaves(saves) then
+          gg.toast("削除しました: " .. slot.label)
+          return menuLoad()
+        end
+      end
     end
+    -- 戻るを選んだ場合はスロット選択ループを継続
     -- 戻るを選んだ場合はスロット選択ループを継続
   end
 end
