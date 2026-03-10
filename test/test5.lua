@@ -2,7 +2,7 @@
 -- nyanko status editor
 -- ============================================================
 
-local SEARCH_PATTERN = "0;800;300000;3;200;0;17"
+local SEARCH_PATTERN = "0;800;300,000;3,200;0:17"
 local REFINE_VALUE   = 300000
 local SEARCH_RANGE   = gg.REGION_C_BSS
 
