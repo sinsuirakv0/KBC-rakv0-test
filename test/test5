@@ -297,14 +297,20 @@ end
 local function menuLoad()
   local saves = getSaves()
 
+  -- pairs() で全スロットを収集（キーの形式に依存しない）
   local items = {}
-  local validSlots = {}
-  for i = 1, 10 do
-    local slot = saves[tostring(i)]
-    if slot then
-      table.insert(items, "スロット " .. i .. ": " .. slot.label)
-      table.insert(validSlots, i)
+  local slotData = {}  -- {key, slot} の配列
+  for k, slot in pairs(saves) do
+    if type(slot) == "table" and slot.label then
+      table.insert(slotData, {key = k, slot = slot})
     end
+  end
+
+  -- ラベル名でソート
+  table.sort(slotData, function(a, b) return tostring(a.key) < tostring(b.key) end)
+
+  for _, entry in ipairs(slotData) do
+    table.insert(items, entry.slot.label)
   end
 
   if #items == 0 then
@@ -315,12 +321,12 @@ local function menuLoad()
   table.insert(items, "-- キャンセル --")
 
   while true do
-    local sc = gg.choice(items, nil, "ロードするスロットを選択")
+    local sc = gg.choice(items, nil, "ロードするスロットを選択 (" .. #slotData .. "件)")
     if sc == nil or sc == #items then return end
 
-    local slotIdx = validSlots[sc]
-    local slot = saves[tostring(slotIdx)]
-    if not slot then return end
+    local entry = slotData[sc]
+    if not entry then return end
+    local slot = entry.slot
 
     -- 保存内容をプレビュー表示
     -- offset→name のマップを作る
