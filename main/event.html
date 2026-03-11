@@ -61,7 +61,9 @@
         <input type="checkbox" id="showAllSale">
         常設を含む全イベントを表示
       </label>
-      <span id="lastmod-display"></span><span id="now-display"></span>
+      <span id="lastmod-toggle" onclick="toggleLastmod()" style="cursor:pointer;">前回の更新時間を表示▶</span>
+      <div id="lastmod-detail" style="display:none;"></div>
+      <span id="now-display"></span>
     </div>
 
     <main>
@@ -756,7 +758,7 @@ async function loadData() {
     gatyaNames = parseCSV(gatyaNameText);
 
     // Last-Modified 表示（json()消費後もheadersは参照可能）
-    updateLastModified(gatyaRes, saleRes);
+    updateLastModified(gatyaRes, saleRes, itemRes);
 
     renderAll();
   } catch (err) {
@@ -772,8 +774,14 @@ async function loadData() {
 // gatya と sale の Last-Modified ヘッダを取得して表示
 // 同じ時刻 → "(gatya&sale)"、異なる → 新しい方のみ表示
 // =============================================
-function formatDateFull(date) {
-  const y   = date.getFullYear();
+// =============================================
+// 最終更新時刻表示
+// gatya / sale / item それぞれ独立して表示
+// 折りたたみ: ▶閉じ / ▼開き
+// 日付フォーマット: YY/MM/DD HH:MM:SS
+// =============================================
+function formatDateShort(date) {
+  const y   = String(date.getFullYear()).slice(2); // 西暦2桁
   const mon = String(date.getMonth()+1).padStart(2,'0');
   const d   = String(date.getDate()).padStart(2,'0');
   const h   = String(date.getHours()).padStart(2,'0');
@@ -782,34 +790,32 @@ function formatDateFull(date) {
   return `${y}/${mon}/${d} ${h}:${min}:${sec}`;
 }
 
-function updateLastModified(gatyaRes, saleRes) {
-  const gatyaMod = gatyaRes.headers.get('Last-Modified');
-  const saleMod  = saleRes.headers.get('Last-Modified');
-  const el = document.getElementById('lastmod-display');
-  if (!gatyaMod && !saleMod) { el.textContent = ''; return; }
+// entries: gatya/sale/item それぞれの Last-Modified を独立表示
+function updateLastModified(gatyaRes, saleRes, itemRes) {
+  const sources = [
+    { label: 'gatya', mod: gatyaRes.headers.get('Last-Modified') },
+    { label: 'sale',  mod: saleRes.headers.get('Last-Modified')  },
+    { label: 'item',  mod: itemRes.headers.get('Last-Modified')  },
+  ];
+  const valid = sources.filter(s => s.mod);
+  const detail = document.getElementById('lastmod-detail');
+  if (valid.length === 0) { detail.innerHTML = ''; return; }
 
-  let text = '更新: ';
-  if (gatyaMod && saleMod) {
-    if (gatyaMod === saleMod) {
-      // 同じ時刻 → まとめて表示
-      text += formatDateFull(new Date(gatyaMod)) + '(gatya&sale)';
-    } else {
-      // 異なる → 新しい方だけ表示
-      const gatyaDate = new Date(gatyaMod);
-      const saleDate  = new Date(saleMod);
-      if (gatyaDate >= saleDate) {
-        text += formatDateFull(gatyaDate) + '(gatya)';
-      } else {
-        text += formatDateFull(saleDate) + '(sale)';
-      }
-    }
-  } else if (gatyaMod) {
-    text += formatDateFull(new Date(gatyaMod)) + '(gatya)';
-  } else {
-    text += formatDateFull(new Date(saleMod)) + '(sale)';
-  }
-  el.textContent = text + '\u3000'; // 現在時刻との間にスペース
+  // 各行: "YY/MM/DD HH:MM:SS(label)"
+  detail.innerHTML = valid
+    .map(s => `<span>${formatDateShort(new Date(s.mod))}(${s.label})</span>`)
+    .join('');
 }
+
+// 折りたたみトグル
+function toggleLastmod() {
+  const detail = document.getElementById('lastmod-detail');
+  const toggle = document.getElementById('lastmod-toggle');
+  const isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'block';
+  toggle.textContent = isOpen ? '前回の更新時間を表示▶' : '前回の更新時間を表示▼';
+}
+
 
 // =============================================
 // 現在時刻表示
