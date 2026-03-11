@@ -767,17 +767,59 @@ async function loadData() {
 // =============================================
 // 現在時刻表示
 // =============================================
+let offset = 0;
+
+// 遅延補正付きで正確な時刻を取得
+async function syncAccurateTime() {
+  const t0 = Date.now(); // リクエスト送信時刻
+
+  const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Tokyo");
+  const t1 = Date.now(); // レスポンス受信時刻
+
+  const data = await res.json();
+  const serverTime = new Date(data.datetime).getTime();
+
+  const rtt = t1 - t0;          // 往復遅延
+  const oneWayDelay = rtt / 2;  // 片道遅延（推定）
+
+  const correctedServerTime = serverTime + oneWayDelay;
+
+  offset = correctedServerTime - Date.now();
+}
+
+// 補正後の正確な現在時刻
+function getAccurateDate() {
+  return new Date(Date.now() + offset);
+}
+
+// yyyy/mm/dd hh:mm:ss
 function formatDate(date) {
   const y   = date.getFullYear();
   const mon = String(date.getMonth()+1).padStart(2,'0');
   const d   = String(date.getDate()).padStart(2,'0');
   const h   = String(date.getHours()).padStart(2,'0');
   const min = String(date.getMinutes()).padStart(2,'0');
-  return `${y}/${mon}/${d} ${h}:${min}`;
+  const sec = String(date.getSeconds()).padStart(2,'0');
+  return `${y}/${mon}/${d} ${h}:${min}:${sec}`;
 }
+
+// 表示更新
 function updateNow() {
-  document.getElementById('now-display').textContent = '現在: ' + formatDate(new Date());
+  document.getElementById('now-display').textContent =
+    '現在: ' + formatDate(getAccurateDate());
 }
+
+// 初期化して1秒ごとに更新
+async function startClock() {
+  await syncAccurateTime();
+  updateNow();
+  setInterval(updateNow, 1000);
+
+  // 5分ごとに再同期（精度維持）
+  setInterval(syncAccurateTime, 5 * 60 * 1000);
+}
+
+startClock();
 
 // =============================================
 // イベントリスナー登録
