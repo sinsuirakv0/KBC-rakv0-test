@@ -61,9 +61,9 @@
         <input type="checkbox" id="showAllSale">
         常設を含む全イベントを表示
       </label>
-      <span id="lastmod-toggle" onclick="toggleLastmod()" style="cursor:pointer;">前回の更新時間を表示▶</span>
-      <div id="lastmod-detail" style="display:none;"></div>
-      <span id="now-display"></span>
+      <span id="lastmod-toggle" class="now-display" onclick="toggleLastmod()" style="cursor:pointer;">前回の更新時間を表示▶</span>
+      <div id="lastmod-detail" class="now-display" style="display:none;"></div>
+      <span id="now-display" class="now-display"></span>
     </div>
 
     <main>
@@ -803,8 +803,8 @@ function updateLastModified(gatyaRes, saleRes, itemRes) {
 
   // 各行: "YY/MM/DD HH:MM:SS(label)"
   detail.innerHTML = valid
-    .map(s => `<span>${formatDateShort(new Date(s.mod))}(${s.label})</span>`)
-    .join('');
+    .map(s => `${formatDateShort(new Date(s.mod))}(${s.label})`)
+    .join('<br>');
 }
 
 // 折りたたみトグル
