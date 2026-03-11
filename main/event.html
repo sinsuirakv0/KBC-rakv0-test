@@ -61,7 +61,7 @@
         <input type="checkbox" id="showAllSale">
         常設を含む全イベントを表示
       </label>
-      <span id="now-display"></span>
+      <span id="lastmod-display"></span><span id="now-display"></span>
     </div>
 
     <main>
@@ -755,6 +755,9 @@ async function loadData() {
     const gatyaNameText = await gatyaNameRes.text().catch(() => '');
     gatyaNames = parseCSV(gatyaNameText);
 
+    // Last-Modified 表示（json()消費後もheadersは参照可能）
+    updateLastModified(gatyaRes, saleRes);
+
     renderAll();
   } catch (err) {
     console.error('データ読み込みエラー:', err);
@@ -762,6 +765,50 @@ async function loadData() {
       el.textContent = 'データの読み込みに失敗しました: ' + err.message;
     });
   }
+}
+
+// =============================================
+// 最終更新時刻表示
+// gatya と sale の Last-Modified ヘッダを取得して表示
+// 同じ時刻 → "(gatya&sale)"、異なる → 新しい方のみ表示
+// =============================================
+function formatDateFull(date) {
+  const y   = date.getFullYear();
+  const mon = String(date.getMonth()+1).padStart(2,'0');
+  const d   = String(date.getDate()).padStart(2,'0');
+  const h   = String(date.getHours()).padStart(2,'0');
+  const min = String(date.getMinutes()).padStart(2,'0');
+  const sec = String(date.getSeconds()).padStart(2,'0');
+  return `${y}/${mon}/${d} ${h}:${min}:${sec}`;
+}
+
+function updateLastModified(gatyaRes, saleRes) {
+  const gatyaMod = gatyaRes.headers.get('Last-Modified');
+  const saleMod  = saleRes.headers.get('Last-Modified');
+  const el = document.getElementById('lastmod-display');
+  if (!gatyaMod && !saleMod) { el.textContent = ''; return; }
+
+  let text = '更新: ';
+  if (gatyaMod && saleMod) {
+    if (gatyaMod === saleMod) {
+      // 同じ時刻 → まとめて表示
+      text += formatDateFull(new Date(gatyaMod)) + '(gatya&sale)';
+    } else {
+      // 異なる → 新しい方だけ表示
+      const gatyaDate = new Date(gatyaMod);
+      const saleDate  = new Date(saleMod);
+      if (gatyaDate >= saleDate) {
+        text += formatDateFull(gatyaDate) + '(gatya)';
+      } else {
+        text += formatDateFull(saleDate) + '(sale)';
+      }
+    }
+  } else if (gatyaMod) {
+    text += formatDateFull(new Date(gatyaMod)) + '(gatya)';
+  } else {
+    text += formatDateFull(new Date(saleMod)) + '(sale)';
+  }
+  el.textContent = text + '\u3000'; // 現在時刻との間にスペース
 }
 
 // =============================================
