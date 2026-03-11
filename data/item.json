@@ -1,5 +1,5 @@
 {
-  "updatedAt": "26/03/11 13:04:55",
+  "updatedAt": "26/03/11 16:13:17",
   "data": [
     {
       "header": {
@@ -1115,86 +1115,6 @@
     },
     {
       "header": {
-        "startDate": "20260216",
-        "startTime": "1100",
-        "endDate": "20260302",
-        "endTime": "1100",
-        "minVersion": "150101",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51676,
-        "giftType": 35002,
-        "giftAmount": 0,
-        "title": "バレンタインイベント開催記念☆",
-        "message": "1日1個、バレンタインのプレゼント！<br>毎日ログインして、ちょっぴり甘～い贈り物を受け取ろう！(3/2まで)",
-        "url": "",
-        "repeatFlag": 1
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260216",
-        "startTime": "1100",
-        "endDate": "20260302",
-        "endTime": "1100",
-        "minVersion": "150101",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51677,
-        "giftType": 35018,
-        "giftAmount": 0,
-        "title": "にゃんこ強化週間！",
-        "message": "イベント期間中にログインすると、1日1回スタンプを押してもらえるにゃ！<br>毎日ログインして最大でネコカン280個ゲット！(3/2まで)",
-        "url": "",
-        "repeatFlag": 1
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260216",
-        "startTime": "1100",
-        "endDate": "20260302",
-        "endTime": "1100",
-        "minVersion": "150101",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51681,
-        "giftType": 837,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 0
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260216",
-        "startTime": "1100",
-        "endDate": "20260308",
-        "endTime": "1100",
-        "minVersion": "150101",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 80095,
-        "giftType": 11041,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 1
-      }
-    },
-    {
-      "header": {
         "startDate": "20260218",
         "startTime": "0",
         "endDate": "20300101",
@@ -1260,126 +1180,6 @@
         "message": "",
         "url": "",
         "repeatFlag": 0
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260222",
-        "startTime": "1100",
-        "endDate": "20260302",
-        "endTime": "1100",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51683,
-        "giftType": 960,
-        "giftAmount": 0,
-        "title": "「ネコたちの大逆襲」イベント特別記念スタンプ",
-        "message": "ネコたちの大逆襲イベント開催中！<br>スタンプを貯めて便利なアイテムをゲット！！襲い来る敵に備えよ…！！(3/2まで)",
-        "url": "",
-        "repeatFlag": 1
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260222",
-        "startTime": "000",
-        "endDate": "20260303",
-        "endTime": "000",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51684,
-        "giftType": 35006,
-        "giftAmount": 0,
-        "title": "スーパーにゃんにゃん記念日☆",
-        "message": "2月22日は年に一度のスーパーにゃんにゃん記念日！<br>特別大サービス！レアチケット＆リーダーシップを2個ずつプレゼント！",
-        "url": "",
-        "repeatFlag": 1
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260301",
-        "startTime": "1100",
-        "endDate": "20260305",
-        "endTime": "1100",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51688,
-        "giftType": 833,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 0
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260301",
-        "startTime": "1100",
-        "endDate": "20260305",
-        "endTime": "1100",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51689,
-        "giftType": 834,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 0
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260301",
-        "startTime": "000",
-        "endDate": "20260302",
-        "endTime": "000",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51690,
-        "giftType": 828,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 4
-      }
-    },
-    {
-      "header": {
-        "startDate": "20260301",
-        "startTime": "000",
-        "endDate": "20260302",
-        "endTime": "000",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51691,
-        "giftType": 835,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 2
       }
     },
     {
@@ -1490,6 +1290,46 @@
         "giftAmount": 0,
         "title": "「トキメキにゃんこ学園」生徒出席簿",
         "message": "トキメキにゃんこ学園イベントを記念して特別ボーナス！めざせ無遅刻無欠席！<br>毎朝7時～9時限定で出席確認！ログインでアイテムプレゼント！（3/30まで）",
+        "url": "",
+        "repeatFlag": 1
+      }
+    },
+    {
+      "header": {
+        "startDate": "20260313",
+        "startTime": "1100",
+        "endDate": "20260322",
+        "endTime": "1100",
+        "minVersion": "150201",
+        "maxVersion": "999999"
+      },
+      "timeBlocks": [],
+      "gift": {
+        "eventId": 51695,
+        "giftType": 827,
+        "giftAmount": 0,
+        "title": "",
+        "message": "",
+        "url": "",
+        "repeatFlag": 0
+      }
+    },
+    {
+      "header": {
+        "startDate": "20260316",
+        "startTime": "1100",
+        "endDate": "20260408",
+        "endTime": "1100",
+        "minVersion": "150201",
+        "maxVersion": "999999"
+      },
+      "timeBlocks": [],
+      "gift": {
+        "eventId": 80097,
+        "giftType": 11043,
+        "giftAmount": 0,
+        "title": "",
+        "message": "",
         "url": "",
         "repeatFlag": 1
       }
