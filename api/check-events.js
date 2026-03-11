@@ -6,7 +6,7 @@ import { parseItem } from "../parsers/item.js";
 import { getGitHubFile, updateGitHubFile, deleteGitHubFile } from "../js/github.js";
 
 export const config = {
-  schedule: "*/5 * * * *" // 必要に応じて変更可
+  schedule: "*/5 * * * *"
 };
 
 const types = [
@@ -15,9 +15,21 @@ const types = [
   { name: "item", parser: parseItem }
 ];
 
+// JST (UTC+9) で "YY/MM/DD HH:MM:SS" を生成
+function getJSTTimestamp() {
+  const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const yy  = String(now.getUTCFullYear()).slice(2);
+  const mon = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const d   = String(now.getUTCDate()).padStart(2, '0');
+  const h   = String(now.getUTCHours()).padStart(2, '0');
+  const min = String(now.getUTCMinutes()).padStart(2, '0');
+  const sec = String(now.getUTCSeconds()).padStart(2, '0');
+  return `${yy}/${mon}/${d} ${h}:${min}:${sec}`;
+}
+
 export default async function handler(req, res) {
   try {
-    const forceUpdate = req.query.force === "12"; // ← ここでforce=1を検出
+    const forceUpdate = req.query.force === "12";
     const jwt = await getJWT();
     const results = [];
 
@@ -31,15 +43,21 @@ export default async function handler(req, res) {
       const prevHashText = prevHash?.content?.trim();
 
       if (hash !== prevHashText || forceUpdate) {
-        const json = parser(text);
+        const data = parser(text);
+
+        // { updatedAt, data } 形式でラップ
+        const json = {
+          updatedAt: getJSTTimestamp(),
+          data
+        };
 
         if (forceUpdate) {
           await deleteGitHubFile({
             path: `data/${name}.json`,
             message: `delete ${name}.json (forced)`
           });
-         }
-        
+        }
+
         await updateGitHubFile({
           path: `data/${name}.json`,
           content: JSON.stringify(json, null, 2),
