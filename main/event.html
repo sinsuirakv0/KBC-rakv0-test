@@ -747,9 +747,18 @@ async function loadData() {
       fetch(`${BASE}/gatya_name.csv`),
     ]);
 
-    gatyaData = await gatyaRes.json();
-    saleData  = await saleRes.json();
-    itemData  = await itemRes.json();
+    const gatyaJson = await gatyaRes.json();
+    const saleJson  = await saleRes.json();
+    const itemJson  = await itemRes.json();
+
+    // { updatedAt, data } 形式に対応（旧フォーマットの配列もフォールバック）
+    gatyaData = Array.isArray(gatyaJson) ? gatyaJson : (gatyaJson.data ?? []);
+    saleData  = Array.isArray(saleJson)  ? saleJson  : (saleJson.data  ?? []);
+    itemData  = Array.isArray(itemJson)  ? itemJson  : (itemJson.data  ?? []);
+
+    const gatyaUpdatedAt = gatyaJson.updatedAt ?? null;
+    const saleUpdatedAt  = saleJson.updatedAt  ?? null;
+    const itemUpdatedAt  = itemJson.updatedAt  ?? null;
 
     const saleNameText  = await saleNameRes.text();
     saleNames = parseCSV(saleNameText);
@@ -757,8 +766,8 @@ async function loadData() {
     const gatyaNameText = await gatyaNameRes.text().catch(() => '');
     gatyaNames = parseCSV(gatyaNameText);
 
-    // Last-Modified 表示（json()消費後もheadersは参照可能）
-    updateLastModified(gatyaRes, saleRes, itemRes);
+    // updatedAt 表示（Last-Modified の代わりに JSON 内のタイムスタンプを使用）
+    updateLastModified(gatyaUpdatedAt, saleUpdatedAt, itemUpdatedAt);
 
     renderAll();
   } catch (err) {
@@ -791,11 +800,11 @@ function formatDateShort(date) {
 }
 
 // entries: gatya/sale/item それぞれの Last-Modified を独立表示
-function updateLastModified(gatyaRes, saleRes, itemRes) {
+function updateLastModified(gatyaAt, saleAt, itemAt) {
   const sources = [
-    { label: 'gatya', mod: gatyaRes.headers.get('Last-Modified') },
-    { label: 'sale',  mod: saleRes.headers.get('Last-Modified')  },
-    { label: 'item',  mod: itemRes.headers.get('Last-Modified')  },
+    { label: 'gatya', mod: gatyaAt },
+    { label: 'sale',  mod: saleAt  },
+    { label: 'item',  mod: itemAt  },
   ];
   const valid = sources.filter(s => s.mod);
   const detail = document.getElementById('lastmod-detail');
@@ -803,7 +812,7 @@ function updateLastModified(gatyaRes, saleRes, itemRes) {
 
   // 各行: "YY/MM/DD HH:MM:SS(label)"
   detail.innerHTML = valid
-    .map(s => `${formatDateShort(new Date(s.mod))}(${s.label})`)
+    .map(s => `${s.mod}(${s.label})`)
     .join('<br>');
 }
 
