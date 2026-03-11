@@ -784,6 +784,7 @@ async function syncAccurateTime() {
 
   const correctedServerTime = serverTime + oneWayDelay;
 
+  // offset を更新（表示は止めない）
   offset = correctedServerTime - Date.now();
 }
 
@@ -803,19 +804,22 @@ function formatDate(date) {
   return `${y}/${mon}/${d} ${h}:${min}:${sec}`;
 }
 
-// 表示更新
+// 表示更新（1秒ごとに必ず進む）
 function updateNow() {
+  const now = getAccurateDate();
   document.getElementById('now-display').textContent =
-    '現在: ' + formatDate(getAccurateDate());
+    '現在: ' + formatDate(now);
 }
 
 // 初期化して1秒ごとに更新
 async function startClock() {
-  await syncAccurateTime();
+  await syncAccurateTime(); // 初回同期
   updateNow();
+
+  // 秒を進めるループ（絶対に止まらない）
   setInterval(updateNow, 1000);
 
-  // 5分ごとに再同期（精度維持）
+  // 5分ごとに裏で再同期（表示は止めない）
   setInterval(syncAccurateTime, 5 * 60 * 1000);
 }
 
