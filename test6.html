@@ -38,41 +38,22 @@
     display: flex;
     align-items: baseline;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
-  header h1 {
-    font-family: var(--mono);
-    font-size: 1.1rem;
-    color: var(--accent);
-    letter-spacing: 0.04em;
-  }
-
-  header span {
-    font-size: 0.78rem;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
+  header h1 { font-family: var(--mono); font-size: 1.1rem; color: var(--accent); letter-spacing: 0.04em; }
+  header span { font-size: 0.78rem; color: var(--muted); font-family: var(--mono); }
 
   .controls {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
     margin-bottom: 16px;
   }
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
 
-  label {
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-family: var(--mono);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
+  label { font-size: 0.72rem; color: var(--muted); font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
 
   input[type="number"], select {
     background: var(--surface2);
@@ -87,16 +68,9 @@
     transition: border-color 0.15s;
   }
 
-  input[type="number"]:focus, select:focus {
-    border-color: var(--accent);
-  }
+  input[type="number"]:focus, select:focus { border-color: var(--accent); }
 
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
+  .btn-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
   button {
     font-family: var(--mono);
@@ -113,10 +87,28 @@
   button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  #btnStart { background: var(--accent); color: #0d0f14; }
-  #btnPause { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  #btnClear { background: var(--surface2); color: var(--accent2); border: 1px solid var(--border); }
+  #btnStart    { background: var(--accent); color: #0d0f14; }
+  #btnPause    { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  #btnClear    { background: var(--surface2); color: var(--accent2); border: 1px solid var(--border); }
   #btnDownload { background: var(--green); color: #0d0f14; }
+  #btnTest     { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: 0.75rem; padding: 9px 14px; }
+
+  .proxy-info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .proxy-info b { color: var(--text); }
+  .tag-ok   { color: #4caf8a; }
+  .tag-warn { color: #f5a623; }
+  .tag-bad  { color: #e05c4b; }
 
   .progress-wrap {
     background: var(--surface);
@@ -126,50 +118,16 @@
     margin-bottom: 16px;
   }
 
-  .progress-bar-bg {
-    background: var(--surface2);
-    border-radius: 3px;
-    height: 6px;
-    margin: 10px 0 12px;
-    overflow: hidden;
-  }
+  .progress-bar-bg { background: var(--surface2); border-radius: 3px; height: 6px; margin: 10px 0 12px; overflow: hidden; }
+  #progressBar { height: 100%; background: linear-gradient(90deg, var(--accent), #f5a623cc); border-radius: 3px; width: 0%; transition: width 0.3s; }
 
-  #progressBar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), #f5a623cc);
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.3s;
-  }
-
-  .stats {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .stat .val {
-    font-family: var(--mono);
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  .stat .lbl {
-    font-size: 0.7rem;
-    color: var(--muted);
-    font-family: var(--mono);
-    text-transform: uppercase;
-  }
-
-  .stat.ok .val { color: var(--green); }
-  .stat.skip .val { color: var(--accent2); }
-  .stat.cur .val { color: var(--accent); }
+  .stats { display: flex; gap: 24px; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat .val { font-family: var(--mono); font-size: 1.1rem; font-weight: 600; }
+  .stat .lbl { font-size: 0.7rem; color: var(--muted); font-family: var(--mono); text-transform: uppercase; }
+  .stat.ok    .val { color: var(--green); }
+  .stat.skip  .val { color: var(--accent2); }
+  .stat.cur   .val { color: var(--accent); }
   .stat.total .val { color: var(--text); }
 
   #statusLine {
@@ -181,20 +139,8 @@
     word-break: break-all;
   }
 
-  .result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .result-header span {
-    font-size: 0.72rem;
-    font-family: var(--mono);
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
+  .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .result-header span { font-size: 0.72rem; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
   textarea {
     width: 100%;
@@ -213,60 +159,66 @@
 
   textarea:focus { border-color: var(--accent); }
 
-  .note {
-    margin-top: 14px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-family: var(--mono);
-    line-height: 1.8;
-    border-top: 1px solid var(--border);
-    padding-top: 12px;
-  }
-
-  .note a { color: var(--accent); text-decoration: none; }
+  .note { margin-top: 14px; font-size: 0.72rem; color: var(--muted); font-family: var(--mono); line-height: 1.8; border-top: 1px solid var(--border); padding-top: 12px; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🐱 NYANKO GACHA SCRAPER</h1>
-  <span>R000 〜 R1100 / h2タグ取得</span>
+  <span>R000〜R1100 / h2タグ取得</span>
 </header>
+
+<div class="proxy-info">
+  <b>プロキシ選択の目安：</b><br>
+  <span class="tag-ok">▶ allorigins /raw</span> — 生HTML直返し。JSONパース不要で最も安定。<b>まずこれ</b><br>
+  <span class="tag-ok">▶ allorigins /get</span> — JSON包み版。/rawが詰まったときの代替<br>
+  <span class="tag-warn">▶ codetabs</span> — 別サービス。上記が両方NGのとき<br>
+  <span class="tag-warn">▶ htmldriven</span> — 別サービス。最終手段<br>
+  <span class="tag-bad">✕ corsproxy.io</span> — 取得不可（除外済み）
+</div>
 
 <div class="controls">
   <div class="field">
     <label>開始番号</label>
-    <input type="number" id="startNum" value="0" min="0" max="1100">
+    <input type="number" id="startNum" value="0" min="0" max="9999">
   </div>
   <div class="field">
     <label>終了番号</label>
     <input type="number" id="endNum" value="1100" min="0" max="9999">
   </div>
   <div class="field">
-    <label>リクエスト間隔 (ms)</label>
-    <input type="number" id="delay" value="400" min="100" max="5000" step="100">
+    <label>間隔 (ms)</label>
+    <input type="number" id="delay" value="300" min="0" max="5000" step="50">
+  </div>
+  <div class="field">
+    <label>並列数</label>
+    <input type="number" id="concurrency" value="3" min="1" max="8">
   </div>
   <div class="field">
     <label>CORSプロキシ</label>
     <select id="proxySelect">
-      <option value="corsproxy">corsproxy.io</option>
-      <option value="allorigins">allorigins.win</option>
+      <option value="allorigins_raw" selected>allorigins /raw ★</option>
+      <option value="allorigins_get">allorigins /get</option>
+      <option value="codetabs">codetabs</option>
+      <option value="htmldriven">htmldriven</option>
     </select>
   </div>
 </div>
 
 <div class="btn-row">
-  <button id="btnStart" onclick="startScrape()">▶ 開始</button>
-  <button id="btnPause" onclick="togglePause()" disabled>⏸ 一時停止</button>
-  <button id="btnClear" onclick="clearResults()">✕ クリア</button>
+  <button id="btnStart"    onclick="startScrape()">▶ 開始</button>
+  <button id="btnPause"    onclick="togglePause()" disabled>⏸ 一時停止</button>
+  <button id="btnClear"    onclick="clearResults()">✕ クリア</button>
   <button id="btnDownload" onclick="downloadCSV()" disabled>↓ CSVダウンロード</button>
+  <button id="btnTest"     onclick="testProxy()">🔍 プロキシテスト(R027)</button>
 </div>
 
 <div class="progress-wrap">
   <div class="stats">
     <div class="stat cur">
       <span class="val" id="statCur">—</span>
-      <span class="lbl">現在</span>
+      <span class="lbl">処理中</span>
     </div>
     <div class="stat total">
       <span class="val" id="statTotal">—</span>
@@ -274,16 +226,14 @@
     </div>
     <div class="stat ok">
       <span class="val" id="statOk">0</span>
-      <span class="lbl">取得成功</span>
+      <span class="lbl">成功</span>
     </div>
     <div class="stat skip">
       <span class="val" id="statSkip">0</span>
       <span class="lbl">スキップ</span>
     </div>
   </div>
-  <div class="progress-bar-bg">
-    <div id="progressBar"></div>
-  </div>
+  <div class="progress-bar-bg"><div id="progressBar"></div></div>
   <div id="statusLine">待機中...</div>
 </div>
 
@@ -294,51 +244,99 @@
 <textarea id="output" placeholder="ここに結果が出力されます..." readonly></textarea>
 
 <div class="note">
-  ※ Access Denied / 404 / ネットワークエラーは自動スキップ<br>
-  ※ プロキシ制限に引っかかる場合は別のプロキシに切り替えてください<br>
-  ※ 取得対象URL: <a href="https://ponosgames.com/information/appli/battlecats/gacha/rare/R027.html" target="_blank">ponosgames.com/.../rare/R***.html</a>
+  ※ Access Denied / 404 / タイムアウト / h2なし は自動スキップ<br>
+  ※ R1000以上は4桁（R1000）、それ未満は3桁（R027）で自動適用<br>
+  ※ 並列数3・間隔300msが安定と速度のバランスが良いです<br>
+  ※ 途中から再開したい場合は開始番号を変更して「開始」
 </div>
 
 <script>
-  let running = false;
-  let paused = false;
+  let running    = false;
+  let paused     = false;
   let shouldStop = false;
-  let results = [];
-  let okCount = 0;
-  let skipCount = 0;
+  let results    = [];   // {num, text, line}[]
+  let okCount    = 0;
+  let skipCount  = 0;
+  let doneCount  = 0;
+  let totalCount = 0;
   let pauseResolve = null;
 
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-  const waitIfPaused = () => new Promise(r => {
-    if (!paused) { r(); return; }
-    pauseResolve = r;
-  });
-
-  function buildUrl(num) {
-    const id = String(num).padStart(num < 1000 ? 3 : 4, '0');
-    return `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${id}.html`;
+  // ── URL生成 ──────────────────────────────────────────
+  function fmtId(num) {
+    return num >= 1000 ? String(num) : String(num).padStart(3, '0');
   }
 
-  function proxyWrap(url) {
+  function buildTargetUrl(num) {
+    return `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${fmtId(num)}.html`;
+  }
+
+  function proxyWrap(targetUrl) {
     const sel = document.getElementById('proxySelect').value;
-    if (sel === 'allorigins') {
-      return `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const enc = encodeURIComponent(targetUrl);
+    switch (sel) {
+      case 'allorigins_raw':
+        return { url: `https://api.allorigins.win/raw?url=${enc}`, mode: 'raw' };
+      case 'allorigins_get':
+        return { url: `https://api.allorigins.win/get?url=${enc}`, mode: 'json_ao' };
+      case 'codetabs':
+        return { url: `https://api.codetabs.com/v1/proxy?quest=${enc}`, mode: 'raw' };
+      case 'htmldriven':
+        return { url: `https://htmldriven.com/api/cors-proxy?url=${enc}`, mode: 'raw' };
+      default:
+        return { url: `https://api.allorigins.win/raw?url=${enc}`, mode: 'raw' };
     }
-    // corsproxy.io
-    return `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
   }
 
-  async function fetchH2(num) {
-    const url = buildUrl(num);
-    const proxyUrl = proxyWrap(url);
-    const sel = document.getElementById('proxySelect').value;
+  // ── h2抽出 ───────────────────────────────────────────
+  function extractH2(html) {
+    if (!html || html.length < 100) return null;
+    if (/access\s*denied/i.test(html))          return null;
+    if (/403\s*Forbidden/i.test(html))           return null;
+    if (/404\s*Not\s*Found/i.test(html))         return null;
+    if (/ページが見つかりません/.test(html))         return null;
+    if (/Object\s*not\s*found/i.test(html))      return null;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // 複数セレクタを順に試す
+    const selectors = [
+      'h2',
+      '.entry-title',
+      'article h2',
+      'main h2',
+      '#content h2',
+      '.content h2',
+      '.post-title',
+      '.page-title',
+    ];
+    for (const sel of selectors) {
+      const el = doc.querySelector(sel);
+      if (!el) continue;
+      const t = el.textContent.replace(/\s+/g, ' ').trim();
+      if (t.length > 0) return t;
+    }
+
+    // 正規表現フォールバック
+    const m = html.match(/<h2[^>]*>([\s\S]*?)<\/h2>/i);
+    if (m) {
+      const raw = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+      if (raw.length > 0) return raw;
+    }
+    return null;
+  }
+
+  // ── 1件フェッチ ──────────────────────────────────────
+  async function fetchOne(num) {
+    const targetUrl = buildTargetUrl(num);
+    const { url: proxyUrl, mode } = proxyWrap(targetUrl);
 
     let html = '';
     try {
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) return null;
 
-      if (sel === 'allorigins') {
+      if (mode === 'json_ao') {
         const json = await res.json();
         if (!json || !json.contents) return null;
         html = json.contents;
@@ -349,81 +347,100 @@
       return null;
     }
 
-    // Access Denied チェック
-    if (/access denied/i.test(html) || /403 Forbidden/i.test(html)) return null;
-
-    // h2 抽出
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const h2 = doc.querySelector('h2');
-    if (!h2) return null;
-    const text = h2.textContent.trim();
-    if (!text) return null;
-    return text;
+    return extractH2(html);
   }
 
-  function updateUI(cur, total, ok, skip, status) {
-    document.getElementById('statCur').textContent = cur !== null ? `R${String(cur).padStart(cur < 1000 ? 3 : 4, '0')}` : '—';
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statOk').textContent = ok;
-    document.getElementById('statSkip').textContent = skip;
-    document.getElementById('progressBar').style.width = `${total > 0 && cur !== null ? ((cur - parseInt(document.getElementById('startNum').value)) / total * 100).toFixed(1) : 0}%`;
-    document.getElementById('statusLine').textContent = status;
-    document.getElementById('resultCount').textContent = `${ok}件`;
+  // ── ユーティリティ ───────────────────────────────────
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const waitIfPaused = () => new Promise(r => {
+    if (!paused) { r(); return; }
+    pauseResolve = r;
+  });
+
+  // ── UI ──────────────────────────────────────────────
+  function updateProgress(lastNum) {
+    const pct = totalCount > 0 ? (doneCount / totalCount * 100).toFixed(1) : 0;
+    document.getElementById('statCur').textContent    = lastNum !== null ? `R${fmtId(lastNum)}` : '—';
+    document.getElementById('statTotal').textContent  = totalCount || '—';
+    document.getElementById('statOk').textContent     = okCount;
+    document.getElementById('statSkip').textContent   = skipCount;
+    document.getElementById('progressBar').style.width = `${pct}%`;
+    document.getElementById('resultCount').textContent = `${okCount}件`;
   }
 
-  function appendResult(num, text) {
-    const id = String(num).padStart(num < 1000 ? 3 : 4, '0');
-    const line = `${id},${text}`;
-    results.push(line);
+  function setStatus(msg) {
+    document.getElementById('statusLine').textContent = msg;
+  }
+
+  function appendLine(num, text) {
+    const line = `${fmtId(num)},${text}`;
+    results.push({ num, text, line });
+    // 番号順にソートして表示
+    const sorted = [...results].sort((a, b) => a.num - b.num);
     const ta = document.getElementById('output');
-    ta.value += (ta.value ? '\n' : '') + line;
-    // オートスクロール
+    ta.value = sorted.map(r => r.line).join('\n');
     ta.scrollTop = ta.scrollHeight;
   }
 
+  // ── スクレイプ本体 ───────────────────────────────────
   async function startScrape() {
     if (running) return;
-    const start = parseInt(document.getElementById('startNum').value);
-    const end   = parseInt(document.getElementById('endNum').value);
-    const delay = parseInt(document.getElementById('delay').value);
-    const total = end - start + 1;
+    const start       = parseInt(document.getElementById('startNum').value);
+    const end         = parseInt(document.getElementById('endNum').value);
+    const delayMs     = parseInt(document.getElementById('delay').value);
+    const concurrency = Math.max(1, Math.min(8, parseInt(document.getElementById('concurrency').value)));
 
-    running = true;
-    paused = false;
+    totalCount = end - start + 1;
+    doneCount  = 0;
+    running    = true;
+    paused     = false;
     shouldStop = false;
 
-    document.getElementById('btnStart').disabled = true;
-    document.getElementById('btnPause').disabled = false;
+    document.getElementById('btnStart').disabled    = true;
+    document.getElementById('btnPause').disabled    = false;
     document.getElementById('btnDownload').disabled = true;
 
-    for (let i = start; i <= end; i++) {
-      if (shouldStop) break;
-      await waitIfPaused();
-      if (shouldStop) break;
+    const queue = [];
+    for (let i = start; i <= end; i++) queue.push(i);
 
-      updateUI(i, total, okCount, skipCount, `フェッチ中: R${String(i).padStart(i < 1000 ? 3 : 4, '0')}`);
+    const worker = async () => {
+      while (queue.length > 0 && !shouldStop) {
+        await waitIfPaused();
+        if (shouldStop) break;
 
-      const text = await fetchH2(i);
-      if (text) {
-        okCount++;
-        appendResult(i, text);
-        updateUI(i, total, okCount, skipCount, `✓ R${String(i).padStart(i < 1000 ? 3 : 4, '0')} → ${text}`);
-      } else {
-        skipCount++;
-        updateUI(i, total, okCount, skipCount, `— R${String(i).padStart(i < 1000 ? 3 : 4, '0')} スキップ`);
+        const num = queue.shift();
+        if (num === undefined) break;
+
+        setStatus(`フェッチ中: R${fmtId(num)}  (残り${queue.length}件)`);
+
+        const text = await fetchOne(num);
+        doneCount++;
+
+        if (text) {
+          okCount++;
+          appendLine(num, text);
+          setStatus(`✓ R${fmtId(num)} → ${text}`);
+        } else {
+          skipCount++;
+          setStatus(`— R${fmtId(num)} スキップ (${skipCount}件目)`);
+        }
+
+        updateProgress(num);
+        if (delayMs > 0 && queue.length > 0) await sleep(delayMs);
       }
+    };
 
-      if (i < end) await sleep(delay);
-    }
+    const promises = Array.from({ length: concurrency }, () => worker());
+    await Promise.all(promises);
 
     running = false;
-    paused = false;
-    document.getElementById('btnStart').disabled = false;
-    document.getElementById('btnPause').disabled = true;
+    paused  = false;
+    document.getElementById('btnStart').disabled    = false;
+    document.getElementById('btnPause').disabled    = true;
     document.getElementById('btnPause').textContent = '⏸ 一時停止';
     document.getElementById('btnDownload').disabled = results.length === 0;
-    updateUI(null, total, okCount, skipCount, shouldStop ? '⏹ 中断しました' : '✅ 完了！');
+    setStatus(shouldStop ? `⏹ 中断 (成功${okCount} / スキップ${skipCount})` : `✅ 完了！ 成功${okCount}件 / スキップ${skipCount}件`);
+    updateProgress(null);
   }
 
   function togglePause() {
@@ -431,7 +448,7 @@
     if (!paused) {
       paused = true;
       document.getElementById('btnPause').textContent = '▶ 再開';
-      document.getElementById('statusLine').textContent = '⏸ 一時停止中...';
+      setStatus('⏸ 一時停止中...');
     } else {
       paused = false;
       document.getElementById('btnPause').textContent = '⏸ 一時停止';
@@ -442,25 +459,47 @@
   function clearResults() {
     if (running) {
       shouldStop = true;
-      paused = false;
+      paused     = false;
       if (pauseResolve) { pauseResolve(); pauseResolve = null; }
     }
-    results = [];
-    okCount = 0;
-    skipCount = 0;
-    document.getElementById('output').value = '';
+    results    = [];
+    okCount    = 0;
+    skipCount  = 0;
+    doneCount  = 0;
+    totalCount = 0;
+    document.getElementById('output').value         = '';
     document.getElementById('btnDownload').disabled = true;
     document.getElementById('btnPause').textContent = '⏸ 一時停止';
-    updateUI(null, '—', 0, 0, '待機中...');
+    updateProgress(null);
+    setStatus('待機中...');
   }
 
   function downloadCSV() {
     if (results.length === 0) return;
-    const blob = new Blob([results.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const sorted = [...results].sort((a, b) => a.num - b.num);
+    const bom  = '\uFEFF';  // Excel用BOM付きUTF-8
+    const blob = new Blob([bom + sorted.map(r => r.line).join('\n')], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'nyanko_gacha_names.csv';
     a.click();
+  }
+
+  async function testProxy() {
+    const btn = document.getElementById('btnTest');
+    btn.disabled = true;
+    btn.textContent = '🔄 テスト中...';
+    setStatus('R027でプロキシ接続テスト中...');
+
+    const text = await fetchOne(27);
+    btn.disabled = false;
+    btn.textContent = '🔍 プロキシテスト(R027)';
+
+    if (text) {
+      setStatus(`✅ テスト成功！ R027 → "${text}"`);
+    } else {
+      setStatus('❌ テスト失敗。プロキシを変えるか間隔を増やしてみてください');
+    }
   }
 </script>
 </body>
