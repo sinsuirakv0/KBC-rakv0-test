@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>にゃんこ大戦争 レアガチャ名取得ツール</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #161b25;
+    --surface2: #1e2535;
+    --border: #2a3347;
+    --accent: #f5a623;
+    --accent2: #e05c4b;
+    --green: #4caf8a;
+    --text: #d4dbe8;
+    --muted: #6b7a96;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Noto Sans JP', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px 20px;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  header span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  input[type="number"], select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 7px 10px;
+    border-radius: 4px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+
+  input[type="number"]:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.03em;
+  }
+
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  #btnStart { background: var(--accent); color: #0d0f14; }
+  #btnPause { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  #btnClear { background: var(--surface2); color: var(--accent2); border: 1px solid var(--border); }
+  #btnDownload { background: var(--green); color: #0d0f14; }
+
+  .progress-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .progress-bar-bg {
+    background: var(--surface2);
+    border-radius: 3px;
+    height: 6px;
+    margin: 10px 0 12px;
+    overflow: hidden;
+  }
+
+  #progressBar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #f5a623cc);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat .val {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .stat .lbl {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    text-transform: uppercase;
+  }
+
+  .stat.ok .val { color: var(--green); }
+  .stat.skip .val { color: var(--accent2); }
+  .stat.cur .val { color: var(--accent); }
+  .stat.total .val { color: var(--text); }
+
+  #statusLine {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 8px;
+    min-height: 1.2em;
+    word-break: break-all;
+  }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .result-header span {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  textarea {
+    width: 100%;
+    height: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    padding: 12px 14px;
+    border-radius: 6px;
+    resize: vertical;
+    outline: none;
+  }
+
+  textarea:focus { border-color: var(--accent); }
+
+  .note {
+    margin-top: 14px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    line-height: 1.8;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+
+  .note a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐱 NYANKO GACHA SCRAPER</h1>
+  <span>R000 〜 R1100 / h2タグ取得</span>
+</header>
+
+<div class="controls">
+  <div class="field">
+    <label>開始番号</label>
+    <input type="number" id="startNum" value="0" min="0" max="1100">
+  </div>
+  <div class="field">
+    <label>終了番号</label>
+    <input type="number" id="endNum" value="1100" min="0" max="9999">
+  </div>
+  <div class="field">
+    <label>リクエスト間隔 (ms)</label>
+    <input type="number" id="delay" value="400" min="100" max="5000" step="100">
+  </div>
+  <div class="field">
+    <label>CORSプロキシ</label>
+    <select id="proxySelect">
+      <option value="corsproxy">corsproxy.io</option>
+      <option value="allorigins">allorigins.win</option>
+    </select>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button id="btnStart" onclick="startScrape()">▶ 開始</button>
+  <button id="btnPause" onclick="togglePause()" disabled>⏸ 一時停止</button>
+  <button id="btnClear" onclick="clearResults()">✕ クリア</button>
+  <button id="btnDownload" onclick="downloadCSV()" disabled>↓ CSVダウンロード</button>
+</div>
+
+<div class="progress-wrap">
+  <div class="stats">
+    <div class="stat cur">
+      <span class="val" id="statCur">—</span>
+      <span class="lbl">現在</span>
+    </div>
+    <div class="stat total">
+      <span class="val" id="statTotal">—</span>
+      <span class="lbl">合計</span>
+    </div>
+    <div class="stat ok">
+      <span class="val" id="statOk">0</span>
+      <span class="lbl">取得成功</span>
+    </div>
+    <div class="stat skip">
+      <span class="val" id="statSkip">0</span>
+      <span class="lbl">スキップ</span>
+    </div>
+  </div>
+  <div class="progress-bar-bg">
+    <div id="progressBar"></div>
+  </div>
+  <div id="statusLine">待機中...</div>
+</div>
+
+<div class="result-header">
+  <span>結果 (番号,名前)</span>
+  <span id="resultCount">0件</span>
+</div>
+<textarea id="output" placeholder="ここに結果が出力されます..." readonly></textarea>
+
+<div class="note">
+  ※ Access Denied / 404 / ネットワークエラーは自動スキップ<br>
+  ※ プロキシ制限に引っかかる場合は別のプロキシに切り替えてください<br>
+  ※ 取得対象URL: <a href="https://ponosgames.com/information/appli/battlecats/gacha/rare/R027.html" target="_blank">ponosgames.com/.../rare/R***.html</a>
+</div>
+
+<script>
+  let running = false;
+  let paused = false;
+  let shouldStop = false;
+  let results = [];
+  let okCount = 0;
+  let skipCount = 0;
+  let pauseResolve = null;
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const waitIfPaused = () => new Promise(r => {
+    if (!paused) { r(); return; }
+    pauseResolve = r;
+  });
+
+  function buildUrl(num) {
+    const id = String(num).padStart(num < 1000 ? 3 : 4, '0');
+    return `https://ponosgames.com/information/appli/battlecats/gacha/rare/R${id}.html`;
+  }
+
+  function proxyWrap(url) {
+    const sel = document.getElementById('proxySelect').value;
+    if (sel === 'allorigins') {
+      return `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    }
+    // corsproxy.io
+    return `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
+  }
+
+  async function fetchH2(num) {
+    const url = buildUrl(num);
+    const proxyUrl = proxyWrap(url);
+    const sel = document.getElementById('proxySelect').value;
+
+    let html = '';
+    try {
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) return null;
+
+      if (sel === 'allorigins') {
+        const json = await res.json();
+        if (!json || !json.contents) return null;
+        html = json.contents;
+      } else {
+        html = await res.text();
+      }
+    } catch {
+      return null;
+    }
+
+    // Access Denied チェック
+    if (/access denied/i.test(html) || /403 Forbidden/i.test(html)) return null;
+
+    // h2 抽出
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const h2 = doc.querySelector('h2');
+    if (!h2) return null;
+    const text = h2.textContent.trim();
+    if (!text) return null;
+    return text;
+  }
+
+  function updateUI(cur, total, ok, skip, status) {
+    document.getElementById('statCur').textContent = cur !== null ? `R${String(cur).padStart(cur < 1000 ? 3 : 4, '0')}` : '—';
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statOk').textContent = ok;
+    document.getElementById('statSkip').textContent = skip;
+    document.getElementById('progressBar').style.width = `${total > 0 && cur !== null ? ((cur - parseInt(document.getElementById('startNum').value)) / total * 100).toFixed(1) : 0}%`;
+    document.getElementById('statusLine').textContent = status;
+    document.getElementById('resultCount').textContent = `${ok}件`;
+  }
+
+  function appendResult(num, text) {
+    const id = String(num).padStart(num < 1000 ? 3 : 4, '0');
+    const line = `${id},${text}`;
+    results.push(line);
+    const ta = document.getElementById('output');
+    ta.value += (ta.value ? '\n' : '') + line;
+    // オートスクロール
+    ta.scrollTop = ta.scrollHeight;
+  }
+
+  async function startScrape() {
+    if (running) return;
+    const start = parseInt(document.getElementById('startNum').value);
+    const end   = parseInt(document.getElementById('endNum').value);
+    const delay = parseInt(document.getElementById('delay').value);
+    const total = end - start + 1;
+
+    running = true;
+    paused = false;
+    shouldStop = false;
+
+    document.getElementById('btnStart').disabled = true;
+    document.getElementById('btnPause').disabled = false;
+    document.getElementById('btnDownload').disabled = true;
+
+    for (let i = start; i <= end; i++) {
+      if (shouldStop) break;
+      await waitIfPaused();
+      if (shouldStop) break;
+
+      updateUI(i, total, okCount, skipCount, `フェッチ中: R${String(i).padStart(i < 1000 ? 3 : 4, '0')}`);
+
+      const text = await fetchH2(i);
+      if (text) {
+        okCount++;
+        appendResult(i, text);
+        updateUI(i, total, okCount, skipCount, `✓ R${String(i).padStart(i < 1000 ? 3 : 4, '0')} → ${text}`);
+      } else {
+        skipCount++;
+        updateUI(i, total, okCount, skipCount, `— R${String(i).padStart(i < 1000 ? 3 : 4, '0')} スキップ`);
+      }
+
+      if (i < end) await sleep(delay);
+    }
+
+    running = false;
+    paused = false;
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnPause').disabled = true;
+    document.getElementById('btnPause').textContent = '⏸ 一時停止';
+    document.getElementById('btnDownload').disabled = results.length === 0;
+    updateUI(null, total, okCount, skipCount, shouldStop ? '⏹ 中断しました' : '✅ 完了！');
+  }
+
+  function togglePause() {
+    if (!running) return;
+    if (!paused) {
+      paused = true;
+      document.getElementById('btnPause').textContent = '▶ 再開';
+      document.getElementById('statusLine').textContent = '⏸ 一時停止中...';
+    } else {
+      paused = false;
+      document.getElementById('btnPause').textContent = '⏸ 一時停止';
+      if (pauseResolve) { pauseResolve(); pauseResolve = null; }
+    }
+  }
+
+  function clearResults() {
+    if (running) {
+      shouldStop = true;
+      paused = false;
+      if (pauseResolve) { pauseResolve(); pauseResolve = null; }
+    }
+    results = [];
+    okCount = 0;
+    skipCount = 0;
+    document.getElementById('output').value = '';
+    document.getElementById('btnDownload').disabled = true;
+    document.getElementById('btnPause').textContent = '⏸ 一時停止';
+    updateUI(null, '—', 0, 0, '待機中...');
+  }
+
+  function downloadCSV() {
+    if (results.length === 0) return;
+    const blob = new Blob([results.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'nyanko_gacha_names.csv';
+    a.click();
+  }
+</script>
+</body>
+</html>
