@@ -1,78 +1,746 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BGM Library - KBC</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>にゃんこBGMプレイヤー</title>
+<style>
+  :root {
+    --bg: #0d0d12;
+    --surface: #16161f;
+    --surface2: #1e1e2a;
+    --border: rgba(255,255,255,0.08);
+    --accent: #e8951a;
+    --accent-dim: rgba(232,149,26,0.15);
+    --accent-glow: rgba(232,149,26,0.3);
+    --text: #f0ede6;
+    --muted: #7a7870;
+    --success: #4caf7d;
+    --danger: #e05c5c;
+    --player-h: 88px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── header ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .app-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .tabs {
+    display: flex;
+    gap: 0;
+  }
+  .tab {
+    padding: 8px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab .badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 10px;
+    border-radius: 99px;
+    padding: 1px 6px;
+    margin-left: 5px;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  /* ── toolbar ── */
+  .toolbar {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .search-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px 7px 32px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+  .btn-load {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 7px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn-load:hover { border-color: var(--accent); background: var(--surface2); }
+  .track-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ── track list ── */
+  .track-list {
+    padding-bottom: calc(var(--player-h) + 20px);
+  }
+  .track-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .track-row:hover { background: var(--surface); }
+  .track-row.playing { background: var(--accent-dim); }
+  .track-row.playing .track-title { color: var(--accent); }
+
+  .play-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .play-btn:hover, .track-row.playing .play-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .play-btn svg { pointer-events: none; }
+
+  .track-info { overflow: hidden; min-width: 0; }
+  .track-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: flex;
+    gap: 8px;
+  }
+  .track-meta .ver { color: var(--muted); }
+
+  .track-actions { display: flex; gap: 6px; align-items: center; }
+  .action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: color 0.1s, border-color 0.1s, background 0.1s;
+    white-space: nowrap;
+  }
+  .action-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: var(--surface2); }
+  .action-btn.add:hover { color: var(--accent); border-color: var(--accent); }
+  .action-btn.added { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .action-btn.dl:hover { color: var(--success); border-color: var(--success); }
+
+  /* ── playlist tab ── */
+  .playlist-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .playlist-empty .icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+  .pl-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .pl-row:hover { background: var(--surface); }
+  .pl-row.pl-playing { background: var(--accent-dim); }
+  .pl-num { font-size: 11px; color: var(--muted); text-align: center; }
+  .pl-row.pl-playing .pl-num { color: var(--accent); font-weight: 700; }
+  .pl-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pl-row.pl-playing .pl-title { color: var(--accent); }
+  .btn-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.1s;
+  }
+  .btn-remove:hover { color: var(--danger); }
+
+  /* ── player bar ── */
+  .player-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--player-h);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 200;
+  }
+  .player-info { flex: 1; min-width: 0; }
+  .player-track-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .player-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .player-controls { display: flex; align-items: center; gap: 8px; }
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: color 0.1s, background 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ctrl-btn:hover { color: var(--text); background: var(--surface2); }
+  .ctrl-btn.main-play {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+  }
+  .ctrl-btn.main-play:hover { background: #c97a10; color: #fff; }
+  .player-progress {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .progress-bar-wrap {
+    position: relative;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s linear;
+    pointer-events: none;
+  }
+  .progress-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .volume-wrap { display: flex; align-items: center; gap: 6px; }
+  .volume-wrap svg { flex-shrink: 0; }
+  input[type=range].vol-slider {
+    -webkit-appearance: none;
+    width: 70px;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range].vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .btn-loop {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: color 0.1s, background 0.1s;
+  }
+  .btn-loop.on { color: var(--accent); background: var(--accent-dim); }
+  .btn-loop:hover { color: var(--text); }
+
+  /* hidden file input */
+  #file-input { display: none; }
+
+  /* no tracks */
+  .no-tracks {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .no-tracks .hint {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11px;
+    background: var(--surface);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+</style>
 </head>
-<body class="fade-in">
+<body>
 
-  <div class="container">
-    <header class="header">
-      <div class="header-left">
-        <img src="logo.png" alt="ロゴ" id="logo" style="cursor: pointer;" onclick="location.href='index.html'"> 
-        <h1 class="site-title">KBC Music</h1>
-      </div>
-    </header>
-
-    <section class="card">
-      <div class="card-header">
-        <h3 id="track-count">BGMリスト</h3>
-        <span class="tag">OGG Library</span>
-      </div>
-      <ul id="music-list" class="bgm-list">
-        </ul>
-    </section>
+<div class="app-header">
+  <div class="app-title">
+    <span class="dot"></span>
+    にゃんこ BGM プレイヤー
   </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="ogg">OGG <span class="badge" id="ogg-count">0</span></button>
+    <button class="tab" data-tab="mp3">MP3 <span class="badge" id="mp3-count">0</span></button>
+    <button class="tab" data-tab="playlist">PLAYLIST <span class="badge" id="pl-count">0</span></button>
+  </div>
+</div>
 
-  <div id="mini-player" class="mini-player">
-    <img id="mini-album-art" src="logo.png">
-    <div class="mini-info">
-      <div id="mini-title">未選択</div>
-      <div id="mini-artist">にゃんこ大戦争</div>
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="5.5" cy="5.5" r="4" stroke="white" stroke-width="1.2"/>
+      <line x1="8.7" y1="8.7" x2="13" y2="13" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    <input class="search-input" type="text" placeholder="曲を検索..." id="search-input">
+  </div>
+  <button class="btn-load" id="btn-load-json">JSONを読み込む</button>
+  <input type="file" id="file-input" accept=".json">
+  <span class="track-count" id="track-count-label">0 曲</span>
+</div>
+
+<div id="tab-ogg" class="tab-panel">
+  <div class="track-list" id="list-ogg"></div>
+</div>
+<div id="tab-mp3" class="tab-panel" style="display:none">
+  <div class="track-list" id="list-mp3"></div>
+</div>
+<div id="tab-playlist" class="tab-panel" style="display:none">
+  <div class="track-list" id="list-playlist"></div>
+</div>
+
+<div class="player-bar">
+  <div class="player-info">
+    <div class="player-track-name" id="player-title">— 未選択 —</div>
+    <div class="player-meta" id="player-meta">トラックを選択してください</div>
+  </div>
+  <div class="player-controls">
+    <button class="ctrl-btn" id="btn-prev" title="前へ">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="1" y="2" width="2.5" height="12" rx="1"/>
+        <polygon points="13,2 4,8 13,14"/>
+      </svg>
+    </button>
+    <button class="ctrl-btn main-play" id="btn-play" title="再生/停止">
+      <svg id="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <polygon points="4,2 14,8 4,14"/>
+      </svg>
+    </button>
+    <button class="ctrl-btn" id="btn-next" title="次へ">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="12.5" y="2" width="2.5" height="12" rx="1"/>
+        <polygon points="3,2 12,8 3,14"/>
+      </svg>
+    </button>
+  </div>
+  <div class="player-progress">
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-fill" id="progress-fill"></div>
     </div>
-    <div class="mini-controls">
-      <button id="mini-play-btn"><span class="material-icons">play_arrow</span></button>
+    <div class="progress-times">
+      <span id="time-cur">0:00</span>
+      <span id="time-dur">0:00</span>
     </div>
   </div>
-
-  <div id="full-player" class="full-player">
-    <div class="player-header">
-      <span class="material-icons" id="close-player">expand_more</span>
-      <span id="player-track-index">#0/0</span>
-      <span class="material-icons">more_vert</span>
-    </div>
-    <div class="player-main">
-      <div class="album-art-circle"><span class="material-icons" style="font-size: 80px;">music_note</span></div>
-      <div class="track-details">
-        <h2 id="player-title">曲を選択してください</h2>
-        <p id="player-artist">Unknown</p>
-      </div>
-      <div class="sub-controls">
-        <button id="timer-btn"><span class="material-icons">timer</span></button>
-        <button id="fav-btn"><span class="material-icons">favorite_border</span></button>
-        <button id="add-playlist-btn"><span class="material-icons">playlist_add</span></button>
-        <button><span class="material-icons">volume_up</span></button>
-      </div>
-      <div class="seek-container">
-        <span id="current-time">00:00</span>
-        <input type="range" id="seek-bar" value="0" step="1" min="0" max="100">
-        <span id="duration-time">00:00</span>
-      </div>
-      <div class="main-controls">
-        <button id="shuffle-btn"><span class="material-icons">shuffle</span></button>
-        <button id="prev-btn"><span class="material-icons">skip_previous</span></button>
-        <button id="main-play-btn" class="play-main-btn"><span class="material-icons">play_arrow</span></button>
-        <button id="next-btn"><span class="material-icons">skip_next</span></button>
-        <button id="repeat-btn"><span class="material-icons">repeat</span></button>
-      </div>
-    </div>
+  <div class="volume-wrap">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style="color:var(--muted)">
+      <polygon points="2,5 5,5 8,2 8,12 5,9 2,9"/>
+      <path d="M9.5 4.5 Q12 7 9.5 9.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+    </svg>
+    <input type="range" class="vol-slider" id="vol" min="0" max="100" value="80">
   </div>
+  <button class="btn-loop" id="btn-loop">LOOP</button>
+</div>
 
-  <audio id="main-audio"></audio>
-  <script src="js/player.js"></script>
+<audio id="audio"></audio>
+
+<script>
+const SAMPLE_OGG = [
+  {"id":1001,"title":"001 集まれ！にゃんこ軍団","file":"bgm/ogg/bgm_001.ogg","version":"1.0"},
+  {"id":1002,"title":"002 決戦！敵の城","file":"bgm/ogg/bgm_002.ogg","version":"1.0"},
+  {"id":1003,"title":"003 緊急！大脱走にゃんこ","file":"bgm/ogg/bgm_003.ogg","version":"1.2"},
+  {"id":1004,"title":"004 宇宙人が来た！","file":"bgm/ogg/bgm_004.ogg","version":"1.0"},
+  {"id":1005,"title":"005 ネコ軍団の行進","file":"bgm/ogg/bgm_005.ogg","version":"1.1"},
+  {"id":1006,"title":"006 にゃんこ大決戦","file":"bgm/ogg/bgm_006.ogg","version":"1.0"},
+  {"id":1007,"title":"007 星間戦争","file":"bgm/ogg/bgm_007.ogg","version":"1.3"},
+  {"id":1008,"title":"008 猫の惑星","file":"bgm/ogg/bgm_008.ogg","version":"1.0"},
+  {"id":1009,"title":"009 哀愁のにゃんこ","file":"bgm/ogg/bgm_009.ogg","version":"1.0"},
+  {"id":1010,"title":"010 最後の砦","file":"bgm/ogg/bgm_010.ogg","version":"2.0"},
+];
+const SAMPLE_MP3 = SAMPLE_OGG.map(t => ({
+  ...t,
+  file: t.file.replace('/ogg/', '/mp3/').replace('.ogg', '.mp3')
+}));
+
+let tracks = { ogg: [...SAMPLE_OGG], mp3: [...SAMPLE_MP3] };
+let playlist = [];
+let currentTab = 'ogg';
+let currentTrack = null;
+let currentList = [];
+let isPlaying = false;
+let isLoop = false;
+let searchVal = '';
+
+const audio = document.getElementById('audio');
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentTab = t.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('tab-' + currentTab).style.display = '';
+    renderAll();
+  });
+});
+
+// ── JSON load ──
+document.getElementById('btn-load-json').addEventListener('click', () => {
+  document.getElementById('file-input').click();
+});
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const arr = Array.isArray(data) ? data : [data];
+      const ext = arr[0]?.file?.split('.').pop()?.toLowerCase();
+      if (ext === 'mp3') { tracks.mp3 = arr; }
+      else { tracks.ogg = arr; }
+      renderAll();
+    } catch { alert('JSONの読み込みに失敗しました。'); }
+  };
+  reader.readAsText(file, 'utf-8');
+  e.target.value = '';
+});
+
+// ── Search ──
+document.getElementById('search-input').addEventListener('input', e => {
+  searchVal = e.target.value.toLowerCase();
+  renderAll();
+});
+
+function filtered(arr) {
+  if (!searchVal) return arr;
+  return arr.filter(t =>
+    t.title.toLowerCase().includes(searchVal) || String(t.id).includes(searchVal)
+  );
+}
+
+// ── Render ──
+function renderAll() {
+  renderList('ogg', tracks.ogg);
+  renderList('mp3', tracks.mp3);
+  renderPlaylist();
+  updateCounts();
+}
+
+function updateCounts() {
+  document.getElementById('ogg-count').textContent = tracks.ogg.length;
+  document.getElementById('mp3-count').textContent = tracks.mp3.length;
+  document.getElementById('pl-count').textContent = playlist.length;
+  const active = currentTab === 'playlist' ? playlist : tracks[currentTab] || [];
+  document.getElementById('track-count-label').textContent = active.length + ' 曲';
+}
+
+function renderList(type, arr) {
+  const el = document.getElementById('list-' + type);
+  const data = filtered(arr);
+  if (!data.length) {
+    el.innerHTML = '<div class="no-tracks">トラックがありません<br><span class="hint">JSONを読み込む</span></div>';
+    return;
+  }
+  el.innerHTML = data.map((t, i) => {
+    const inPl = playlist.some(p => p._key === t._key || (p.id === t.id && p.file === t.file));
+    const playing = currentTrack && currentTrack.id === t.id && currentTrack.file === t.file;
+    return `<div class="track-row${playing ? ' playing' : ''}" data-type="${type}" data-idx="${arr.indexOf(t)}">
+      <button class="play-btn" data-type="${type}" data-idx="${arr.indexOf(t)}" onclick="playTrack('${type}',${arr.indexOf(t)},event)">
+        ${playing && isPlaying ? pauseIcon() : playIcon()}
+      </button>
+      <div class="track-info">
+        <div class="track-title">${esc(t.title)}</div>
+        <div class="track-meta">
+          <span>ID: ${t.id}</span>
+          <span class="ver">v${esc(t.version)}</span>
+          <span>${type.toUpperCase()}</span>
+        </div>
+      </div>
+      <div class="track-actions">
+        <button class="action-btn add${inPl ? ' added' : ''}" onclick="togglePlaylist('${type}',${arr.indexOf(t)},event)">
+          ${inPl ? '✓ PL' : '+ PL'}
+        </button>
+        <button class="action-btn dl" onclick="downloadTrack('${type}',${arr.indexOf(t)},event)" title="ダウンロード">DL</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPlaylist() {
+  const el = document.getElementById('list-playlist');
+  if (!playlist.length) {
+    el.innerHTML = '<div class="playlist-empty"><div class="icon">♪</div>プレイリストは空です<br><small style="color:var(--muted);font-size:12px;">各トラックの「+ PL」でここに追加できます</small></div>';
+    return;
+  }
+  el.innerHTML = playlist.map((t, i) => {
+    const playing = currentTrack && currentTrack.id === t.id && currentTrack.file === t.file;
+    return `<div class="pl-row${playing ? ' pl-playing' : ''}" onclick="playFromPlaylist(${i},event)">
+      <span class="pl-num">${playing ? '▶' : i + 1}</span>
+      <span class="pl-title">${esc(t.title)}</span>
+      <button class="btn-remove" onclick="removeFromPlaylist(${i},event)" title="削除">×</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Playback ──
+function playTrack(type, idx, e) {
+  if (e) e.stopPropagation();
+  const arr = tracks[type];
+  const track = arr[idx];
+  currentList = arr;
+  _play(track);
+}
+
+function playFromPlaylist(idx, e) {
+  if (e) e.stopPropagation();
+  currentList = playlist;
+  _play(playlist[idx]);
+}
+
+function _play(track) {
+  if (currentTrack && currentTrack.id === track.id && currentTrack.file === track.file) {
+    togglePlay();
+    return;
+  }
+  currentTrack = track;
+  audio.src = track.file;
+  audio.volume = document.getElementById('vol').value / 100;
+  audio.play().catch(() => {});
+  isPlaying = true;
+  updatePlayerUI();
+  renderAll();
+}
+
+function togglePlay() {
+  if (!currentTrack) return;
+  if (isPlaying) { audio.pause(); isPlaying = false; }
+  else { audio.play(); isPlaying = true; }
+  updatePlayIcon();
+  renderAll();
+}
+
+document.getElementById('btn-play').addEventListener('click', togglePlay);
+
+document.getElementById('btn-prev').addEventListener('click', () => skipTrack(-1));
+document.getElementById('btn-next').addEventListener('click', () => skipTrack(1));
+
+function skipTrack(dir) {
+  if (!currentList.length) return;
+  const idx = currentList.findIndex(t => t.id === currentTrack?.id && t.file === currentTrack?.file);
+  let next = idx + dir;
+  if (next < 0) next = currentList.length - 1;
+  if (next >= currentList.length) next = 0;
+  _play(currentList[next]);
+}
+
+audio.addEventListener('ended', () => {
+  if (isLoop) { audio.currentTime = 0; audio.play(); return; }
+  skipTrack(1);
+});
+audio.addEventListener('timeupdate', updateProgress);
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('time-dur').textContent = fmt(audio.duration);
+});
+audio.addEventListener('play', () => { isPlaying = true; updatePlayIcon(); });
+audio.addEventListener('pause', () => { isPlaying = false; updatePlayIcon(); });
+
+document.getElementById('progress-wrap').addEventListener('click', e => {
+  if (!audio.duration) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+});
+
+document.getElementById('vol').addEventListener('input', e => {
+  audio.volume = e.target.value / 100;
+});
+
+document.getElementById('btn-loop').addEventListener('click', () => {
+  isLoop = !isLoop;
+  document.getElementById('btn-loop').classList.toggle('on', isLoop);
+});
+
+function updateProgress() {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('time-cur').textContent = fmt(audio.currentTime);
+}
+
+function updatePlayerUI() {
+  if (!currentTrack) return;
+  document.getElementById('player-title').textContent = currentTrack.title;
+  const ext = currentTrack.file.split('.').pop().toUpperCase();
+  document.getElementById('player-meta').textContent = `ID: ${currentTrack.id}  /  v${currentTrack.version}  /  ${ext}`;
+  updatePlayIcon();
+}
+
+function updatePlayIcon() {
+  document.getElementById('play-icon').innerHTML = isPlaying
+    ? '<rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/>'
+    : '<polygon points="4,2 14,8 4,14"/>';
+}
+
+// ── Playlist management ──
+function togglePlaylist(type, idx, e) {
+  if (e) e.stopPropagation();
+  const t = tracks[type][idx];
+  const i = playlist.findIndex(p => p.id === t.id && p.file === t.file);
+  if (i > -1) { playlist.splice(i, 1); }
+  else { playlist.push({...t}); }
+  renderAll();
+}
+
+function removeFromPlaylist(idx, e) {
+  if (e) e.stopPropagation();
+  playlist.splice(idx, 1);
+  renderAll();
+}
+
+// ── Download ──
+function downloadTrack(type, idx, e) {
+  if (e) e.stopPropagation();
+  const t = tracks[type][idx];
+  const a = document.createElement('a');
+  a.href = t.file;
+  a.download = t.title + '.' + type;
+  a.click();
+}
+
+// ── Helpers ──
+function fmt(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + String(sec).padStart(2, '0');
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function playIcon() {
+  return `<svg width="12" height="12" viewBox="0 0 12 12" fill="white"><polygon points="2,1 11,6 2,11"/></svg>`;
+}
+function pauseIcon() {
+  return `<svg width="12" height="12" viewBox="0 0 12 12" fill="white"><rect x="1" y="1" width="3.5" height="10" rx="1"/><rect x="7.5" y="1" width="3.5" height="10" rx="1"/></svg>`;
+}
+
+// init
+renderAll();
+</script>
 </body>
 </html>
