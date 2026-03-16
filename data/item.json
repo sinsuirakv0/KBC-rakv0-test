@@ -1,5 +1,5 @@
 {
-  "updatedAt": "26/03/15 01:50:17",
+  "updatedAt": "26/03/16 15:50:20",
   "data": [
     {
       "header": {
@@ -1204,26 +1204,6 @@
     },
     {
       "header": {
-        "startDate": "20260305",
-        "startTime": "1100",
-        "endDate": "20260313",
-        "endTime": "1100",
-        "minVersion": "150200",
-        "maxVersion": "999999"
-      },
-      "timeBlocks": [],
-      "gift": {
-        "eventId": 51694,
-        "giftType": 837,
-        "giftAmount": 0,
-        "title": "",
-        "message": "",
-        "url": "",
-        "repeatFlag": 0
-      }
-    },
-    {
-      "header": {
         "startDate": "20260302",
         "startTime": "1100",
         "endDate": "20260330",
@@ -1330,6 +1310,46 @@
         "giftAmount": 0,
         "title": "",
         "message": "",
+        "url": "",
+        "repeatFlag": 1
+      }
+    },
+    {
+      "header": {
+        "startDate": "20260320",
+        "startTime": "000",
+        "endDate": "20260321",
+        "endTime": "000",
+        "minVersion": "150201",
+        "maxVersion": "999999"
+      },
+      "timeBlocks": [],
+      "gift": {
+        "eventId": 2483,
+        "giftType": 203,
+        "giftAmount": 1,
+        "title": "春分の日記念☆",
+        "message": "祝日感謝！春分の日を記念して<br>レアチケット1枚をプレゼント！",
+        "url": "",
+        "repeatFlag": 0
+      }
+    },
+    {
+      "header": {
+        "startDate": "20260327",
+        "startTime": "1100",
+        "endDate": "20260417",
+        "endTime": "1100",
+        "minVersion": "150201",
+        "maxVersion": "999999"
+      },
+      "timeBlocks": [],
+      "gift": {
+        "eventId": 2484,
+        "giftType": 201,
+        "giftAmount": 10000,
+        "title": "初心者応援！！ログインボーナス☆",
+        "message": "日本編クリアを応援！育成に役立つアイテムを毎日プレゼント！<br>今がにゃんこ軍団の戦力をアップする大チャンス！(4/17まで)",
         "url": "",
         "repeatFlag": 1
       }
