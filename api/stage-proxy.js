@@ -7,23 +7,29 @@ export default async function handler(req, res) {
     const response = await fetch(url);
     let html = await response.text();
 
-    // 相対パスを絶対パスに変換（CSS, JS, 画像などすべて）
+    // 相対パスを絶対パスに変換
     html = html.replace(/(href|src)=["'](?!https?:\/\/|\/\/|data:|#)([^"']+)["']/g, (match, attr, path) => {
       const absoluteUrl = new URL(path, baseUrl).href;
       return `${attr}="${absoluteUrl}"`;
     });
 
-    // スクリプトを注入（倍率切り替えなどが動作するように）
+    // 知人提供のスクリプトをそのまま注入
     const injection = `
       <script>
-        setCurrentStageIndex(120);
-        for(let i = 0; i < 120; i++){
-          enableData('stage'+i+'_enemy_list');
-          enableData('stage'+i+'_enemy_list_1');
-          enableData('stage'+i+'_no_continue');
+        setCurrentStageIndex(120, 120);
+        for (let i = 0; i <= 120; i++) {
+          enableData('stage' + i + '_enemy_list');
+          enableData('stage' + i + '_enemy_list_1');
+          enableData('stage' + i + '_no_continue');
+        }
+        for (let i = 0; i <= 120; i++) {
+          enableData('abyss_stage' + i + '_enemy_list');
+          enableData('abyss_stage' + i + '_enemy_list_1');
+          enableData('abyss_stage' + i + '_no_continue');
         }
       </script>
     `;
+
     html = html.replace('</body>', `${injection}</body>`);
 
     res.setHeader('Content-Type', 'text/html');
