@@ -10,6 +10,7 @@
   --bg: #08090e;
   --surface: #0f1117;
   --surface2: #181922;
+  --surface3: #1e2030;
   --border: #252733;
   --border2: #333645;
   --accent: #ff6b35;
@@ -18,11 +19,10 @@
   --text2: #7c8094;
   --success: #4eff9e;
   --danger: #ff4d4d;
-  --player-h: 80px;
+  --fav: #ff5c8a;
+  --ph: 68px;
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   background: var(--bg);
   color: var(--text);
@@ -37,13 +37,12 @@ body {
 .header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 0 20px;
+  padding: 0 16px;
   display: flex;
   align-items: stretch;
-  gap: 0;
+  height: 52px;
   flex-shrink: 0;
 }
-
 .logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 20px;
@@ -51,55 +50,41 @@ body {
   color: var(--accent);
   display: flex;
   align-items: center;
-  padding-right: 20px;
+  padding-right: 16px;
   border-right: 1px solid var(--border);
   margin-right: 4px;
   user-select: none;
 }
-
-.tabs {
-  display: flex;
-}
-
+.tabs { display: flex; }
 .tab {
   font-family: 'DM Mono', monospace;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 1.5px;
-  padding: 0 18px;
-  height: 52px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   color: var(--text2);
   border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-  user-select: none;
+  transition: color .15s, border-color .15s;
   white-space: nowrap;
+  user-select: none;
 }
-
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-.pl-badge {
-  display: none;
+.badge {
   background: var(--accent);
   color: #fff;
   border-radius: 10px;
-  padding: 1px 6px;
-  font-size: 10px;
-  line-height: 1.4;
+  padding: 1px 5px;
+  font-size: 9px;
+  line-height: 1.6;
+  display: none;
 }
-
-.pl-badge.visible { display: inline; }
-
-.search-wrap {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-
+.badge.on { display: inline; }
+.search-wrap { margin-left: auto; display: flex; align-items: center; }
 .search-input {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -107,311 +92,390 @@ body {
   color: var(--text);
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 13px;
-  padding: 6px 12px;
-  width: 210px;
+  padding: 5px 11px;
+  width: 200px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color .15s;
+  user-select: auto;
 }
-
 .search-input:focus { border-color: var(--accent2); }
 .search-input::placeholder { color: var(--text2); }
 
 /* ── Content ── */
-.content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
+.content { flex: 1; overflow: hidden; position: relative; }
 .tab-panel {
   display: none;
-  flex: 1;
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 10px 14px;
   flex-direction: column;
   gap: 3px;
 }
 .tab-panel.active { display: flex; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
 /* ── Song row ── */
 .song-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 8px;
+  padding: 8px 11px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 7px;
-  transition: background 0.1s, border-color 0.1s;
   flex-shrink: 0;
+  transition: background .1s, border-color .1s;
 }
 .song-row:hover { background: var(--surface2); border-color: var(--border2); }
-.song-row.playing { border-color: var(--accent); background: rgba(255,107,53,0.06); }
-.song-row.playing .song-title { color: var(--accent); }
-
-.song-num {
+.song-row.playing { border-color: var(--accent); background: rgba(255,107,53,.06); }
+.song-row.playing .s-title { color: var(--accent); }
+.s-num {
   font-family: 'DM Mono', monospace;
   font-size: 11px;
   color: var(--text2);
-  width: 30px;
+  width: 26px;
   text-align: right;
   flex-shrink: 0;
 }
-
-.song-title {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.15s;
-}
-
-.song-version {
+.s-ind { width: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.bars { display: flex; gap: 2px; align-items: flex-end; height: 12px; }
+.bar { width: 3px; background: var(--accent); border-radius: 1px; animation: barA .8s ease-in-out infinite; }
+.bar:nth-child(2) { animation-delay: .2s; }
+.bar:nth-child(3) { animation-delay: .4s; }
+@keyframes barA { 0%,100%{height:4px} 50%{height:12px} }
+.s-title { flex: 1; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-fav { font-size: 11px; color: var(--fav); flex-shrink: 0; opacity: 0; transition: opacity .15s; }
+.s-fav.on { opacity: 1; }
+.s-ver { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); flex-shrink: 0; }
+.s-fmt {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
-  color: var(--text2);
-  flex-shrink: 0;
-}
-
-.song-fmt-badge {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
   border: 1px solid var(--border2);
   color: var(--text2);
   flex-shrink: 0;
 }
-
-.song-actions {
-  display: flex;
-  gap: 5px;
-  flex-shrink: 0;
-}
-
+.s-acts { display: flex; gap: 4px; flex-shrink: 0; }
 .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 28px; height: 28px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text2);
   cursor: pointer;
-  transition: all 0.15s;
-  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  transition: all .12s;
 }
 .btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
-.btn.play-btn:hover { color: var(--accent2); border-color: var(--accent2); }
-.btn.play-btn.active { color: var(--accent2); border-color: var(--accent2); background: rgba(0,196,255,0.08); }
-.btn.add-btn:hover { color: var(--success); border-color: var(--success); }
-.btn.add-btn.in-pl { color: var(--success); border-color: var(--success); background: rgba(78,255,158,0.08); }
-.btn.dl-btn:hover { color: var(--accent); border-color: var(--accent); }
-.btn.remove-btn:hover { color: var(--danger); border-color: var(--danger); }
+.btn.bplay:hover,.btn.bplay.on { color: var(--accent2); border-color: var(--accent2); }
+.btn.bplay.on { background: rgba(0,196,255,.08); }
+.btn.badd:hover { color: var(--success); border-color: var(--success); }
+.btn.bdl:hover { color: var(--accent); border-color: var(--accent); }
+.btn.brm:hover { color: var(--danger); border-color: var(--danger); }
 
-/* ── Loading / Empty ── */
-.status-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 60px 20px;
-  color: var(--text2);
-  font-size: 13px;
-  text-align: center;
+/* ── Empty / Loading ── */
+.empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 50px 20px; color: var(--text2); font-size: 13px; text-align: center;
+  flex: 1;
 }
-.status-icon { font-size: 36px; opacity: 0.5; }
+.empty-icon { font-size: 32px; opacity: .5; }
 .spinner {
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   border: 2px solid var(--border2);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  animation: spin .75s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Playlist toolbar ── */
-.pl-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-  flex-shrink: 0;
+/* ── Playlist Panel ── */
+.pl-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 10px; flex-shrink: 0;
 }
-
-.action-btn {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  padding: 6px 13px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
+.pl-back {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text2); cursor: pointer; padding: 5px 10px; font-size: 12px;
+  display: flex; align-items: center; gap: 4px; transition: all .12s;
 }
-.action-btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
-.action-btn.primary { color: var(--accent); border-color: rgba(255,107,53,0.4); }
-.action-btn.primary:hover { background: rgba(255,107,53,0.1); border-color: var(--accent); }
-
-.pl-count {
-  margin-left: auto;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--text2);
+.pl-back:hover { color: var(--text); border-color: var(--border2); }
+.pl-hdr-title { font-size: 14px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-hdr-acts { display: flex; gap: 6px; margin-left: auto; }
+.abtn {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; gap: 5px; transition: all .12s; white-space: nowrap;
 }
+.abtn:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+.abtn.pri { color: var(--accent); border-color: rgba(255,107,53,.4); }
+.abtn.pri:hover { background: rgba(255,107,53,.1); border-color: var(--accent); }
+.pl-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: all .12s; flex-shrink: 0;
+}
+.pl-card:hover { background: var(--surface2); border-color: var(--border2); }
+.pl-icon { font-size: 20px; flex-shrink: 0; }
+.pl-info { flex: 1; min-width: 0; }
+.pl-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-cnt-lbl { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-top: 2px; }
+.pl-card-acts { display: flex; gap: 5px; }
+.new-pl-form { display: flex; gap: 8px; padding-bottom: 4px; flex-shrink: 0; }
+.txt-input {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  padding: 7px 12px; outline: none; transition: border-color .15s; user-select: auto;
+}
+.txt-input:focus { border-color: var(--accent2); }
+.txt-input::placeholder { color: var(--text2); }
 
-/* ── Player ── */
+/* ── Player bar ── */
 .player {
-  height: var(--player-h);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 18px;
-  gap: 16px;
-  flex-shrink: 0;
+  height: var(--ph);
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; gap: 10px;
+  flex-shrink: 0; position: relative; z-index: 10;
+}
+.p-info {
+  flex: 1.1; min-width: 0; cursor: pointer; padding: 4px 6px;
+  border-radius: 6px; transition: background .12s;
+}
+.p-info:hover { background: var(--surface2); }
+.p-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); margin-top: 2px; }
+.p-center { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+.p-ctrl { display: flex; align-items: center; gap: 3px; }
+.cbtn {
+  background: none; border: none; color: var(--text2); cursor: pointer;
+  font-size: 14px; width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.cbtn:hover { color: var(--text); background: var(--surface2); }
+.cbtn.main { font-size: 18px; color: var(--text); }
+.cbtn.main:hover { color: var(--accent); }
+.p-prog { display: flex; align-items: center; gap: 5px; width: 170px; }
+.ptime { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text2); width: 28px; text-align: center; flex-shrink: 0; }
+.prog-track {
+  flex: 1; height: 3px; background: var(--border2); border-radius: 2px; cursor: pointer;
+}
+.prog-track:hover .prog-fill { background: var(--accent2); }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; pointer-events: none; }
+.p-right { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.timer-ind {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent2);
+  background: rgba(0,196,255,.1); border: 1px solid rgba(0,196,255,.3);
+  border-radius: 4px; padding: 2px 6px; display: none; cursor: pointer; white-space: nowrap;
+}
+.timer-ind.on { display: block; }
+.repeat-btn {
+  background: none; border: none; font-size: 15px; cursor: pointer;
+  color: var(--text2); width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.repeat-btn:hover { background: var(--surface2); }
+.repeat-btn.mall, .repeat-btn.mone { color: var(--accent2); }
+.repeat-btn.mshuffle { color: var(--success); }
+.sheet-trig {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text2); cursor: pointer; font-size: 14px; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.sheet-trig:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+
+/* ── Bottom Sheet ── */
+.backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 50;
+}
+.backdrop.open { opacity: 1; pointer-events: all; }
+.sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #0d0e15;
+  border-radius: 18px 18px 0 0;
+  border: 1px solid var(--border2); border-bottom: none;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,.72,0,1);
+  max-height: 90dvh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sheet.open { transform: translateY(0); }
+.sheet-handle {
+  width: 36px; height: 4px; background: var(--border2); border-radius: 2px;
+  margin: 12px auto 0; flex-shrink: 0; cursor: pointer;
+}
+.sheet-handle:hover { background: var(--text2); }
+.sheet-body {
+  flex: 1; overflow-y: auto; padding: 14px 20px 28px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 
-.player-info {
-  flex: 1.2;
-  min-width: 0;
+/* Sheet: now playing */
+.sh-now { text-align: center; }
+.sh-title { font-size: 17px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+.sh-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); }
+
+/* Sheet: progress */
+.sh-prog-area { display: flex; flex-direction: column; gap: 6px; }
+.sh-prog-track {
+  height: 6px; background: var(--border2); border-radius: 3px; cursor: pointer;
 }
-.player-title {
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.player-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--text2);
-  margin-top: 3px;
+.sh-prog-track:hover .sh-prog-fill { background: var(--accent2); }
+.sh-prog-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; pointer-events: none; }
+.sh-times {
+  display: flex; justify-content: space-between;
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
 }
 
-.player-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Sheet: controls */
+.sh-controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.sh-ctrl {
+  background: none; border: none; cursor: pointer; color: var(--text2);
+  font-size: 18px; width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
 }
+.sh-ctrl:hover { color: var(--text); background: var(--surface2); }
+.sh-ctrl.main {
+  font-size: 26px; color: var(--text); width: 58px; height: 58px;
+  background: var(--surface2); border: 1px solid var(--border2);
+}
+.sh-ctrl.main:hover { color: var(--accent); border-color: var(--accent); }
 
-.ctrl-btn {
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 16px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
+/* Sheet: sections */
+.sh-sec { display: flex; flex-direction: column; gap: 8px; }
+.sh-lbl {
+  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2);
+  letter-spacing: 1px; text-transform: uppercase;
 }
-.ctrl-btn:hover { color: var(--text); background: var(--surface2); }
-.ctrl-btn.main { font-size: 20px; color: var(--text); }
-.ctrl-btn.main:hover { color: var(--accent); }
-
-.progress-area {
-  flex: 2;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.speed-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.speed-chip {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); cursor: pointer; transition: all .12s;
 }
-
-.time {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--text2);
-  width: 34px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.progress-track {
-  flex: 1;
-  height: 4px;
-  background: var(--surface2);
-  border-radius: 2px;
-  cursor: pointer;
-  position: relative;
-}
-.progress-track:hover .progress-fill { background: var(--accent2); }
-.progress-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  pointer-events: none;
-  width: 0%;
-}
-
-.vol-area {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 110px;
-  flex-shrink: 0;
-}
-.vol-icon { font-size: 13px; color: var(--text2); }
+.speed-chip:hover { color: var(--text); border-color: var(--border2); }
+.speed-chip.on { color: var(--accent2); border-color: var(--accent2); background: rgba(0,196,255,.08); }
+.vol-row { display: flex; align-items: center; gap: 10px; }
+.vol-row .vi { font-size: 14px; color: var(--text2); flex-shrink: 0; }
 .vol-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  background: var(--surface2);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
+  flex: 1; -webkit-appearance: none; height: 5px; background: var(--border2);
+  border-radius: 3px; outline: none; cursor: pointer;
 }
 .vol-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--text);
-  cursor: pointer;
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--text); cursor: pointer;
 }
+.vol-val { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); width: 32px; text-align: right; flex-shrink: 0; }
+
+/* Sheet: action grid */
+.sh-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.sh-act {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; padding: 11px 8px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface2);
+  cursor: pointer; transition: all .12s; color: var(--text2);
+}
+.sh-act:hover { border-color: var(--border2); color: var(--text); }
+.sh-act.fav-on { border-color: var(--fav); color: var(--fav); background: rgba(255,92,138,.08); }
+.sh-act.timer-on { border-color: var(--accent2); color: var(--accent2); background: rgba(0,196,255,.08); }
+.sh-act-ico { font-size: 18px; line-height: 1; }
+.sh-act-lbl { font-size: 11px; font-weight: 500; white-space: nowrap; }
+
+/* Sub-panels */
+.sub-panel {
+  border-radius: 10px; border: 1px solid var(--border2); background: var(--surface2);
+  overflow: hidden; display: none;
+}
+.sub-panel.open { display: block; }
+.sub-ttl {
+  padding: 10px 14px; font-size: 12px; font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sub-close {
+  background: none; border: none; color: var(--text2); cursor: pointer;
+  font-size: 15px; line-height: 1; padding: 2px;
+}
+.sub-close:hover { color: var(--text); }
+
+/* Timer sub */
+.timer-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px; }
+.timer-chip {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  padding: 6px 13px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); cursor: pointer; transition: all .12s;
+}
+.timer-chip:hover { color: var(--text); border-color: var(--border2); }
+.timer-chip.on { color: var(--accent2); border-color: var(--accent2); background: rgba(0,196,255,.08); }
+.timer-custom {
+  padding: 0 14px 12px; display: flex; align-items: center; gap: 8px;
+}
+.timer-num {
+  width: 58px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px;
+  padding: 5px 8px; outline: none; text-align: center; user-select: auto;
+}
+.timer-num:focus { border-color: var(--accent2); }
+.timer-clbl { font-size: 12px; color: var(--text2); }
+.timer-countdown {
+  padding: 8px 14px 12px; font-family: 'DM Mono', monospace; font-size: 13px;
+  color: var(--accent2); border-top: 1px solid var(--border);
+  display: none; align-items: center; justify-content: space-between;
+}
+.timer-cancel {
+  font-size: 11px; color: var(--danger); background: none;
+  border: 1px solid transparent; border-radius: 4px;
+  padding: 3px 8px; cursor: pointer; transition: border-color .12s;
+}
+.timer-cancel:hover { border-color: var(--danger); }
+
+/* Playlist picker sub */
+.pp-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+  border-top: 1px solid var(--border); cursor: pointer; transition: background .1s;
+}
+.pp-item:first-child { border-top: none; }
+.pp-item:hover { background: rgba(255,255,255,.03); }
+.pp-check {
+  width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; flex-shrink: 0; transition: all .12s;
+}
+.pp-check.on { background: var(--success); border-color: var(--success); color: #000; }
+.pp-name { font-size: 13px; flex: 1; }
+.pp-cnt { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text2); }
+.pp-new { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.pp-new-inp {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+  padding: 5px 9px; outline: none; user-select: auto;
+}
+.pp-new-inp:focus { border-color: var(--accent2); }
+.pp-new-inp::placeholder { color: var(--text2); }
+.pp-new-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 5px;
+  border: 1px solid var(--success); background: rgba(78,255,158,.08);
+  color: var(--success); cursor: pointer; white-space: nowrap; transition: background .12s;
+}
+.pp-new-btn:hover { background: rgba(78,255,158,.15); }
 
 /* ── Toast ── */
 .toast {
-  position: fixed;
-  bottom: calc(var(--player-h) + 12px);
-  left: 50%;
+  position: fixed; bottom: calc(var(--ph) + 10px); left: 50%;
   transform: translateX(-50%) translateY(6px);
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 12px;
-  color: var(--text);
-  opacity: 0;
-  transition: opacity 0.2s, transform 0.2s;
-  pointer-events: none;
-  z-index: 200;
-  white-space: nowrap;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 8px 16px; font-size: 12px; color: var(--text);
+  opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+  z-index: 300; white-space: nowrap;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #444; }
 </style>
 </head>
 <body>
@@ -421,10 +485,7 @@ body {
   <div class="tabs">
     <div class="tab active" data-tab="ogg">OGG</div>
     <div class="tab" data-tab="mp3">MP3</div>
-    <div class="tab" data-tab="playlist">
-      PLAYLIST
-      <span class="pl-badge" id="pl-badge">0</span>
-    </div>
+    <div class="tab" data-tab="playlist">PLAYLIST <span class="badge" id="pl-badge">0</span></div>
   </div>
   <div class="search-wrap">
     <input class="search-input" type="text" id="search-input" placeholder="曲名で検索...">
@@ -433,69 +494,195 @@ body {
 
 <div class="content">
   <div class="tab-panel active" id="panel-ogg">
-    <div class="status-block"><div class="spinner"></div><span>読み込み中...</span></div>
+    <div class="empty"><div class="spinner"></div><span>読み込み中...</span></div>
   </div>
   <div class="tab-panel" id="panel-mp3">
-    <div class="status-block"><div class="spinner"></div><span>読み込み中...</span></div>
+    <div class="empty"><div class="spinner"></div><span>読み込み中...</span></div>
   </div>
-  <div class="tab-panel" id="panel-playlist">
-    <div class="pl-toolbar">
-      <button class="action-btn primary" id="share-btn">🔗 URLをコピー</button>
-      <button class="action-btn" id="clear-btn">🗑 クリア</button>
-      <span class="pl-count" id="pl-count">0曲</span>
+  <div class="tab-panel" id="panel-playlist"></div>
+</div>
+
+<!-- Player bar -->
+<div class="player">
+  <div class="p-info" id="p-info">
+    <div class="p-title" id="p-title">再生停止中</div>
+    <div class="p-meta" id="p-meta">↑ をタップして設定</div>
+  </div>
+  <div class="p-center">
+    <div class="p-ctrl">
+      <button class="cbtn" id="p-prev">⏮</button>
+      <button class="cbtn main" id="p-play">▶</button>
+      <button class="cbtn" id="p-next">⏭</button>
     </div>
-    <div id="playlist-songs">
-      <div class="status-block">
-        <div class="status-icon">🎵</div>
-        <span>OGG・MP3タブから ＋ ボタンで追加してください</span>
-      </div>
+    <div class="p-prog">
+      <span class="ptime" id="p-cur">0:00</span>
+      <div class="prog-track" id="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      <span class="ptime" id="p-dur">0:00</span>
     </div>
+  </div>
+  <div class="p-right">
+    <div class="timer-ind" id="timer-ind">⏱ 0:00</div>
+    <button class="repeat-btn mall" id="repeat-btn" title="再生モード切替">🔁</button>
+    <button class="sheet-trig" id="sheet-trig" title="詳細を開く">↑</button>
   </div>
 </div>
 
-<div class="player">
-  <div class="player-info">
-    <div class="player-title" id="player-title">再生停止中</div>
-    <div class="player-meta" id="player-meta">—</div>
-  </div>
-  <div class="player-controls">
-    <button class="ctrl-btn" id="prev-btn" title="前の曲">⏮</button>
-    <button class="ctrl-btn main" id="play-btn" title="再生/一時停止">▶</button>
-    <button class="ctrl-btn" id="next-btn" title="次の曲">⏭</button>
-  </div>
-  <div class="progress-area">
-    <span class="time" id="cur-time">0:00</span>
-    <div class="progress-track" id="progress-track">
-      <div class="progress-fill" id="progress-fill"></div>
+<!-- Backdrop -->
+<div class="backdrop" id="backdrop"></div>
+
+<!-- Bottom Sheet -->
+<div class="sheet" id="sheet">
+  <div class="sheet-handle" id="sheet-handle"></div>
+  <div class="sheet-body">
+
+    <!-- Now playing -->
+    <div class="sh-now">
+      <div class="sh-title" id="sh-title">—</div>
+      <div class="sh-meta" id="sh-meta">—</div>
     </div>
-    <span class="time" id="dur-time">0:00</span>
-  </div>
-  <div class="vol-area">
-    <span class="vol-icon">🔊</span>
-    <input class="vol-slider" type="range" id="vol-slider" min="0" max="1" step="0.01" value="0.8">
+
+    <!-- Progress -->
+    <div class="sh-prog-area">
+      <div class="sh-prog-track" id="sh-prog-track">
+        <div class="sh-prog-fill" id="sh-prog-fill"></div>
+      </div>
+      <div class="sh-times">
+        <span id="sh-cur">0:00</span>
+        <span id="sh-dur">0:00</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="sh-controls">
+      <button class="sh-ctrl" id="sh-prev">⏮</button>
+      <button class="sh-ctrl main" id="sh-play">▶</button>
+      <button class="sh-ctrl" id="sh-next">⏭</button>
+    </div>
+
+    <!-- Speed -->
+    <div class="sh-sec">
+      <div class="sh-lbl">再生速度</div>
+      <div class="speed-chips" id="speed-chips">
+        <button class="speed-chip" data-speed="0.5">0.5x</button>
+        <button class="speed-chip" data-speed="0.75">0.75x</button>
+        <button class="speed-chip on" data-speed="1">1x</button>
+        <button class="speed-chip" data-speed="1.25">1.25x</button>
+        <button class="speed-chip" data-speed="1.5">1.5x</button>
+        <button class="speed-chip" data-speed="2">2x</button>
+      </div>
+    </div>
+
+    <!-- Volume -->
+    <div class="sh-sec">
+      <div class="sh-lbl">ボリューム</div>
+      <div class="vol-row">
+        <span class="vi">🔇</span>
+        <input class="vol-slider" type="range" id="sh-vol" min="0" max="1" step="0.01" value="0.8">
+        <span class="vi">🔊</span>
+        <span class="vol-val" id="sh-vol-val">80%</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sh-actions">
+      <button class="sh-act" id="timer-act">
+        <span class="sh-act-ico">⏱</span>
+        <span class="sh-act-lbl" id="timer-act-lbl">タイマー</span>
+      </button>
+      <button class="sh-act" id="fav-act">
+        <span class="sh-act-ico" id="fav-ico">♡</span>
+        <span class="sh-act-lbl">お気に入り</span>
+      </button>
+      <button class="sh-act" id="addpl-act">
+        <span class="sh-act-ico">＋</span>
+        <span class="sh-act-lbl">プレイリスト</span>
+      </button>
+    </div>
+
+    <!-- Timer sub-panel -->
+    <div class="sub-panel" id="timer-panel">
+      <div class="sub-ttl">
+        <span>⏱ タイマー設定</span>
+        <button class="sub-close" id="timer-close">✕</button>
+      </div>
+      <div class="timer-chips" id="timer-chips">
+        <button class="timer-chip" data-min="5">5分</button>
+        <button class="timer-chip" data-min="10">10分</button>
+        <button class="timer-chip" data-min="15">15分</button>
+        <button class="timer-chip" data-min="20">20分</button>
+        <button class="timer-chip" data-min="30">30分</button>
+        <button class="timer-chip" data-min="60">60分</button>
+      </div>
+      <div class="timer-custom">
+        <input class="timer-num" type="number" id="timer-num" placeholder="45" min="1" max="999">
+        <span class="timer-clbl">分後に停止</span>
+        <button class="timer-chip" id="timer-set-btn">設定</button>
+      </div>
+      <div class="timer-countdown" id="timer-countdown">
+        <span>残り <span id="timer-rem">0:00</span></span>
+        <button class="timer-cancel" id="timer-cancel">キャンセル</button>
+      </div>
+    </div>
+
+    <!-- Add to playlist sub-panel -->
+    <div class="sub-panel" id="addpl-panel">
+      <div class="sub-ttl">
+        <span>＋ プレイリストに追加</span>
+        <button class="sub-close" id="addpl-close">✕</button>
+      </div>
+      <div id="pp-list"></div>
+      <div class="pp-new">
+        <input class="pp-new-inp" type="text" id="pp-new-inp" placeholder="新規プレイリスト名を入力...">
+        <button class="pp-new-btn" id="pp-new-btn">作成して追加</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Config ──
+'use strict';
+
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
 const URLS = {
   ogg: 'https://raw.githubusercontent.com/Sugar2550/ogg-music-downloader/main/songs_ogg.json',
   mp3: 'https://raw.githubusercontent.com/Sugar2550/ogg-music-downloader/main/songs_mp3.json',
 };
 
-// ── State ──
-const songs   = { ogg: [], mp3: [] };
-let playlist  = [];            // [{ ...song, format }]
-let current   = null;          // { song, format }
-let queue     = [];            // playback queue
-let queueIdx  = -1;
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const songs = { ogg: [], mp3: [] };
 
-const audio   = new Audio();
-audio.volume  = 0.8;
+// Playlists: [{id, name, songs:[{id,format}]}]
+let playlists = lsGet('bgm_playlists', []);
+// Favorites: Set of "fmt:id"
+let favorites = new Set(lsGet('bgm_favorites', []));
 
-// ── Fetch ──
+const audio = new Audio();
+audio.volume = 0.8;
+
+let current    = null;      // {song, format}
+let repeatMode = 'all';     // 'one' | 'all' | 'shuffle'
+let queue      = [];
+let queueIdx   = -1;
+let plView     = null;      // null=list, id=detail
+
+// Timer
+let timerEndTime   = null;
+let timerIntId     = null;
+let timerSetMin    = null;
+
+// Sheet target (song being added to playlist from row + btn)
+let sheetTarget = null; // {fmt, id}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
 async function init() {
   try {
     const [r1, r2] = await Promise.all([fetch(URLS.ogg), fetch(URLS.mp3)]);
@@ -503,291 +690,637 @@ async function init() {
     songs.mp3 = await r2.json();
   } catch (e) {
     ['ogg','mp3'].forEach(f => {
-      document.getElementById('panel-' + f).innerHTML =
-        '<div class="status-block"><div class="status-icon">⚠️</div><span>読み込み失敗: ' + e.message + '</span></div>';
+      ge('panel-' + f).innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><span>読み込み失敗: ${esc(e.message)}</span></div>`;
     });
     return;
   }
   renderList('ogg');
   renderList('mp3');
+  renderPlPanel();
   loadFromURL();
 }
 
-// ── Render song list ──
+// ═══════════════════════════════════════════
+//  RENDER: SONG LISTS
+// ═══════════════════════════════════════════
 function renderList(fmt) {
-  const panel = document.getElementById('panel-' + fmt);
-  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const panel = ge('panel-' + fmt);
+  const q = ge('search-input').value.trim().toLowerCase();
   const list = songs[fmt].filter(s => !q || s.title.toLowerCase().includes(q));
-
-  if (list.length === 0) {
-    panel.innerHTML = '<div class="status-block"><div class="status-icon">🔍</div><span>曲が見つかりませんでした</span></div>';
+  if (!list.length) {
+    panel.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><span>見つかりませんでした</span></div>';
     return;
   }
-
   panel.innerHTML = list.map((s, i) => {
-    const isPlaying = current && current.song.id === s.id && current.format === fmt;
-    const inPL = playlist.some(p => p.id === s.id && p.format === fmt);
-    return `<div class="song-row${isPlaying ? ' playing' : ''}">
-      <span class="song-num">${i + 1}</span>
-      <span class="song-title">${esc(s.title)}</span>
-      <span class="song-version">v${esc(s.version)}</span>
-      <div class="song-actions">
-        <button class="btn play-btn${isPlaying ? ' active' : ''}" title="再生"
-          onclick="playSong('${fmt}',${s.id})">▶</button>
-        <button class="btn add-btn${inPL ? ' in-pl' : ''}" title="プレイリストに追加"
-          onclick="togglePlaylist('${fmt}',${s.id})">＋</button>
-        <button class="btn dl-btn" title="ダウンロード"
-          onclick="downloadSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
+    const playing = isCurrent(fmt, s.id);
+    const fav = favorites.has(fmt + ':' + s.id);
+    return `<div class="song-row${playing ? ' playing' : ''}">
+      <span class="s-num">${i + 1}</span>
+      <div class="s-ind">${playing ? '<div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>' : ''}</div>
+      <span class="s-title">${esc(s.title)}</span>
+      <span class="s-fav${fav ? ' on' : ''}">♥</span>
+      <span class="s-ver">v${esc(s.version)}</span>
+      <div class="s-acts">
+        <button class="btn bplay${playing ? ' on' : ''}" title="再生"
+          onclick="event.stopPropagation();playSong('${fmt}',${s.id})">▶</button>
+        <button class="btn badd" title="プレイリスト"
+          onclick="event.stopPropagation();openSheetForSong('${fmt}',${s.id})">＋</button>
+        <button class="btn bdl" title="ダウンロード"
+          onclick="event.stopPropagation();dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── Play ──
-function playSong(fmt, id) {
-  const song = songs[fmt].find(s => s.id === id);
-  if (!song) return;
+// ═══════════════════════════════════════════
+//  RENDER: PLAYLIST PANEL
+// ═══════════════════════════════════════════
+function renderPlPanel() {
+  const panel = ge('panel-playlist');
 
-  // Toggle if same track
-  if (current && current.song.id === id && current.format === fmt) {
-    audio.paused ? audio.play() : audio.pause();
-    return;
-  }
+  if (plView !== null) {
+    const pl = playlists.find(p => p.id === plView);
+    if (!pl) { plView = null; renderPlPanel(); return; }
+    const slist = pl.songs.map(ref => {
+      const s = songs[ref.format] && songs[ref.format].find(x => x.id === ref.id);
+      return s ? { ...s, format: ref.format } : null;
+    }).filter(Boolean);
 
-  current = { song, format: fmt };
-  audio.src = song.file;
-  audio.play().catch(() => showToast('❌ 再生できませんでした (URLを確認してください)'));
-
-  // Build queue from active context
-  const activeTab = document.querySelector('.tab.active').dataset.tab;
-  if (activeTab === 'playlist') {
-    queue = [...playlist];
-    queueIdx = queue.findIndex(p => p.id === id && p.format === fmt);
+    panel.innerHTML = `
+      <div class="pl-hdr">
+        <button class="pl-back" onclick="plView=null;renderPlPanel()">← 戻る</button>
+        <div class="pl-hdr-title">${esc(pl.name)}</div>
+        <div class="pl-hdr-acts">
+          <button class="abtn" onclick="playAllPl('${pl.id}')">▶ 全曲再生</button>
+          <button class="abtn pri" onclick="sharePl('${pl.id}')">🔗 共有</button>
+        </div>
+      </div>
+      ${!slist.length
+        ? '<div class="empty"><div class="empty-icon">🎵</div><span>曲がありません</span></div>'
+        : slist.map((s, i) => {
+          const playing = isCurrent(s.format, s.id);
+          return `<div class="song-row${playing ? ' playing' : ''}">
+            <span class="s-num">${i + 1}</span>
+            <div class="s-ind">${playing ? '<div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>' : ''}</div>
+            <span class="s-title">${esc(s.title)}</span>
+            <span class="s-fmt">${s.format.toUpperCase()}</span>
+            <div class="s-acts">
+              <button class="btn bplay${playing ? ' on' : ''}" title="再生"
+                onclick="playSongInPl('${pl.id}',${i})">▶</button>
+              <button class="btn bdl" title="ダウンロード"
+                onclick="dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
+              <button class="btn brm" title="削除"
+                onclick="removeFromPl('${pl.id}','${s.format}',${s.id})">✕</button>
+            </div>
+          </div>`;
+        }).join('')}`;
   } else {
-    queue = songs[fmt].map(s => ({ ...s, format: fmt }));
-    queueIdx = queue.findIndex(p => p.id === id);
+    panel.innerHTML = `
+      <div class="pl-hdr">
+        <div class="pl-hdr-title">プレイリスト</div>
+        <div class="pl-hdr-acts">
+          <button class="abtn pri" id="new-pl-btn">＋ 新規作成</button>
+        </div>
+      </div>
+      <div id="new-pl-area"></div>
+      ${!playlists.length
+        ? '<div class="empty"><div class="empty-icon">🗂</div><span>プレイリストがありません<br>「新規作成」から追加してください</span></div>'
+        : playlists.map(pl => `
+          <div class="pl-card">
+            <div class="pl-icon" onclick="plView='${pl.id}';renderPlPanel()">🎵</div>
+            <div class="pl-info" onclick="plView='${pl.id}';renderPlPanel()">
+              <div class="pl-name">${esc(pl.name)}</div>
+              <div class="pl-cnt-lbl">${pl.songs.length}曲</div>
+            </div>
+            <div class="pl-card-acts">
+              <button class="btn bplay" title="全曲再生"
+                onclick="event.stopPropagation();playAllPl('${pl.id}')">▶</button>
+              <button class="btn brm" title="削除"
+                onclick="event.stopPropagation();deletePl('${pl.id}')">🗑</button>
+            </div>
+          </div>`).join('')}`;
+
+    const nbtn = ge('new-pl-btn');
+    if (nbtn) nbtn.addEventListener('click', showNewPlForm);
   }
 
-  updatePlayerBar();
+  // Badge: number of playlists
+  const badge = ge('pl-badge');
+  badge.textContent = playlists.length;
+  badge.classList.toggle('on', playlists.length > 0);
+}
+
+function showNewPlForm() {
+  const area = ge('new-pl-area');
+  if (!area) return;
+  area.innerHTML = `<div class="new-pl-form">
+    <input class="txt-input" style="flex:1" type="text" id="new-pl-inp" placeholder="プレイリスト名を入力...">
+    <button class="abtn pri" id="new-pl-ok">作成</button>
+    <button class="abtn" id="new-pl-cancel">取消</button>
+  </div>`;
+  const inp = ge('new-pl-inp');
+  inp.focus();
+  ge('new-pl-ok').onclick = () => createPlaylist(inp.value);
+  ge('new-pl-cancel').onclick = () => { area.innerHTML = ''; };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') createPlaylist(inp.value); });
+}
+
+// ═══════════════════════════════════════════
+//  PLAYLIST CRUD
+// ═══════════════════════════════════════════
+function createPlaylist(name, returnId) {
+  const n = (name || '').trim();
+  if (!n) { showToast('名前を入力してください'); return null; }
+  const id = 'pl_' + Date.now();
+  playlists.push({ id, name: n, songs: [] });
+  lsSave('bgm_playlists', playlists);
+  renderPlPanel();
+  showToast(`プレイリスト「${n}」を作成しました ✓`);
+  return id;
+}
+
+function deletePl(id) {
+  if (!confirm('プレイリストを削除しますか？')) return;
+  playlists = playlists.filter(p => p.id !== id);
+  lsSave('bgm_playlists', playlists);
+  renderPlPanel();
+  showToast('削除しました');
+}
+
+function removeFromPl(plId, fmt, id) {
+  const pl = playlists.find(p => p.id === plId);
+  if (!pl) return;
+  pl.songs = pl.songs.filter(s => !(s.id === id && s.format === fmt));
+  lsSave('bgm_playlists', playlists);
+  renderPlPanel();
   renderList('ogg');
   renderList('mp3');
-  renderPlaylist();
+  showToast('削除しました');
 }
 
-function updatePlayerBar() {
+function playAllPl(plId) {
+  const pl = playlists.find(p => p.id === plId);
+  if (!pl || !pl.songs.length) { showToast('曲がありません'); return; }
+  queue = resolveQueue(pl.songs);
+  queueIdx = 0;
+  if (queue[0]) _play(queue[0].format, queue[0].id);
+}
+
+function playSongInPl(plId, idx) {
+  const pl = playlists.find(p => p.id === plId);
+  if (!pl) return;
+  queue = resolveQueue(pl.songs);
+  queueIdx = idx;
+  if (queue[idx]) _play(queue[idx].format, queue[idx].id);
+}
+
+function resolveQueue(refs) {
+  return refs.map(ref => {
+    const s = songs[ref.format] && songs[ref.format].find(x => x.id === ref.id);
+    return s ? { ...s, format: ref.format } : null;
+  }).filter(Boolean);
+}
+
+// ═══════════════════════════════════════════
+//  PLAYBACK
+// ═══════════════════════════════════════════
+function playSong(fmt, id) {
+  if (isCurrent(fmt, id)) { audio.paused ? audio.play() : audio.pause(); return; }
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  if (activeTab === 'playlist' && plView) {
+    const pl = playlists.find(p => p.id === plView);
+    if (pl) {
+      queue = resolveQueue(pl.songs);
+      queueIdx = queue.findIndex(s => s.id === id && s.format === fmt);
+    }
+  } else {
+    queue = songs[fmt].map(s => ({ ...s, format: fmt }));
+    queueIdx = queue.findIndex(s => s.id === id);
+  }
+  _play(fmt, id);
+}
+
+function _play(fmt, id) {
+  const song = songs[fmt] && songs[fmt].find(s => s.id === id);
+  if (!song) return;
+  current = { song, format: fmt };
+  // Seamless loop: audio.loop lets the browser handle buffer looping with no gap
+  audio.loop = (repeatMode === 'one');
+  audio.src = song.file;
+  audio.play().catch(() => showToast('❌ 再生できませんでした'));
+  updateBar();
+  updateSheetNow();
+  updateFavBtn();
+  renderList('ogg');
+  renderList('mp3');
+  if (plView) renderPlPanel();
+}
+
+function updateBar() {
   if (!current) return;
-  document.getElementById('player-title').textContent = current.song.title;
-  document.getElementById('player-meta').textContent =
-    current.format.toUpperCase() + ' · v' + current.song.version;
+  ge('p-title').textContent = current.song.title;
+  ge('p-meta').textContent = current.format.toUpperCase() + ' · v' + current.song.version;
 }
 
-function setPlayBtn(paused) {
-  document.getElementById('play-btn').textContent = paused ? '▶' : '⏸';
-}
-
-// ── Audio events ──
-audio.addEventListener('timeupdate', () => {
-  if (!audio.duration) return;
-  const p = (audio.currentTime / audio.duration) * 100;
-  document.getElementById('progress-fill').style.width = p + '%';
-  document.getElementById('cur-time').textContent = fmtTime(audio.currentTime);
-});
-audio.addEventListener('loadedmetadata', () => {
-  document.getElementById('dur-time').textContent = fmtTime(audio.duration);
-});
-audio.addEventListener('ended',  () => playNext());
-audio.addEventListener('play',   () => setPlayBtn(false));
-audio.addEventListener('pause',  () => setPlayBtn(true));
-
-document.getElementById('progress-track').addEventListener('click', e => {
-  if (!audio.duration) return;
-  const r = e.currentTarget.getBoundingClientRect();
-  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
-});
-document.getElementById('play-btn').addEventListener('click', () => {
+function updateSheetNow() {
   if (!current) return;
-  audio.paused ? audio.play() : audio.pause();
-});
-document.getElementById('prev-btn').addEventListener('click', playPrev);
-document.getElementById('next-btn').addEventListener('click', playNext);
-document.getElementById('vol-slider').addEventListener('input', e => {
-  audio.volume = parseFloat(e.target.value);
-});
+  ge('sh-title').textContent = current.song.title;
+  ge('sh-meta').textContent = current.format.toUpperCase() + ' · v' + current.song.version;
+}
+
+function setPlayBtns(paused) {
+  ge('p-play').textContent = paused ? '▶' : '⏸';
+  ge('sh-play').textContent = paused ? '▶' : '⏸';
+}
 
 function playNext() {
   if (!queue.length) return;
-  queueIdx = (queueIdx + 1) % queue.length;
+  queueIdx = repeatMode === 'shuffle'
+    ? Math.floor(Math.random() * queue.length)
+    : (queueIdx + 1) % queue.length;
   const t = queue[queueIdx];
-  playSong(t.format, t.id);
+  if (t) _play(t.format, t.id);
 }
+
 function playPrev() {
   if (!queue.length) return;
   queueIdx = (queueIdx - 1 + queue.length) % queue.length;
   const t = queue[queueIdx];
-  playSong(t.format, t.id);
+  if (t) _play(t.format, t.id);
 }
 
-function fmtTime(s) {
-  if (isNaN(s) || s === Infinity) return '0:00';
-  return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function isCurrent(fmt, id) {
+  return current && current.song.id === id && current.format === fmt;
 }
 
-// ── Playlist ──
-function togglePlaylist(fmt, id) {
-  const song = songs[fmt].find(s => s.id === id);
-  if (!song) return;
-  const idx = playlist.findIndex(p => p.id === id && p.format === fmt);
-  if (idx >= 0) {
-    playlist.splice(idx, 1);
-    showToast('プレイリストから削除しました');
+// ═══════════════════════════════════════════
+//  AUDIO EVENTS
+// ═══════════════════════════════════════════
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  ge('prog-fill').style.width = pct + '%';
+  ge('sh-prog-fill').style.width = pct + '%';
+  const ct = fmtTime(audio.currentTime);
+  ge('p-cur').textContent = ct;
+  ge('sh-cur').textContent = ct;
+});
+audio.addEventListener('loadedmetadata', () => {
+  const d = fmtTime(audio.duration);
+  ge('p-dur').textContent = d;
+  ge('sh-dur').textContent = d;
+});
+audio.addEventListener('ended', () => {
+  // 'one' mode: audio.loop handles seamless repeat internally
+  if (repeatMode !== 'one') playNext();
+});
+audio.addEventListener('play',  () => setPlayBtns(false));
+audio.addEventListener('pause', () => setPlayBtns(true));
+
+ge('prog-track').addEventListener('click', e => seekAudio(e, e.currentTarget));
+ge('sh-prog-track').addEventListener('click', e => seekAudio(e, e.currentTarget));
+function seekAudio(e, el) {
+  if (!audio.duration) return;
+  const r = el.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+}
+
+ge('p-play').addEventListener('click', () => { if (current) { audio.paused ? audio.play() : audio.pause(); } });
+ge('sh-play').addEventListener('click', () => { if (current) { audio.paused ? audio.play() : audio.pause(); } });
+ge('p-prev').addEventListener('click', playPrev);
+ge('p-next').addEventListener('click', playNext);
+ge('sh-prev').addEventListener('click', playPrev);
+ge('sh-next').addEventListener('click', playNext);
+
+// ═══════════════════════════════════════════
+//  VOLUME
+// ═══════════════════════════════════════════
+ge('sh-vol').addEventListener('input', e => {
+  audio.volume = parseFloat(e.target.value);
+  ge('sh-vol-val').textContent = Math.round(audio.volume * 100) + '%';
+});
+
+// ═══════════════════════════════════════════
+//  SPEED
+// ═══════════════════════════════════════════
+ge('speed-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.speed-chip');
+  if (!chip || !chip.dataset.speed) return;
+  document.querySelectorAll('.speed-chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+  audio.playbackRate = parseFloat(chip.dataset.speed);
+  showToast('再生速度: ' + chip.textContent);
+});
+
+// ═══════════════════════════════════════════
+//  REPEAT MODE
+// ═══════════════════════════════════════════
+const MODES = ['all', 'shuffle', 'one'];
+const MODE_ICON = { all: '🔁', shuffle: '🔀', one: '🔂' };
+const MODE_CLS  = { all: 'mall', shuffle: 'mshuffle', one: 'mone' };
+const MODE_LBL  = { all: '順番に再生', shuffle: 'シャッフル', one: '1曲リピート' };
+ge('repeat-btn').addEventListener('click', () => {
+  repeatMode = MODES[(MODES.indexOf(repeatMode) + 1) % MODES.length];
+  const btn = ge('repeat-btn');
+  btn.textContent = MODE_ICON[repeatMode];
+  btn.className = 'repeat-btn ' + MODE_CLS[repeatMode];
+  btn.title = MODE_LBL[repeatMode];
+  audio.loop = (repeatMode === 'one');
+  showToast(MODE_LBL[repeatMode]);
+});
+
+// ═══════════════════════════════════════════
+//  FAVORITES
+// ═══════════════════════════════════════════
+ge('fav-act').addEventListener('click', toggleFavorite);
+function toggleFavorite() {
+  if (!current) { showToast('再生中の曲がありません'); return; }
+  const key = current.format + ':' + current.song.id;
+  if (favorites.has(key)) {
+    favorites.delete(key);
+    showToast('お気に入りから削除しました');
   } else {
-    playlist.push({ ...song, format: fmt });
-    showToast('プレイリストに追加しました ✓');
+    favorites.add(key);
+    showToast('お気に入りに追加しました ♥');
   }
-  syncPLBadge();
+  lsSave('bgm_favorites', [...favorites]);
+  updateFavBtn();
   renderList('ogg');
   renderList('mp3');
-  renderPlaylist();
+}
+function updateFavBtn() {
+  if (!current) { ge('fav-act').classList.remove('fav-on'); ge('fav-ico').textContent = '♡'; return; }
+  const on = favorites.has(current.format + ':' + current.song.id);
+  ge('fav-act').classList.toggle('fav-on', on);
+  ge('fav-ico').textContent = on ? '♥' : '♡';
 }
 
-function removeFromPlaylist(fmt, id) {
-  playlist = playlist.filter(p => !(p.id === id && p.format === fmt));
-  syncPLBadge();
-  renderList('ogg');
-  renderList('mp3');
-  renderPlaylist();
+// ═══════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════
+ge('timer-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.timer-chip[data-min]');
+  if (!chip) return;
+  startTimer(parseInt(chip.dataset.min));
+});
+ge('timer-set-btn').addEventListener('click', () => {
+  const v = parseInt(ge('timer-num').value);
+  if (!v || v < 1) { showToast('分数を入力してください'); return; }
+  startTimer(v);
+});
+ge('timer-cancel').addEventListener('click', cancelTimer);
+ge('timer-close').addEventListener('click', () => ge('timer-panel').classList.remove('open'));
+ge('timer-act').addEventListener('click', () => {
+  ge('addpl-panel').classList.remove('open');
+  ge('timer-panel').classList.toggle('open');
+  updateTimerPanel();
+});
+
+function startTimer(min) {
+  cancelTimerImpl();
+  timerSetMin = min;
+  timerEndTime = Date.now() + min * 60000;
+  timerIntId = setInterval(tickTimer, 1000);
+  tickTimer();
+  updateTimerPanel();
+  ge('timer-act').classList.add('timer-on');
+  ge('timer-act-lbl').textContent = fmtTime(min * 60);
+  showToast(`⏱ ${min}分後に停止します`);
 }
 
-function renderPlaylist() {
-  const container = document.getElementById('playlist-songs');
-  document.getElementById('pl-count').textContent = playlist.length + '曲';
+function cancelTimer() {
+  cancelTimerImpl();
+  updateTimerPanel();
+  ge('timer-act').classList.remove('timer-on');
+  ge('timer-act-lbl').textContent = 'タイマー';
+  ge('timer-ind').classList.remove('on');
+  showToast('タイマーをキャンセルしました');
+}
 
-  if (playlist.length === 0) {
-    container.innerHTML = '<div class="status-block"><div class="status-icon">🎵</div><span>OGG・MP3タブから ＋ ボタンで追加してください</span></div>';
+function cancelTimerImpl() {
+  clearInterval(timerIntId);
+  timerIntId = null; timerEndTime = null; timerSetMin = null;
+}
+
+function tickTimer() {
+  if (!timerEndTime) return;
+  const remaining = timerEndTime - Date.now();
+  if (remaining <= 0) {
+    audio.pause();
+    cancelTimerImpl();
+    ge('timer-act').classList.remove('timer-on');
+    ge('timer-act-lbl').textContent = 'タイマー';
+    ge('timer-ind').classList.remove('on');
+    updateTimerPanel();
+    showToast('⏱ タイマーで停止しました');
     return;
   }
+  const secs = Math.ceil(remaining / 1000);
+  const disp = fmtTime(secs);
+  ge('timer-ind').textContent = '⏱ ' + disp;
+  ge('timer-ind').classList.add('on');
+  ge('timer-act-lbl').textContent = disp;
+  const rem = ge('timer-rem');
+  if (rem) rem.textContent = disp;
+}
 
-  container.innerHTML = playlist.map((s, i) => {
-    const isPlaying = current && current.song.id === s.id && current.format === s.format;
-    return `<div class="song-row${isPlaying ? ' playing' : ''}">
-      <span class="song-num">${i + 1}</span>
-      <span class="song-title">${esc(s.title)}</span>
-      <span class="song-fmt-badge">${s.format.toUpperCase()}</span>
-      <div class="song-actions">
-        <button class="btn play-btn${isPlaying ? ' active' : ''}" title="再生"
-          onclick="playSong('${s.format}',${s.id})">▶</button>
-        <button class="btn dl-btn" title="ダウンロード"
-          onclick="downloadSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
-        <button class="btn remove-btn" title="削除"
-          onclick="removeFromPlaylist('${s.format}',${s.id})">✕</button>
-      </div>
+function updateTimerPanel() {
+  const cd = ge('timer-countdown');
+  document.querySelectorAll('.timer-chip[data-min]').forEach(c => {
+    c.classList.toggle('on', parseInt(c.dataset.min) === timerSetMin);
+  });
+  cd.style.display = timerEndTime ? 'flex' : 'none';
+}
+
+// ═══════════════════════════════════════════
+//  SHEET
+// ═══════════════════════════════════════════
+function openSheet() {
+  ge('sheet').classList.add('open');
+  ge('backdrop').classList.add('open');
+  updateSheetNow();
+  updateFavBtn();
+  updateTimerPanel();
+  ge('sh-vol').value = audio.volume;
+  ge('sh-vol-val').textContent = Math.round(audio.volume * 100) + '%';
+}
+function closeSheet() {
+  ge('sheet').classList.remove('open');
+  ge('backdrop').classList.remove('open');
+  sheetTarget = null;
+}
+
+ge('p-info').addEventListener('click', openSheet);
+ge('sheet-trig').addEventListener('click', openSheet);
+ge('backdrop').addEventListener('click', closeSheet);
+ge('sheet-handle').addEventListener('click', closeSheet);
+
+// ═══════════════════════════════════════════
+//  ADD TO PLAYLIST (sheet sub-panel)
+// ═══════════════════════════════════════════
+function openSheetForSong(fmt, id) {
+  sheetTarget = { fmt, id };
+  openSheet();
+  ge('timer-panel').classList.remove('open');
+  ge('addpl-panel').classList.add('open');
+  renderPPList();
+}
+
+ge('addpl-act').addEventListener('click', () => {
+  sheetTarget = current ? { fmt: current.format, id: current.song.id } : null;
+  ge('timer-panel').classList.remove('open');
+  ge('addpl-panel').classList.toggle('open');
+  if (ge('addpl-panel').classList.contains('open')) renderPPList();
+});
+ge('addpl-close').addEventListener('click', () => ge('addpl-panel').classList.remove('open'));
+
+function renderPPList() {
+  const target = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
+  const container = ge('pp-list');
+  if (!playlists.length) {
+    container.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">プレイリストがありません</div>';
+    return;
+  }
+  container.innerHTML = playlists.map(pl => {
+    const inPl = target && pl.songs.some(s => s.id === target.id && s.format === target.fmt);
+    return `<div class="pp-item" onclick="toggleInPl('${pl.id}')">
+      <div class="pp-check${inPl ? ' on' : ''}">${inPl ? '✓' : ''}</div>
+      <span class="pp-name">${esc(pl.name)}</span>
+      <span class="pp-cnt">${pl.songs.length}曲</span>
     </div>`;
   }).join('');
 }
 
-function syncPLBadge() {
-  const badge = document.getElementById('pl-badge');
-  if (playlist.length > 0) {
-    badge.textContent = playlist.length;
-    badge.classList.add('visible');
+function toggleInPl(plId) {
+  const target = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
+  if (!target) return;
+  const pl = playlists.find(p => p.id === plId);
+  if (!pl) return;
+  const idx = pl.songs.findIndex(s => s.id === target.id && s.format === target.fmt);
+  if (idx >= 0) {
+    pl.songs.splice(idx, 1);
+    showToast(`「${pl.name}」から削除しました`);
   } else {
-    badge.classList.remove('visible');
+    pl.songs.push({ id: target.id, format: target.fmt });
+    showToast(`「${pl.name}」に追加しました ✓`);
   }
+  lsSave('bgm_playlists', playlists);
+  renderPPList();
+  renderPlPanel();
+  renderList('ogg');
+  renderList('mp3');
 }
 
-// ── Share / URL ──
-// Encoding: ogg id = "1001", mp3 id = "m1001"
-document.getElementById('share-btn').addEventListener('click', () => {
-  if (!playlist.length) { showToast('プレイリストが空です'); return; }
-  const ids = playlist.map(p => (p.format === 'mp3' ? 'm' : '') + p.id).join(',');
-  const url = location.origin + location.pathname + '?sd=' + ids;
+ge('pp-new-btn').addEventListener('click', () => {
+  const name = ge('pp-new-inp').value.trim();
+  if (!name) { showToast('名前を入力してください'); return; }
+  const id = createPlaylist(name);
+  if (id && sheetTarget) {
+    const pl = playlists.find(p => p.id === id);
+    if (pl) {
+      pl.songs.push({ id: sheetTarget.id, format: sheetTarget.fmt });
+      lsSave('bgm_playlists', playlists);
+      showToast(`「${name}」に追加しました ✓`);
+    }
+  }
+  ge('pp-new-inp').value = '';
+  renderPPList();
+  renderPlPanel();
+});
+
+// ═══════════════════════════════════════════
+//  SHARE / URL
+// ═══════════════════════════════════════════
+function sharePl(plId) {
+  const pl = playlists.find(p => p.id === plId);
+  if (!pl || !pl.songs.length) { showToast('曲がありません'); return; }
+  const ids = pl.songs.map(s => (s.format === 'mp3' ? 'm' : '') + s.id).join(',');
+  const url = location.origin + location.pathname + '?pl=' + encodeURIComponent(pl.name) + '&sd=' + ids;
   navigator.clipboard.writeText(url)
     .then(() => showToast('URLをコピーしました 🔗'))
     .catch(() => { prompt('このURLをコピーしてください:', url); });
-});
-
-document.getElementById('clear-btn').addEventListener('click', () => {
-  if (!playlist.length) return;
-  playlist = [];
-  syncPLBadge();
-  renderPlaylist();
-  renderList('ogg');
-  renderList('mp3');
-  showToast('プレイリストをクリアしました');
-});
+}
 
 function loadFromURL() {
-  const sd = new URLSearchParams(location.search).get('sd');
+  const p = new URLSearchParams(location.search);
+  const sd = p.get('sd');
   if (!sd) return;
-  let added = 0;
+  const name = p.get('pl') || '共有プレイリスト';
+  const id = 'pl_' + Date.now();
+  const songs_in = [];
   sd.split(',').forEach(raw => {
     const isMp3 = raw.startsWith('m');
-    const id = parseInt(isMp3 ? raw.slice(1) : raw);
+    const songId = parseInt(isMp3 ? raw.slice(1) : raw);
     const fmt = isMp3 ? 'mp3' : 'ogg';
-    const song = songs[fmt].find(s => s.id === id);
-    if (song && !playlist.some(p => p.id === id && p.format === fmt)) {
-      playlist.push({ ...song, format: fmt });
-      added++;
+    if (songs[fmt] && songs[fmt].find(s => s.id === songId)) {
+      songs_in.push({ id: songId, format: fmt });
     }
   });
-  if (added > 0) {
-    syncPLBadge();
-    renderPlaylist();
-    showToast('プレイリストを読み込みました (' + added + '曲) 🎵');
+  if (songs_in.length) {
+    playlists.push({ id, name, songs: songs_in });
+    lsSave('bgm_playlists', playlists);
+    renderPlPanel();
+    showToast(`「${name}」を読み込みました (${songs_in.length}曲) 🎵`);
   }
 }
 
-// ── Download ──
-function downloadSong(fileUrl, title) {
+// ═══════════════════════════════════════════
+//  DOWNLOAD
+// ═══════════════════════════════════════════
+function dlSong(url, title) {
   const a = document.createElement('a');
-  a.href = fileUrl;
-  a.download = title;
-  a.target   = '_blank';
-  a.rel      = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = title; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   showToast('ダウンロード開始 ↓');
 }
 
-// ── Tabs ──
+// ═══════════════════════════════════════════
+//  TABS + SEARCH
+// ═══════════════════════════════════════════
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-    if (tab.dataset.tab === 'playlist') queue = [...playlist];
+    ge('panel-' + tab.dataset.tab).classList.add('active');
   });
 });
 
-// ── Search ──
-let searchTimer;
-document.getElementById('search-input').addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { renderList('ogg'); renderList('mp3'); }, 180);
+let searchT;
+ge('search-input').addEventListener('input', () => {
+  clearTimeout(searchT);
+  searchT = setTimeout(() => { renderList('ogg'); renderList('mp3'); }, 160);
 });
 
-// ── Toast ──
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function fmtTime(s) {
+  if (isNaN(s) || !isFinite(s) || s < 0) return '0:00';
+  return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 }
-
-// ── Util ──
 function esc(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function ge(id) { return document.getElementById(id); }
+
+let toastT;
+function showToast(msg) {
+  const t = ge('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-// ── Start ──
+function lsGet(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
+  catch { return def; }
+}
+function lsSave(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+// ─── START ───
 init();
 </script>
 </body>
