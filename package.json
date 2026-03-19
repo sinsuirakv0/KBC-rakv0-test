@@ -9,6 +9,7 @@
     "start": "node ./api/proxy.js"
   },
   "dependencies": {
-    "formidable": "^3.0.0"
+    "formidable": "^3.0.0",
+    "uuid": "^9.0.1"
   }
 }
