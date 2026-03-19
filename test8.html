@@ -6,299 +6,279 @@
   <title>にゃんこ大戦争 引き継ぎコード発行</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
+      background: #1a1a2e; color: #e0e0e0;
+      min-height: 100vh; display: flex; align-items: flex-start;
+      justify-content: center; padding: 2rem 1rem;
     }
-
     .card {
-      background: #16213e;
-      border: 1px solid #0f3460;
-      border-radius: 16px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 480px;
+      background: #16213e; border: 1px solid #0f3460; border-radius: 16px;
+      padding: 2rem; width: 100%; max-width: 520px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-
-    h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #e94560;
-      margin-bottom: 0.25rem;
-    }
-
-    .subtitle {
-      font-size: 0.85rem;
-      color: #888;
-      margin-bottom: 1.75rem;
-    }
+    h1 { font-size: 1.4rem; font-weight: 700; color: #e94560; margin-bottom: 0.2rem; }
+    .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 1.5rem; }
 
     .drop-zone {
-      border: 2px dashed #0f3460;
-      border-radius: 12px;
-      padding: 2rem 1rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #0d1b2a;
-      margin-bottom: 1.25rem;
+      border: 2px dashed #0f3460; border-radius: 12px; padding: 2rem 1rem;
+      text-align: center; cursor: pointer; transition: all 0.2s;
+      background: #0d1b2a; margin-bottom: 1rem;
     }
-
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: #e94560;
-      background: #1a1035;
-    }
-
+    .drop-zone:hover, .drop-zone.dragover { border-color: #e94560; background: #1a1035; }
     .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
     .drop-zone .label { font-size: 0.9rem; color: #aaa; }
-    .drop-zone .filename {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: #e94560;
-      font-weight: 600;
-    }
-
+    .drop-zone .filename { margin-top: 0.5rem; font-size: 0.85rem; color: #e94560; font-weight: 600; }
     input[type="file"] { display: none; }
 
+    .btn-row { display: flex; gap: 0.6rem; margin-bottom: 0; }
     .btn {
-      width: 100%;
-      padding: 0.85rem;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #e94560;
-      color: #fff;
+      flex: 1; padding: 0.75rem; border: none; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
     }
-    .btn:hover:not(:disabled) { background: #c73652; transform: translateY(-1px); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-parse  { background: #0f3460; color: #7ec8e3; }
+    .btn-parse:hover:not(:disabled)  { background: #1a4f8a; }
+    .btn-upload { background: #e94560; color: #fff; }
+    .btn-upload:hover:not(:disabled) { background: #c73652; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .status {
-      margin-top: 1.25rem;
-      padding: 1rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      display: none;
+      margin-top: 1rem; padding: 0.8rem 1rem; border-radius: 10px;
+      font-size: 0.88rem; display: none;
     }
     .status.loading { display: block; background: #0f3460; color: #7ec8e3; }
     .status.error   { display: block; background: #3d0a14; color: #ff6b6b; }
     .status.success { display: block; background: #0a3d1e; color: #6bffb8; }
 
     .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid currentColor; border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      vertical-align: middle; margin-right: 5px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* パース結果テーブル */
+    .parse-box {
+      margin-top: 1rem; display: none;
+      background: #0a1628; border: 1px solid #0f3460; border-radius: 12px; overflow: hidden;
+    }
+    .parse-box.show { display: block; }
+    .parse-box-title {
+      padding: 0.6rem 1rem; background: #0f3460;
+      font-size: 0.8rem; font-weight: 700; color: #7ec8e3;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .parse-table { width: 100%; border-collapse: collapse; }
+    .parse-table tr { border-bottom: 1px solid #0f3460; }
+    .parse-table tr:last-child { border-bottom: none; }
+    .parse-table td { padding: 0.55rem 1rem; font-size: 0.85rem; }
+    .parse-table td:first-child { color: #888; width: 52%; }
+    .parse-table td:last-child  { color: #e0e0e0; font-family: 'Courier New', monospace; word-break: break-all; }
+    .val-ok   { color: #6bffb8 !important; }
+    .val-warn { color: #ffcc44 !important; }
+    .val-bad  { color: #ff6b6b !important; }
+
+    /* 引き継ぎコード */
     .result-box {
-      margin-top: 1.25rem;
-      display: none;
-      background: #0a1628;
-      border: 1px solid #0f3460;
-      border-radius: 12px;
-      overflow: hidden;
+      margin-top: 1rem; display: none;
+      background: #0a1628; border: 1px solid #0f3460; border-radius: 12px; overflow: hidden;
     }
     .result-box.show { display: block; }
-
-    .result-row {
-      padding: 0.9rem 1.1rem;
-      border-bottom: 1px solid #0f3460;
-    }
+    .result-row { padding: 0.9rem 1.1rem; border-bottom: 1px solid #0f3460; }
     .result-row:last-child { border-bottom: none; }
-
-    .result-label {
-      font-size: 0.75rem;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.3rem;
-    }
-
-    .result-value {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #e94560;
-      font-family: 'Courier New', monospace;
-      letter-spacing: 0.08em;
-    }
-
+    .result-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .result-value { font-size: 1.35rem; font-weight: 700; color: #e94560; font-family: 'Courier New', monospace; letter-spacing: 0.08em; }
     .copy-btn {
-      float: right;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.6rem;
-      background: #0f3460;
-      color: #aaa;
-      border: 1px solid #1a4080;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: 0.15s;
+      float: right; font-size: 0.75rem; padding: 0.2rem 0.6rem;
+      background: #0f3460; color: #aaa; border: 1px solid #1a4080;
+      border-radius: 6px; cursor: pointer; transition: 0.15s;
     }
     .copy-btn:hover { background: #1a4080; color: #fff; }
     .copy-btn.copied { color: #6bffb8; border-color: #6bffb8; }
-
-    .steps {
-      font-size: 0.78rem;
-      color: #888;
-      margin-top: 1rem;
-      padding: 0.9rem;
-      background: #0d1b2a;
-      border-radius: 8px;
-      line-height: 1.6;
-    }
-    .steps strong { color: #aaa; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🐱 引き継ぎコード発行</h1>
-    <p class="subtitle">セーブファイルをアップロードして引き継ぎコードを取得</p>
+<div class="card">
+  <h1>🐱 引き継ぎコード発行</h1>
+  <p class="subtitle">セーブファイルをアップロードして引き継ぎコードを取得</p>
 
-    <div class="drop-zone" id="dropZone">
-      <div class="icon">📁</div>
-      <div class="label">クリックまたはドラッグ&ドロップ</div>
-      <div class="label">SAVE_DATA ファイルを選択</div>
-      <div class="filename" id="fileName"></div>
-    </div>
-    <input type="file" id="fileInput" accept="*/*" />
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">📁</div>
+    <div class="label">クリックまたはドラッグ&ドロップ</div>
+    <div class="label">SAVE_DATA ファイルを選択</div>
+    <div class="filename" id="fileName"></div>
+  </div>
+  <input type="file" id="fileInput" />
 
-    <button class="btn" id="uploadBtn" disabled>
-      引き継ぎコードを発行
-    </button>
-
-    <div class="status" id="status"></div>
-
-    <div class="result-box" id="resultBox">
-      <div class="result-row">
-        <div class="result-label">
-          引き継ぎID
-          <button class="copy-btn" onclick="copyText('transferCode')">コピー</button>
-        </div>
-        <div class="result-value" id="transferCode">—</div>
-      </div>
-      <div class="result-row">
-        <div class="result-label">
-          確認コード
-          <button class="copy-btn" onclick="copyText('confirmationCode')">コピー</button>
-        </div>
-        <div class="result-value" id="confirmationCode">—</div>
-      </div>
-    </div>
-
-    <div class="steps">
-      <strong>使い方:</strong><br>
-      1. SAVE_DATA ファイルをここにドロップ<br>
-      2. 「引き継ぎコードを発行」をタップ<br>
-      3. 発行されたコードをゲームで入力
-    </div>
+  <div class="btn-row">
+    <button class="btn btn-parse"  id="parseBtn"  disabled>🔍 パース確認</button>
+    <button class="btn btn-upload" id="uploadBtn" disabled>🚀 コード発行</button>
   </div>
 
-  <script>
-    const dropZone  = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const fileName  = document.getElementById('fileName');
-    const status    = document.getElementById('status');
-    const resultBox = document.getElementById('resultBox');
+  <div class="status" id="status"></div>
 
-    let selectedFile = null;
+  <!-- パース結果 -->
+  <div class="parse-box" id="parseBox">
+    <div class="parse-box-title">📋 パース結果（デバッグ）</div>
+    <table class="parse-table" id="parseTable"></table>
+  </div>
 
-    // ─── ファイル選択 ─────────────────────────────────────────
-    dropZone.addEventListener('click', () => fileInput.click());
+  <!-- 引き継ぎコード -->
+  <div class="result-box" id="resultBox">
+    <div class="result-row">
+      <div class="result-label">引き継ぎID <button class="copy-btn" id="copyTransfer">コピー</button></div>
+      <div class="result-value" id="transferCode">—</div>
+    </div>
+    <div class="result-row">
+      <div class="result-label">確認コード <button class="copy-btn" id="copyConfirm">コピー</button></div>
+      <div class="result-value" id="confirmationCode">—</div>
+    </div>
+  </div>
+</div>
 
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) setFile(file);
-    });
+<script>
+  const dropZone  = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const parseBtn  = document.getElementById('parseBtn');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileName  = document.getElementById('fileName');
+  const status    = document.getElementById('status');
+  const parseBox  = document.getElementById('parseBox');
+  const parseTable= document.getElementById('parseTable');
+  const resultBox = document.getElementById('resultBox');
 
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) setFile(fileInput.files[0]);
-    });
+  let selectedFile = null;
 
-    function setFile(file) {
-      selectedFile = file;
-      fileName.textContent = file.name;
-      uploadBtn.disabled = false;
-      hideStatus();
-      resultBox.classList.remove('show');
-    }
+  // ─── ファイル選択 ─────────────────────────────────────────
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
 
-    // ─── アップロード ─────────────────────────────────────────
-    uploadBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+  function setFile(file) {
+    selectedFile = file;
+    fileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    parseBtn.disabled = false;
+    uploadBtn.disabled = false;
+    hideStatus();
+    parseBox.classList.remove('show');
+    resultBox.classList.remove('show');
+  }
 
-      uploadBtn.disabled = true;
-      showStatus('loading', '<span class="spinner"></span>認証・アップロード処理中...');
-      resultBox.classList.remove('show');
+  // ─── パース確認 ───────────────────────────────────────────
+  parseBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    parseBtn.disabled = true;
+    showStatus('loading', '<span class="spinner"></span>パース中...');
+    parseBox.classList.remove('show');
 
-      try {
-        const arrayBuffer = await selectedFile.arrayBuffer();
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/octet-stream' },
-          body: arrayBuffer,
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.error || '不明なエラー');
-        }
-
-        showStatus('success', '✅ 引き継ぎコードの取得に成功しました！');
-
-        document.getElementById('transferCode').textContent    = data.transferCode;
-        document.getElementById('confirmationCode').textContent = data.confirmationCode;
-        resultBox.classList.add('show');
-
-      } catch (e) {
-        showStatus('error', `❌ エラー: ${e.message}`);
-      } finally {
-        uploadBtn.disabled = false;
-      }
-    });
-
-    // ─── UI ──────────────────────────────────────────────────
-    function showStatus(type, html) {
-      status.className = `status ${type}`;
-      status.innerHTML = html;
-    }
-    function hideStatus() {
-      status.className = 'status';
-    }
-
-    function copyText(id) {
-      const text = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target;
-        btn.textContent = '✓';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 1500);
+    try {
+      const buf = await selectedFile.arrayBuffer();
+      const res = await fetch('/api/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: buf,
       });
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '(レスポンス取得失敗)');
+        throw new Error(`JSON解析失敗: ${text.slice(0, 200)}`);
+      }
+
+      if (!data.success) throw new Error(data.error);
+
+      hideStatus();
+      renderParseResult(data);
+    } catch (e) {
+      showStatus('error', `❌ ${e.message}`);
+    } finally {
+      parseBtn.disabled = false;
     }
-  </script>
+  });
+
+  function renderParseResult(d) {
+    const rows = [
+      ['ファイルサイズ',          `${d.fileSizeBytes.toLocaleString()} bytes`],
+      ['国コード (CC)',            d.cc,                       d.cc ? 'ok' : 'bad'],
+      ['ゲームバージョン',         d.gameVersion,              d.gameVersion > 0 ? 'ok' : 'bad'],
+      ['問い合わせコード',         d.inquiryCode,              d.inquiryCode ? 'ok' : 'bad'],
+      ['energyPenaltyTimestamp',  d.energyPenaltyTimestamp,   d.energyPenaltyTimestamp > 0 ? 'ok' : 'warn'],
+      ['passwordRefreshToken',    d.passwordRefreshToken,     d.passwordRefreshToken && !d.passwordRefreshToken.startsWith('(') ? 'ok' : 'warn'],
+      ['プレイ時間 (playTime)',    d.playTime],
+      ['にゃんこ缶 (catfood)',     d.catfood],
+      ['レアチケット',             d.rareTickets],
+      ['プラチナチケット',         d.platinumTickets],
+      ['伝説のチケット',           d.legendTickets],
+    ];
+
+    parseTable.innerHTML = rows.map(([label, val, cls]) => {
+      const valClass = cls === 'ok' ? 'val-ok' : cls === 'warn' ? 'val-warn' : cls === 'bad' ? 'val-bad' : '';
+      return `<tr><td>${label}</td><td class="${valClass}">${val ?? '—'}</td></tr>`;
+    }).join('');
+
+    parseBox.classList.add('show');
+  }
+
+  // ─── コード発行 ───────────────────────────────────────────
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    uploadBtn.disabled = true;
+    showStatus('loading', '<span class="spinner"></span>認証・アップロード中...');
+    resultBox.classList.remove('show');
+
+    try {
+      const buf = await selectedFile.arrayBuffer();
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: buf,
+      });
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '(レスポンス取得失敗)');
+        throw new Error(`JSON解析失敗 (status ${res.status}): ${text.slice(0, 300)}`);
+      }
+
+      if (!data.success) throw new Error(data.error);
+
+      showStatus('success', '✅ 引き継ぎコードの取得に成功しました！');
+      document.getElementById('transferCode').textContent    = data.transferCode;
+      document.getElementById('confirmationCode').textContent = data.confirmationCode;
+      resultBox.classList.add('show');
+    } catch (e) {
+      showStatus('error', `❌ ${e.message}`);
+    } finally {
+      uploadBtn.disabled = false;
+    }
+  });
+
+  // ─── コピーボタン ─────────────────────────────────────────
+  document.getElementById('copyTransfer').addEventListener('click', function() {
+    copyText(document.getElementById('transferCode').textContent, this);
+  });
+  document.getElementById('copyConfirm').addEventListener('click', function() {
+    copyText(document.getElementById('confirmationCode').textContent, this);
+  });
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 1500);
+    });
+  }
+
+  function showStatus(type, html) { status.className = `status ${type}`; status.innerHTML = html; }
+  function hideStatus() { status.className = 'status'; }
+</script>
 </body>
 </html>
