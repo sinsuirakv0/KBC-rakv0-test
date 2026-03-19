@@ -348,7 +348,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
       <button class="sh-ctrl" id="sh-prev">⏮</button>
       <button class="sh-ctrl main" id="sh-play">▶</button>
       <button class="sh-ctrl" id="sh-next">⏭</button>
-      <button class="sh-ctrl" id="sh-dl" title="ダウンロード" style="font-size:14px;">↓</button>
+      <button class="sh-ctrl" id="sh-dl" title="ダウンロード" style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;letter-spacing:1px;">DL</button>
     </div>
     <!-- Next track -->
     <div class="sh-next-track" id="sh-next-track">
@@ -627,7 +627,7 @@ function songRowHTML(fmt, s, num) {
       <button class="btn badd" title="プレイリストに追加"
         onclick="event.stopPropagation();openSheetForSong('${fmt}',${s.id})">＋</button>
       <button class="btn bdl" title="ダウンロード"
-        onclick="event.stopPropagation();dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
+        onclick="event.stopPropagation();dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;">DL</button>
     </div>
   </div>`;
 }
@@ -677,7 +677,7 @@ function renderPlPanel() {
             <span class="s-fmt">${s.format.toUpperCase()}</span>
             <div class="s-acts">
               <button class="btn bplay" onclick="playSongInPl('${pl.id}',${i})">${playing?'⏸':'▶'}</button>
-              <button class="btn bdl" onclick="dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})">↓</button>
+              <button class="btn bdl" onclick="dlSong(${JSON.stringify(s.file)},${JSON.stringify(s.title)})" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;">DL</button>
               <button class="btn brm" onclick="removeFromPl('${pl.id}','${s.format}',${s.id})">✕</button>
             </div>
           </div>`;
@@ -1359,7 +1359,7 @@ function dlSong(url, title) {
   const a = document.createElement('a');
   a.href = url; a.download = title; a.target = '_blank'; a.rel = 'noopener';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  showToast('ダウンロード開始 ↓');
+  showToast('ダウンロード開始');
 }
 
 // ════════════════════════════════════════════════════
