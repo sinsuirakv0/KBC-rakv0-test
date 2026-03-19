@@ -2,8 +2,8 @@
 // Vercel Serverless Function (Node.js runtime)
 // POST /api/upload?cc=jp  Body: application/octet-stream (セーブファイルバイナリ)
 
-import { parseSaveFile } from '../lib/saveParser.js';
-import { ServerHandler } from '../lib/serverHandler.js';
+import { parseSaveFile } from './lib/saveParser.js';
+import { ServerHandler } from './lib/serverHandler.js';
 
 /** Vercel: bodyParserを無効化してRaw bodyを受け取る */
 export const config = {
