@@ -1,6 +1,6 @@
 // api/parse.js
 // セーブファイルをパースしてデータを返すだけ（デバッグ用）
-import { parseSaveFile } from '../lib/saveParser.js';
+import { parseSaveFile } from './lib/saveParser.js';
 
 export const config = { api: { bodyParser: false } };
 
