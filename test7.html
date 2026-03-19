@@ -1300,36 +1300,43 @@ ge('addpl-act').addEventListener('click', () => {
 ge('addpl-close').addEventListener('click', () => ge('addpl-panel').classList.remove('open'));
 
 function renderPPList() {
+  // 描画時点でターゲットを確定し、onclickに直接埋め込む
+  // (クリック時にsheetTargetが変わっていても影響を受けない)
   const tgt = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
   const c = ge('pp-list');
   if (!playlists.length) { c.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">プレイリストがありません</div>'; return; }
+  if (!tgt) { c.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">曲が選択されていません</div>'; return; }
   c.innerHTML = playlists.map(pl => {
-    const inPl = tgt && pl.songs.some(s => s.id === tgt.id && s.format === tgt.fmt);
-    return `<div class="pp-item" onclick="toggleInPl('${pl.id}')">
+    const inPl = pl.songs.some(s => s.id === tgt.id && s.format === tgt.fmt);
+    // ターゲットのfmt・idをonclickに直接渡す (グローバル変数に依存しない)
+    return `<div class="pp-item" onclick="toggleInPl('${pl.id}','${tgt.fmt}',${tgt.id})">
       <div class="pp-check${inPl?' on':''}">${inPl?'✓':''}</div>
       <span class="pp-name">${esc(pl.name)}</span>
       <span class="pp-cnt">${pl.songs.length}曲</span>
     </div>`;
   }).join('');
 }
-function toggleInPl(plId) {
-  const tgt = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
-  if (!tgt) return;
+function toggleInPl(plId, fmt, id) {
+  // fmt・idは描画時に確定した値を使用 (グローバルsheetTargetに依存しない)
+  if (!fmt || id == null) return;
   const pl  = playlists.find(p => p.id === plId);
   if (!pl) return;
-  const idx = pl.songs.findIndex(s => s.id === tgt.id && s.format === tgt.fmt);
+  const idx = pl.songs.findIndex(s => s.id === id && s.format === fmt);
   if (idx >= 0) { pl.songs.splice(idx, 1); showToast(`「${pl.name}」から削除しました`); }
-  else          { pl.songs.push({ id: tgt.id, format: tgt.fmt }); showToast(`「${pl.name}」に追加しました ✓`); }
+  else          { pl.songs.push({ id: id, format: fmt }); showToast(`「${pl.name}」に追加しました ✓`); }
   lsSave('bgm_playlists', playlists);
+  // 再描画時もターゲットを維持するためsheetTargetを更新
+  sheetTarget = { fmt, id };
   renderPPList(); renderPlPanel(); renderList('ogg'); renderList('mp3');
 }
 ge('pp-new-btn').addEventListener('click', () => {
   const name = ge('pp-new-inp').value.trim();
   if (!name) { showToast('名前を入力してください'); return; }
+  const tgt = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
   const id = createPlaylist(name);
-  if (id && sheetTarget) {
+  if (id && tgt) {
     const pl = playlists.find(p => p.id === id);
-    if (pl) { pl.songs.push({ id: sheetTarget.id, format: sheetTarget.fmt }); lsSave('bgm_playlists', playlists); }
+    if (pl) { pl.songs.push({ id: tgt.id, format: tgt.fmt }); lsSave('bgm_playlists', playlists); }
   }
   ge('pp-new-inp').value = ''; renderPPList(); renderPlPanel();
   showToast(`「${name}」に追加しました ✓`);
