@@ -6,16 +6,18 @@
 <title>BGM Downloader</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#08090e;--surface:#0f1117;--surface2:#181922;--surface3:#1e2030;
-  --border:#252733;--border2:#333645;--accent:#ff6b35;--accent2:#00c4ff;
-  --text:#e8eaf0;--text2:#7c8094;--success:#4eff9e;--danger:#ff4d4d;
-  --fav:#ff5c8a;--ph:68px;
+:root{
+  --bg:#08090e;--surface:#0f1117;--surface2:#181922;
+  --border:#252733;--border2:#333645;
+  --accent:#ff6b35;--accent2:#00c4ff;
+  --text:#e8eaf0;--text2:#7c8094;
+  --success:#4eff9e;--danger:#ff4d4d;--fav:#ff5c8a;
+  --ph:68px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
 
-/* Header */
+/* ── Header ── */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:stretch;height:52px;flex-shrink:0;}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--accent);display:flex;align-items:center;padding-right:16px;border-right:1px solid var(--border);margin-right:4px;user-select:none;}
 .tabs{display:flex;}
@@ -29,15 +31,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .search-input:focus{border-color:var(--accent2);}
 .search-input::placeholder{color:var(--text2);}
 
-/* Content */
+/* ── Content ── */
 .content{flex:1;overflow:hidden;position:relative;}
 .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:10px 14px;flex-direction:column;gap:3px;}
 .tab-panel.active{display:flex;}
-::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
-/* Song row */
+/* ── Song row ── */
 .song-row{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--surface);border:1px solid var(--border);border-radius:7px;flex-shrink:0;transition:background .1s,border-color .1s;}
 .song-row:hover{background:var(--surface2);border-color:var(--border2);}
 .song-row.playing{border-color:var(--accent);background:rgba(255,107,53,.06);}
@@ -46,8 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .s-ind{width:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .bars{display:flex;gap:2px;align-items:flex-end;height:12px;}
 .bar{width:3px;background:var(--accent);border-radius:1px;animation:barA .8s ease-in-out infinite;}
-.bar:nth-child(2){animation-delay:.2s;}
-.bar:nth-child(3){animation-delay:.4s;}
+.bar:nth-child(2){animation-delay:.2s;}.bar:nth-child(3){animation-delay:.4s;}
 @keyframes barA{0%,100%{height:4px}50%{height:12px}}
 .bars.paused .bar{animation-play-state:paused;}
 .s-title{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -64,13 +63,13 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .btn.bdl:hover{color:var(--accent);border-color:var(--accent);}
 .btn.brm:hover{color:var(--danger);border-color:var(--danger);}
 
-/* Empty / Loading */
+/* ── Empty / Loading ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:50px 20px;color:var(--text2);font-size:13px;text-align:center;flex:1;}
 .empty-icon{font-size:32px;opacity:.5;}
 .spinner{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Playlist panel */
+/* ── Playlist panel ── */
 .pl-hdr{display:flex;align-items:center;gap:8px;padding-bottom:10px;flex-shrink:0;flex-wrap:wrap;}
 .pl-back{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:4px;transition:all .12s;}
 .pl-back:hover{color:var(--text);border-color:var(--border2);}
@@ -94,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .txt-input:focus{border-color:var(--accent2);}
 .txt-input::placeholder{color:var(--text2);}
 
-/* Song Picker overlay */
+/* ── Song Picker overlay ── */
 .picker-overlay{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:20;}
 .picker-overlay.open{display:flex;}
 .picker-hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
@@ -116,7 +115,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .picker-row-title{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .picker-row-ver{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);flex-shrink:0;}
 
-/* Player bar */
+/* ── Player bar ── */
 .player{height:var(--ph);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;position:relative;z-index:10;}
 .p-info{flex:1.1;min-width:0;cursor:pointer;padding:4px 6px;border-radius:6px;transition:background .12s;}
 .p-info:hover{background:var(--surface2);}
@@ -143,7 +142,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .sheet-trig{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
 .sheet-trig:hover{color:var(--text);border-color:var(--border2);background:var(--surface2);}
 
-/* Bottom Sheet */
+/* ── Bottom Sheet ── */
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s;z-index:50;}
 .backdrop.open{opacity:1;pointer-events:all;}
 .sheet{position:fixed;bottom:0;left:0;right:0;background:#0d0e15;border-radius:18px 18px 0 0;border:1px solid var(--border2);border-bottom:none;z-index:100;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);max-height:90dvh;display:flex;flex-direction:column;overflow:hidden;}
@@ -152,19 +151,36 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .sheet-handle:hover{background:var(--text2);}
 .sheet-body{flex:1;overflow-y:auto;padding:14px 20px 28px;display:flex;flex-direction:column;gap:14px;}
 
+/* Sheet: now playing */
 .sh-now{text-align:center;}
 .sh-title{font-size:17px;font-weight:700;line-height:1.3;margin-bottom:4px;}
 .sh-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
+
+/* Sheet: progress */
 .sh-prog-area{display:flex;flex-direction:column;gap:6px;}
 .sh-prog-track{height:6px;background:var(--border2);border-radius:3px;cursor:pointer;}
 .sh-prog-track:hover .sh-prog-fill{background:var(--accent2);}
 .sh-prog-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;pointer-events:none;}
 .sh-times{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
-.sh-controls{display:flex;align-items:center;justify-content:center;gap:14px;}
+
+/* Sheet: controls */
+.sh-controls{display:flex;align-items:center;justify-content:center;gap:10px;}
 .sh-ctrl{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .12s;}
 .sh-ctrl:hover{color:var(--text);background:var(--surface2);}
 .sh-ctrl.main{font-size:26px;color:var(--text);width:58px;height:58px;background:var(--surface2);border:1px solid var(--border2);}
 .sh-ctrl.main:hover{color:var(--accent);border-color:var(--accent);}
+.sh-repeat{background:none;border:none;cursor:pointer;font-size:16px;color:var(--text2);width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.sh-repeat:hover{background:var(--surface2);}
+.sh-repeat.mall,.sh-repeat.mone{color:var(--accent2);}
+.sh-repeat.mshuffle{color:var(--success);}
+
+/* Sheet: next track */
+.sh-next-track{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;}
+.sh-next-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:1px;white-space:nowrap;flex-shrink:0;}
+.sh-next-title{flex:1;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sh-next-fmt{font-family:'DM Mono',monospace;font-size:9px;color:var(--text2);flex-shrink:0;padding:2px 5px;border:1px solid var(--border2);border-radius:3px;}
+
+/* Sheet: sections */
 .sh-sec{display:flex;flex-direction:column;gap:8px;}
 .sh-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:1px;}
 .speed-chips{display:flex;gap:6px;flex-wrap:wrap;}
@@ -185,7 +201,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .vol-slider{flex:1;-webkit-appearance:none;height:5px;background:var(--border2);border-radius:3px;outline:none;cursor:pointer;}
 .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);cursor:pointer;}
 
-/* Action grid */
+/* Sheet: action grid */
 .sh-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .sh-act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 8px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .12s;color:var(--text2);}
 .sh-act:hover{border-color:var(--border2);color:var(--text);}
@@ -200,6 +216,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .sub-ttl{padding:10px 14px;font-size:12px;font-weight:600;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .sub-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:15px;line-height:1;padding:2px;}
 .sub-close:hover{color:var(--text);}
+
+/* Timer sub */
 .timer-chips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;}
 .timer-chip{font-family:'DM Mono',monospace;font-size:12px;padding:6px 13px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .12s;}
 .timer-chip:hover{color:var(--text);border-color:var(--border2);}
@@ -211,6 +229,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .timer-countdown{padding:8px 14px 12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--accent2);border-top:1px solid var(--border);display:none;align-items:center;justify-content:space-between;}
 .timer-cancel{font-size:11px;color:var(--danger);background:none;border:1px solid transparent;border-radius:4px;padding:3px 8px;cursor:pointer;transition:border-color .12s;}
 .timer-cancel:hover{border-color:var(--danger);}
+
+/* Playlist picker sub */
 .pp-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s;}
 .pp-item:first-child{border-top:none;}
 .pp-item:hover{background:rgba(255,255,255,.03);}
@@ -237,7 +257,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .import-acts{display:flex;gap:8px;justify-content:flex-end;}
 
 /* Toast */
-.toast{position:fixed;bottom:calc(var(--ph) + 10px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:300;white-space:nowrap;}
+.toast{position:fixed;bottom:calc(var(--ph)+10px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:300;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
@@ -281,10 +301,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
   </div>
 </div>
 
+<!-- Player bar -->
 <div class="player">
   <div class="p-info" id="p-info">
     <div class="p-title" id="p-title">再生停止中</div>
-    <div class="p-meta" id="p-meta">↑ をタップして設定</div>
+    <div class="p-meta" id="p-meta">↑ をタップして詳細</div>
   </div>
   <div class="p-center">
     <div class="p-ctrl">
@@ -300,29 +321,42 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
   </div>
   <div class="p-right">
     <div class="timer-ind" id="timer-ind">⏱ 0:00</div>
-    <button class="repeat-btn mall" id="repeat-btn" title="再生モード切替">🔁</button>
+    <button class="repeat-btn mall" id="repeat-btn" title="再生モード">🔁</button>
     <button class="sheet-trig" id="sheet-trig">↑</button>
   </div>
 </div>
 
 <div class="backdrop" id="backdrop"></div>
 
+<!-- Bottom Sheet -->
 <div class="sheet" id="sheet">
   <div class="sheet-handle" id="sheet-handle"></div>
   <div class="sheet-body">
+    <!-- Now playing -->
     <div class="sh-now">
       <div class="sh-title" id="sh-title">—</div>
       <div class="sh-meta" id="sh-meta">—</div>
     </div>
+    <!-- Progress -->
     <div class="sh-prog-area">
       <div class="sh-prog-track" id="sh-prog-track"><div class="sh-prog-fill" id="sh-prog-fill"></div></div>
       <div class="sh-times"><span id="sh-cur">0:00</span><span id="sh-dur">0:00</span></div>
     </div>
+    <!-- Controls (prev / play / next + repeat) -->
     <div class="sh-controls">
+      <button class="sh-repeat mall" id="sh-repeat" title="再生モード">🔁</button>
       <button class="sh-ctrl" id="sh-prev">⏮</button>
       <button class="sh-ctrl main" id="sh-play">▶</button>
       <button class="sh-ctrl" id="sh-next">⏭</button>
+      <button class="sh-ctrl" id="sh-dl" title="ダウンロード" style="font-size:14px;">↓</button>
     </div>
+    <!-- Next track -->
+    <div class="sh-next-track" id="sh-next-track">
+      <span class="sh-next-lbl">NEXT</span>
+      <span class="sh-next-title" id="sh-next-title">—</span>
+      <span class="sh-next-fmt" id="sh-next-fmt"></span>
+    </div>
+    <!-- Speed -->
     <div class="sh-sec">
       <div class="sh-lbl">再生速度</div>
       <div class="speed-chips" id="speed-chips">
@@ -334,6 +368,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
         <button class="speed-chip" data-speed="2">2x</button>
       </div>
     </div>
+    <!-- Volume -->
     <div class="sh-sec">
       <div class="vol-toggle" id="vol-toggle">
         <span class="vol-toggle-lbl">ボリューム</span>
@@ -348,6 +383,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
         </div>
       </div>
     </div>
+    <!-- Actions -->
     <div class="sh-actions">
       <button class="sh-act" id="timer-act">
         <span class="sh-act-ico">⏱</span>
@@ -362,6 +398,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
         <span class="sh-act-lbl">プレイリスト</span>
       </button>
     </div>
+    <!-- Timer sub -->
     <div class="sub-panel" id="timer-panel">
       <div class="sub-ttl"><span>⏱ タイマー設定</span><button class="sub-close" id="timer-close">✕</button></div>
       <div class="timer-chips" id="timer-chips">
@@ -382,6 +419,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
         <button class="timer-cancel" id="timer-cancel">キャンセル</button>
       </div>
     </div>
+    <!-- Add to playlist sub -->
     <div class="sub-panel" id="addpl-panel">
       <div class="sub-ttl"><span>＋ プレイリストに追加</span><button class="sub-close" id="addpl-close">✕</button></div>
       <div id="pp-list"></div>
@@ -393,6 +431,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
   </div>
 </div>
 
+<!-- Import modal -->
 <div class="import-modal" id="import-modal">
   <div class="import-box">
     <div class="import-title">📥 プレイリストをインポート</div>
@@ -414,17 +453,22 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 //
 //  ▼▼▼  シームレスループ 微調整エリア  ▼▼▼
 //
-//  LOOP_PRE_SEC:
-//    曲終了の何秒前にループ再開(currentTime=0へシーク)するか
+//  OGG と MP3 を個別に設定できます。
 //
-//  大きい値 → 早めにリピート開始  例: 0.40 = 終了0.4秒前にシーク
+//  LOOP_PRE_SEC.ogg  : OGG曲の終了何秒前にシークしてループ再開するか
+//  LOOP_PRE_SEC.mp3  : MP3曲の終了何秒前にシークしてループ再開するか
+//
+//  大きい値 → 早めにリピート開始  (例: 0.40 = 終了0.4秒前にシーク)
 //  小さい値 → ギリギリまで再生、ただしギャップが出やすい
 //
-//  ※ OGGファイルはシーク処理が速いので小さめでも繋がりやすいです
-//  ※ まず 0.20 で試し、つなぎ目がずれたら 0.05 刻みで増やしてください
-//     推奨調整範囲: 0.10 〜 0.50 (秒)
+//  ※ OGG は通常 0.10〜0.20 で繋がりやすい
+//  ※ MP3 は規格上ギャップが生まれやすいので 0.25〜0.40 を推奨
+//  ※ まず既定値で試し、つなぎ目がずれたら 0.05 刻みで増やしてください
 //
-const LOOP_PRE_SEC = 0.10;  // ← ここだけ変えてOK
+const LOOP_PRE_SEC = {
+  ogg: 0.20,   // ← OGG用: ここを調整
+  mp3: 0.30,   // ← MP3用: ここを調整
+};
 //
 //  ▲▲▲  シームレスループ 微調整エリア  ▲▲▲
 //
@@ -445,17 +489,17 @@ audio.volume  = 0.8;
 
 let current      = null;    // { song, format }
 let audioPlaying = false;   // 実際に再生中か
-let userPaused   = false;   // ユーザーが意図して一時停止したか
+let userPaused   = false;   // ユーザーが意図して止めたか
 let repeatMode   = 'all';   // 'one' | 'all' | 'shuffle'
 let queue        = [];
 let queueIdx     = -1;
-let plView       = null;    // null=一覧, string=プレイリストID詳細
+let plView       = null;
 let pickerPlId   = null;
 let pickerFmt    = 'ogg';
 let pickerQ      = '';
 let sheetTarget  = null;
 
-// ループタイマーのhandle (clearTimeoutに使う)
+// ループタイマー
 let loopTimer = null;
 
 // タイマー
@@ -465,6 +509,9 @@ let timerSetMin  = null;
 
 // ── Init ───────────────────────────────────────────
 async function init() {
+  // ローカルの設定を先に復元（songs読み込み前に設定だけ反映）
+  restoreSettings();
+
   try {
     const [r1, r2] = await Promise.all([fetch(URLS.ogg), fetch(URLS.mp3)]);
     songs.ogg = await r1.json();
@@ -476,11 +523,77 @@ async function init() {
     });
     return;
   }
+
   renderList('ogg');
   renderList('mp3');
   renderPlPanel();
   setupMediaSession();
+
+  // URLパラメータからインポート (重複防止込み)
   loadFromURL();
+
+  // 最後に再生していた曲を復元（一時停止状態）
+  restoreLastPlayed();
+}
+
+// ════════════════════════════════════════════════════
+//  設定の保存・復元
+// ════════════════════════════════════════════════════
+function saveSettings() {
+  lsSave('bgm_settings', {
+    repeatMode,
+    volume: audio.volume,
+    speed:  audio.playbackRate,
+  });
+}
+
+function restoreSettings() {
+  const s = lsGet('bgm_settings', null);
+  if (!s) return;
+  if (s.repeatMode) {
+    repeatMode = s.repeatMode;
+    applyRepeatUI();
+  }
+  if (s.volume != null) {
+    audio.volume = s.volume;
+    ge('sh-vol').value = s.volume;
+    ge('vol-cur').textContent = Math.round(s.volume * 100) + '%';
+  }
+  if (s.speed != null) {
+    audio.playbackRate = s.speed;
+    document.querySelectorAll('.speed-chip').forEach(c => {
+      c.classList.toggle('on', parseFloat(c.dataset.speed) === s.speed);
+    });
+  }
+}
+
+function saveLastPlayed() {
+  if (!current) return;
+  lsSave('bgm_last', { fmt: current.format, id: current.song.id });
+}
+
+function restoreLastPlayed() {
+  const last = lsGet('bgm_last', null);
+  if (!last) return;
+  const song = songs[last.fmt] && songs[last.fmt].find(s => s.id === last.id);
+  if (!song) return;
+
+  // キューを同一フォーマット全曲で構築
+  current  = { song, format: last.fmt };
+  queue    = songs[last.fmt].map(s => ({...s, format: last.fmt}));
+  queueIdx = queue.findIndex(s => s.id === last.id);
+
+  // src だけセット、再生はしない
+  audio.src = song.file;
+  userPaused = true;  // 一時停止状態として扱う
+
+  updateBar();
+  updateSheetNow();
+  updateFavBtn();
+  updateNextTrack();
+  setupMediaSession();
+  renderList('ogg');
+  renderList('mp3');
 }
 
 // ════════════════════════════════════════════════════
@@ -498,12 +611,10 @@ function renderList(fmt) {
 }
 
 function songRowHTML(fmt, s, num) {
-  const isCur    = isCurrent(fmt, s.id);
-  const playing  = isCur && audioPlaying;
-  const paused   = isCur && !audioPlaying;
-  const fav      = favorites.has(fid(fmt, s.id));
-  // 再生中の曲だけ ⏸ を表示、それ以外は ▶
-  const btnIcon  = playing ? '⏸' : '▶';
+  const isCur   = isCurrent(fmt, s.id);
+  const playing = isCur && audioPlaying;
+  const paused  = isCur && !audioPlaying;
+  const fav     = favorites.has(fid(fmt, s.id));
   return `<div class="song-row${isCur?' playing':''}">
     <span class="s-num">${num}</span>
     <div class="s-ind">${isCur?`<div class="bars${paused?' paused':''}"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>`:''}</div>
@@ -512,7 +623,7 @@ function songRowHTML(fmt, s, num) {
     <span class="s-ver">v${esc(s.version)}</span>
     <div class="s-acts">
       <button class="btn bplay" title="再生/一時停止"
-        onclick="event.stopPropagation();playSong('${fmt}',${s.id})">${btnIcon}</button>
+        onclick="event.stopPropagation();playSong('${fmt}',${s.id})">${playing?'⏸':'▶'}</button>
       <button class="btn badd" title="プレイリストに追加"
         onclick="event.stopPropagation();openSheetForSong('${fmt}',${s.id})">＋</button>
       <button class="btn bdl" title="ダウンロード"
@@ -521,7 +632,6 @@ function songRowHTML(fmt, s, num) {
   </div>`;
 }
 
-// play/pauseイベント時に再生中行のボタンだけ更新 (全再描画しない)
 function updateRowBtns() {
   const icon = audioPlaying ? '⏸' : '▶';
   document.querySelectorAll('.song-row.playing .bplay').forEach(b => b.textContent = icon);
@@ -557,7 +667,7 @@ function renderPlPanel() {
       </div>
       ${!slist.length
         ? '<div class="empty"><div class="empty-icon">🎵</div><span>「BGM追加」ボタンから曲を選んでください</span></div>'
-        : slist.map((s,i) => {
+        : slist.map((s, i) => {
           const isCur   = isCurrent(s.format, s.id);
           const playing = isCur && audioPlaying;
           return `<div class="song-row${isCur?' playing':''}">
@@ -597,7 +707,6 @@ function renderPlPanel() {
               <button class="btn brm"   onclick="event.stopPropagation();deletePl('${pl.id}')">🗑</button>
             </div>
           </div>`).join('')}`;
-
     const nb = ge('new-pl-btn');
     const ib = ge('import-pl-btn');
     if (nb) nb.addEventListener('click', showNewPlForm);
@@ -620,7 +729,7 @@ function showNewPlForm() {
 }
 
 // ════════════════════════════════════════════════════
-//  Song Picker (BGM追加)
+//  Song Picker
 // ════════════════════════════════════════════════════
 function openPicker(plId) {
   pickerPlId = plId; pickerFmt = 'ogg'; pickerQ = '';
@@ -629,19 +738,13 @@ function openPicker(plId) {
   document.querySelectorAll('.ptab').forEach(t => t.classList.toggle('active', t.dataset.pfmt === 'ogg'));
   renderPicker();
 }
-function closePicker() {
-  ge('picker-overlay').classList.remove('open');
-  pickerPlId = null;
-}
+function closePicker() { ge('picker-overlay').classList.remove('open'); pickerPlId = null; }
 function renderPicker() {
   const pl   = pickerPlId ? playlists.find(p => p.id === pickerPlId) : null;
   const q    = pickerQ.toLowerCase();
   const list = songs[pickerFmt].filter(s => !q || s.title.toLowerCase().includes(q));
   const body = ge('picker-body');
-  if (!list.length) {
-    body.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><span>見つかりませんでした</span></div>';
-    return;
-  }
+  if (!list.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><span>見つかりませんでした</span></div>'; return; }
   body.innerHTML = list.map(s => {
     const inPl = pl && pl.songs.some(r => r.id === s.id && r.format === pickerFmt);
     return `<div class="picker-row" onclick="togglePickerSong('${pickerFmt}',${s.id})">
@@ -723,7 +826,11 @@ function resolveQueue(refs) {
 // ════════════════════════════════════════════════════
 //  Export / Import
 //  URL形式: ?pi=BASE64(name)&sd=id1,id2,...
-//  ※ IDにフォーマットprefixなし。インポート時はOGG優先で検索
+//  IDにprefixなし。OGG優先で検索、なければMP3
+//
+//  重複防止: インポート済みURLの署名(pi+sd)をlocalStorageに保存し、
+//  同じURLが再読み込みされても重複インポートしない。
+//  また loadFromURL() 後に history.replaceState でURLをきれいにする。
 // ════════════════════════════════════════════════════
 function exportPl(plId) {
   const pl = playlists.find(p => p.id === plId);
@@ -735,6 +842,7 @@ function exportPl(plId) {
     .then(() => showToast('URLをコピーしました 🔗'))
     .catch(() => prompt('URLをコピーしてください:', url));
 }
+
 function openImportModal() {
   ge('import-inp').value = '';
   ge('import-modal').classList.add('open');
@@ -752,17 +860,25 @@ function importFromText(text) {
     const sd = u.searchParams.get('sd');
     if (!sd) { showToast('❌ URLの形式が正しくありません'); return; }
     const name = pi ? decodeURIComponent(atob(pi)) : '共有プレイリスト';
-    importSongs(name, sd);
+    importSongs(name, sd, false); // 手動インポートは重複チェックなし
   } catch { showToast('❌ URLの解析に失敗しました'); }
 }
-function importSongs(name, sd) {
+
+function importSongs(name, sd, checkDupe) {
+  // 重複チェック: 同一sdが既にインポート済みかどうか
+  if (checkDupe) {
+    const imported = lsGet('bgm_imported_sds', []);
+    if (imported.includes(sd)) return; // 既にインポート済み → スキップ
+    imported.push(sd);
+    lsSave('bgm_imported_sds', imported);
+  }
+
   const refs = [];
   sd.split(',').forEach(raw => {
     const id = parseInt(raw.trim());
     if (isNaN(id)) return;
-    // OGG優先、なければMP3を探す
-    if (songs.ogg.find(s => s.id === id))       refs.push({ id, format: 'ogg' });
-    else if (songs.mp3.find(s => s.id === id))  refs.push({ id, format: 'mp3' });
+    if (songs.ogg.find(s => s.id === id))      refs.push({ id, format: 'ogg' });
+    else if (songs.mp3.find(s => s.id === id)) refs.push({ id, format: 'mp3' });
   });
   if (!refs.length) { showToast('❌ 有効な曲が見つかりませんでした'); return; }
   playlists.push({ id: 'pl_' + Date.now(), name, songs: refs });
@@ -770,13 +886,17 @@ function importSongs(name, sd) {
   renderPlPanel();
   showToast(`「${name}」をインポートしました (${refs.length}曲) 🎵`);
 }
+
 function loadFromURL() {
-  const p = new URLSearchParams(location.search);
+  const p  = new URLSearchParams(location.search);
   const sd = p.get('sd');
   if (!sd) return;
   const pi   = p.get('pi');
   const name = pi ? decodeURIComponent(atob(pi)) : '共有プレイリスト';
-  importSongs(name, sd);
+  importSongs(name, sd, true); // URL経由は重複チェックあり
+
+  // URLパラメータを消してリロードによる再インポートを防ぐ
+  history.replaceState(null, '', location.pathname);
 }
 
 // ════════════════════════════════════════════════════
@@ -784,7 +904,6 @@ function loadFromURL() {
 // ════════════════════════════════════════════════════
 function playSong(fmt, id) {
   if (isCurrent(fmt, id)) {
-    // 同じ曲: トグル
     if (audioPlaying) { audio.pause(); userPaused = true; }
     else              { audio.play();  userPaused = false; }
     return;
@@ -809,9 +928,11 @@ function _play(fmt, id) {
   audio.loop = false;
   audio.src  = song.file;
   audio.play().catch(() => showToast('❌ 再生できませんでした'));
+  saveLastPlayed();
   updateBar();
   updateSheetNow();
   updateFavBtn();
+  updateNextTrack();
   setupMediaSession();
   renderList('ogg');
   renderList('mp3');
@@ -840,32 +961,35 @@ function isCurrent(fmt, id) { return current && current.song.id === id && curren
 //  Seamless Loop
 //
 //  仕組み:
-//    曲の残り時間が LOOP_PRE_SEC 秒になったタイミングで
-//    setTimeout を発火させ、currentTime=0 にシークして再生を継続。
-//    シーク後は再度 scheduleLoop() を呼んで次のループを登録。
+//    loadedmetadata 時に scheduleLoop() を呼び出す。
+//    曲の残り時間が LOOP_PRE_SEC[format] 秒になったタイミングで
+//    setTimeout が発火し、currentTime=0 にシークして再生継続。
+//    シーク後は scheduleLoop() を再度呼んで次のループを登録。
 //
-//  調整ポイント:
-//    LOOP_PRE_SEC を大きくするとシークタイミングが早くなり
-//    繋がりが安定しやすい。小さくすると最後まで再生されるが
-//    ブラウザのシーク遅延でギャップが出やすくなる。
+//  ▼ 一時停止中はループしない（userPausedチェック）
+//  ▼ OGG/MP3 で個別のPRE_SECを使用
+//
+//  調整ポイント → ファイル先頭の LOOP_PRE_SEC を変更してください
 // ════════════════════════════════════════════════════
 function scheduleLoop() {
   cancelLoopTimer();
   if (!audio.duration || isNaN(audio.duration)) return;
 
+  const preSec  = current ? (LOOP_PRE_SEC[current.format] ?? 0.20) : 0.20;
   const remaining = audio.duration - audio.currentTime;
-  // LOOP_PRE_SEC秒前に発火するdelayを計算
-  const delayMs = Math.max(0, (remaining - LOOP_PRE_SEC) * 1000);
+  const delayMs   = Math.max(0, (remaining - preSec) * 1000);
 
   loopTimer = setTimeout(() => {
-    // repeatMode が変わっていたらキャンセル
-    if (repeatMode !== 'one' || !current) return;
+    // ── ループ開始条件チェック ────────────────────────
+    if (repeatMode !== 'one') return;   // モードが変わっていたらキャンセル
+    if (!current) return;
+    if (userPaused) return;             // ★ 一時停止中はループしない
+    // ─────────────────────────────────────────────────
 
-    // ── ループ実行: 先頭へシークして再生 ────────────
+    // ── 先頭へシークしてループ再開 ───────────────────
     audio.currentTime = 0;
     audio.play().catch(() => {});
-    // 次のループをスケジュール (loadedmetadata は再発火しないのでここで登録)
-    scheduleLoop();
+    scheduleLoop(); // 次のループを登録
     // ─────────────────────────────────────────────────
   }, delayMs);
 }
@@ -879,11 +1003,11 @@ function cancelLoopTimer() {
 // ════════════════════════════════════════════════════
 audio.addEventListener('loadedmetadata', () => {
   const d = fmtTime(audio.duration);
-  ge('p-dur').textContent = d;
+  ge('p-dur').textContent  = d;
   ge('sh-dur').textContent = d;
-  // 1曲リピート時はここでループタイマーを初期設定
   if (repeatMode === 'one') scheduleLoop();
 });
+
 audio.addEventListener('timeupdate', () => {
   if (!audio.duration) return;
   const pct = (audio.currentTime / audio.duration) * 100;
@@ -893,25 +1017,33 @@ audio.addEventListener('timeupdate', () => {
   ge('p-cur').textContent  = ct;
   ge('sh-cur').textContent = ct;
 });
+
 audio.addEventListener('seeked', () => {
-  // ユーザーがシークバーを操作した時もループタイマーを再設定
-  if (repeatMode === 'one' && audioPlaying) scheduleLoop();
+  // ユーザーシーク後にループタイマーを再設定
+  if (repeatMode === 'one' && audioPlaying && !userPaused) scheduleLoop();
 });
+
 audio.addEventListener('ended', () => {
-  // 'one' は scheduleLoop が担当するがフォールバック
   if (repeatMode !== 'one') playNext();
+  // 'one' の場合は scheduleLoop が担当（フォールバック: userPausedでなければ再試行）
 });
+
 audio.addEventListener('play', () => {
   audioPlaying = true;
   setPlayBtns(false);
   updateRowBtns();
   requestWakeLock();
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+  // 再生再開時にループタイマーを再設定（一時停止→再生の場合）
+  if (repeatMode === 'one') scheduleLoop();
 });
+
 audio.addEventListener('pause', () => {
   audioPlaying = false;
   setPlayBtns(true);
   updateRowBtns();
+  // ★ 一時停止したらループタイマーをキャンセル（勝手に再生しない）
+  cancelLoopTimer();
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 });
 
@@ -928,7 +1060,6 @@ async function requestWakeLock() {
     } catch {}
   }
 }
-// タブ復帰時: ユーザーが意図して止めていなければ再開
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (!userPaused && current && audio.paused) audio.play().catch(() => {});
@@ -968,8 +1099,28 @@ function updateSheetNow() {
   ge('sh-title').textContent = current.song.title;
   ge('sh-meta').textContent  = current.format.toUpperCase() + ' · v' + current.song.version;
 }
+function updateNextTrack() {
+  if (!queue.length) { ge('sh-next-title').textContent = '—'; ge('sh-next-fmt').textContent = ''; return; }
+  let nextIdx;
+  if (repeatMode === 'shuffle') {
+    nextIdx = Math.floor(Math.random() * queue.length); // シャッフルは予測不可なので仮表示
+  } else if (repeatMode === 'one') {
+    nextIdx = queueIdx; // 同じ曲
+  } else {
+    nextIdx = (queueIdx + 1) % queue.length;
+  }
+  const next = queue[nextIdx];
+  if (next) {
+    ge('sh-next-title').textContent = next.title;
+    ge('sh-next-fmt').textContent   = next.format.toUpperCase();
+  }
+}
 
-const togPlay = () => { if (!current) return; if (audioPlaying) { audio.pause(); userPaused = true; } else { audio.play(); userPaused = false; } };
+const togPlay = () => {
+  if (!current) return;
+  if (audioPlaying) { audio.pause(); userPaused = true; }
+  else              { audio.play();  userPaused = false; }
+};
 ge('p-play').addEventListener('click', togPlay);
 ge('sh-play').addEventListener('click', togPlay);
 ge('p-prev').addEventListener('click', playPrev);
@@ -977,6 +1128,13 @@ ge('p-next').addEventListener('click', playNext);
 ge('sh-prev').addEventListener('click', playPrev);
 ge('sh-next').addEventListener('click', playNext);
 
+// ダウンロード (シート内)
+ge('sh-dl').addEventListener('click', () => {
+  if (!current) { showToast('再生中の曲がありません'); return; }
+  dlSong(current.song.file, current.song.title);
+});
+
+// シークバー
 ge('prog-track').addEventListener('click',    e => seekAudio(e, e.currentTarget));
 ge('sh-prog-track').addEventListener('click', e => seekAudio(e, e.currentTarget));
 function seekAudio(e, el) {
@@ -985,7 +1143,7 @@ function seekAudio(e, el) {
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 }
 
-// Volume
+// ── Volume ──
 let volOpen = false;
 ge('vol-toggle').addEventListener('click', () => {
   volOpen = !volOpen;
@@ -994,34 +1152,53 @@ ge('vol-toggle').addEventListener('click', () => {
 });
 ge('sh-vol').addEventListener('input', e => {
   audio.volume = parseFloat(e.target.value);
-  ge('vol-cur').textContent = Math.round(audio.volume * 100) + '%';
+  const pct = Math.round(audio.volume * 100) + '%';
+  ge('vol-cur').textContent = pct;
+  saveSettings();
 });
 
-// Speed
+// ── Speed ──
 ge('speed-chips').addEventListener('click', e => {
   const chip = e.target.closest('.speed-chip');
   if (!chip || !chip.dataset.speed) return;
   document.querySelectorAll('.speed-chip').forEach(c => c.classList.remove('on'));
   chip.classList.add('on');
   audio.playbackRate = parseFloat(chip.dataset.speed);
+  saveSettings();
   showToast('再生速度: ' + chip.textContent);
 });
 
-// Repeat
+// ── Repeat ──
 const MODES    = ['all','shuffle','one'];
 const MODE_ICO = { all:'🔁', shuffle:'🔀', one:'🔂' };
 const MODE_CLS = { all:'mall', shuffle:'mshuffle', one:'mone' };
 const MODE_LBL = { all:'順番に再生', shuffle:'シャッフル', one:'1曲リピート' };
-ge('repeat-btn').addEventListener('click', () => {
-  repeatMode = MODES[(MODES.indexOf(repeatMode) + 1) % MODES.length];
+
+function applyRepeatUI() {
+  // バーボタン
   const btn = ge('repeat-btn');
   btn.textContent = MODE_ICO[repeatMode];
   btn.className   = 'repeat-btn ' + MODE_CLS[repeatMode];
   btn.title       = MODE_LBL[repeatMode];
-  if (repeatMode === 'one' && audioPlaying && audio.duration) scheduleLoop();
+  // シート内ボタン
+  const sh = ge('sh-repeat');
+  sh.textContent = MODE_ICO[repeatMode];
+  sh.className   = 'sh-repeat ' + MODE_CLS[repeatMode];
+  sh.title       = MODE_LBL[repeatMode];
+  updateNextTrack();
+}
+
+function cycleRepeat() {
+  repeatMode = MODES[(MODES.indexOf(repeatMode) + 1) % MODES.length];
+  applyRepeatUI();
+  if (repeatMode === 'one' && audioPlaying && !userPaused && audio.duration) scheduleLoop();
   else cancelLoopTimer();
+  saveSettings();
   showToast(MODE_LBL[repeatMode]);
-});
+}
+
+ge('repeat-btn').addEventListener('click', cycleRepeat);
+ge('sh-repeat').addEventListener('click', cycleRepeat);
 
 // ════════════════════════════════════════════════════
 //  Favorites
@@ -1047,15 +1224,8 @@ function updateFavBtn() {
 // ════════════════════════════════════════════════════
 //  Timer
 // ════════════════════════════════════════════════════
-ge('timer-chips').addEventListener('click', e => {
-  const c = e.target.closest('.timer-chip[data-min]');
-  if (c) startTimer(parseInt(c.dataset.min));
-});
-ge('timer-set-btn').addEventListener('click', () => {
-  const v = parseInt(ge('timer-num').value);
-  if (!v || v < 1) { showToast('分数を入力してください'); return; }
-  startTimer(v);
-});
+ge('timer-chips').addEventListener('click', e => { const c = e.target.closest('.timer-chip[data-min]'); if (c) startTimer(parseInt(c.dataset.min)); });
+ge('timer-set-btn').addEventListener('click', () => { const v = parseInt(ge('timer-num').value); if (!v||v<1){showToast('分数を入力してください');return;} startTimer(v); });
 ge('timer-cancel').addEventListener('click', cancelTimer);
 ge('timer-close').addEventListener('click', () => ge('timer-panel').classList.remove('open'));
 ge('timer-act').addEventListener('click', () => {
@@ -1079,20 +1249,17 @@ function cancelTimer() {
   ge('timer-ind').classList.remove('on');
   showToast('タイマーをキャンセルしました');
 }
-function cancelTimerImpl() { clearInterval(timerIntId); timerIntId = null; timerEndTime = null; timerSetMin = null; }
+function cancelTimerImpl() { clearInterval(timerIntId); timerIntId=null; timerEndTime=null; timerSetMin=null; }
 function tickTimer() {
   if (!timerEndTime) return;
   const rem = timerEndTime - Date.now();
   if (rem <= 0) {
     audio.pause(); userPaused = true; cancelTimerImpl();
-    ge('timer-act').classList.remove('timer-on');
-    ge('timer-act-lbl').textContent = 'タイマー';
-    ge('timer-ind').classList.remove('on');
-    updateTimerPanel(); showToast('⏱ タイマーで停止しました'); return;
+    ge('timer-act').classList.remove('timer-on'); ge('timer-act-lbl').textContent = 'タイマー';
+    ge('timer-ind').classList.remove('on'); updateTimerPanel(); showToast('⏱ タイマーで停止しました'); return;
   }
   const disp = fmtTime(Math.ceil(rem / 1000));
-  ge('timer-ind').textContent = '⏱ ' + disp;
-  ge('timer-ind').classList.add('on');
+  ge('timer-ind').textContent = '⏱ ' + disp; ge('timer-ind').classList.add('on');
   ge('timer-act-lbl').textContent = disp;
   const r = ge('timer-rem'); if (r) r.textContent = disp;
 }
@@ -1107,15 +1274,11 @@ function updateTimerPanel() {
 function openSheet() {
   ge('sheet').classList.add('open');
   ge('backdrop').classList.add('open');
-  updateSheetNow(); updateFavBtn(); updateTimerPanel();
+  updateSheetNow(); updateFavBtn(); updateTimerPanel(); updateNextTrack();
   ge('sh-vol').value = audio.volume;
   ge('vol-cur').textContent = Math.round(audio.volume * 100) + '%';
 }
-function closeSheet() {
-  ge('sheet').classList.remove('open');
-  ge('backdrop').classList.remove('open');
-  sheetTarget = null;
-}
+function closeSheet() { ge('sheet').classList.remove('open'); ge('backdrop').classList.remove('open'); sheetTarget = null; }
 ge('p-info').addEventListener('click', openSheet);
 ge('sheet-trig').addEventListener('click', openSheet);
 ge('backdrop').addEventListener('click', closeSheet);
@@ -1139,10 +1302,7 @@ ge('addpl-close').addEventListener('click', () => ge('addpl-panel').classList.re
 function renderPPList() {
   const tgt = sheetTarget || (current ? { fmt: current.format, id: current.song.id } : null);
   const c = ge('pp-list');
-  if (!playlists.length) {
-    c.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">プレイリストがありません</div>';
-    return;
-  }
+  if (!playlists.length) { c.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text2)">プレイリストがありません</div>'; return; }
   c.innerHTML = playlists.map(pl => {
     const inPl = tgt && pl.songs.some(s => s.id === tgt.id && s.format === tgt.fmt);
     return `<div class="pp-item" onclick="toggleInPl('${pl.id}')">
@@ -1171,8 +1331,7 @@ ge('pp-new-btn').addEventListener('click', () => {
     const pl = playlists.find(p => p.id === id);
     if (pl) { pl.songs.push({ id: sheetTarget.id, format: sheetTarget.fmt }); lsSave('bgm_playlists', playlists); }
   }
-  ge('pp-new-inp').value = '';
-  renderPPList(); renderPlPanel();
+  ge('pp-new-inp').value = ''; renderPPList(); renderPlPanel();
   showToast(`「${name}」に追加しました ✓`);
 });
 
@@ -1206,21 +1365,21 @@ function dlSong(url, title) {
 // ════════════════════════════════════════════════════
 //  Utils
 // ════════════════════════════════════════════════════
-function fmtTime(s) { if (isNaN(s)||!isFinite(s)||s<0) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
-function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function ge(id) { return document.getElementById(id); }
-function fid(fmt, id) { return fmt + ':' + id; }
+function fmtTime(s) { if(isNaN(s)||!isFinite(s)||s<0)return'0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
+function esc(str)   { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ge(id)     { return document.getElementById(id); }
+function fid(fmt,id){ return fmt+':'+id; }
 
 let toastT;
 function showToast(msg) {
   const t = ge('toast');
   t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastT);
-  toastT = setTimeout(() => t.classList.remove('show'), 2600);
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600);
 }
 function lsGet(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } }
-function lsSave(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+function lsSave(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
+// ── Start ──
 init();
 </script>
 </body>
