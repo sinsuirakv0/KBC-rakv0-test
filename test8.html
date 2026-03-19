@@ -100,7 +100,7 @@
 </head>
 <body>
 <div class="card">
-  <h1>🐱 引き継ぎコード発行</h1>
+  <h1>引き継ぎコード発行</h1>
   <p class="subtitle">セーブファイルをアップロードして引き継ぎコードを取得</p>
 
   <div class="drop-zone" id="dropZone">
@@ -185,14 +185,10 @@
         body: buf,
       });
 
+      const text1 = await res.text();
       let data;
-      try {
-        data = await res.json();
-      } catch {
-        const text = await res.text().catch(() => '(レスポンス取得失敗)');
-        throw new Error(`JSON解析失敗: ${text.slice(0, 200)}`);
-      }
-
+      try { data = JSON.parse(text1); }
+      catch { throw new Error(`サーバーエラー (${res.status}): ${text1.slice(0, 300)}`); }
       if (!data.success) throw new Error(data.error);
 
       hideStatus();
@@ -244,11 +240,10 @@
 
       let data;
       try {
-        data = await res.json();
-      } catch {
-        const text = await res.text().catch(() => '(レスポンス取得失敗)');
-        throw new Error(`JSON解析失敗 (status ${res.status}): ${text.slice(0, 300)}`);
-      }
+        const text2 = await res.text();
+        try { data = JSON.parse(text2); }
+        catch { throw new Error(`サーバーエラー (${res.status}): ${text2.slice(0, 300)}`); }
+      } catch (inner) { throw inner; }
 
       if (!data.success) throw new Error(data.error);
 
