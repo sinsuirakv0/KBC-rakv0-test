@@ -1,13 +1,1 @@
-{
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!data/debug-log.json'",
-  "functions": {
-    "api/parse.js": {
-      "maxDuration": 30,
-      "includeFiles": "lib/**"
-    },
-    "api/upload.js": {
-      "maxDuration": 30,
-      "includeFiles": "lib/**"
-    }
-  }
-}
+
