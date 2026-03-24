@@ -1,5 +1,6 @@
 import { getJWT } from "../js/jwt.js";
 
+
 export default async function handler(req, res) {
   try {
     const type = req.query.type || "gatya";
