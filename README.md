@@ -3,37 +3,4 @@
 <br>にゃんこに関係あるやつが大半です
 <br>コードのほとんどを生成AIで書いています
 <br>私にhtml javascript css等の知識は一切ありません
-<br>
-
-# パスのメモ
-<br>SAVE_DATA-Downloader
-<br>└ api/proxy.js
-<br> 
-<br>Event-Data-Downloader
-<br>└ api/getData
-<br>&emsp;&emsp;&emsp;└ ../js/jwt.js
-<br>
-<br>スケサイト仮
-<br>├ data/
-<br>│　└ sale(gatya,item).json　(json達はapi/check-events.jsにより五分ごとに更新検知、自動更新されるよ)
-<br>
-<br>
-<br>
-<br>api/check-events.js
-<br>├ ../js/
-<br>│　　├ jwt.js
-<br>│　　└ github.js
-<br>├ ../parsers/
-<br>│　　　├ sale(gatya,item).js (tsvの生データをjsonにしてるよ)
-<br>│
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
+<br>スケジュールサイトのバックエンドはkbc-rakv0-eventに移しました
