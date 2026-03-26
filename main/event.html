@@ -636,8 +636,8 @@ function openOverlay(jsonStr) {
     bodyHtml += `
       <hr class="overlay-divider">
       <div class="overlay-raw-buttons">
-        ${_currentJson ? '<button class="overlay-raw-btn" onclick="toggleRawView('json')">📄 JSONを見る</button>' : ''}
-        ${_currentRaw  ? '<button class="overlay-raw-btn" onclick="toggleRawView('raw')">📋 生データを見る</button>' : ''}
+        ${_currentJson ? '<button class="overlay-raw-btn" onclick="toggleRawView(\'json\')">📄 JSONを見る</button>' : ''}
+        ${_currentRaw  ? '<button class="overlay-raw-btn" onclick="toggleRawView(\'raw\')">📋 生データを見る</button>' : ''}
       </div>
       <pre id="overlay-raw-content"
            style="display:none;white-space:pre-wrap;word-break:break-all;
