@@ -891,7 +891,7 @@ function showTab(tabName) {
 // =============================================
 async function loadData() {
   try {
-    const BASE = 'https://kbc-rakv0-event.vercel.app/data';
+    const BASE = 'https://kbc-rakv0.vercel.app/data';
     const [gatyaRes, saleRes, itemRes, saleNameRes, gatyaNameRes] = await Promise.all([
       fetch(`${BASE}/gatya.json`),
       fetch(`${BASE}/sale.json`),
