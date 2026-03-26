@@ -891,13 +891,14 @@ function showTab(tabName) {
 // =============================================
 async function loadData() {
   try {
-    const BASE = 'https://kbc-rakv0.vercel.app/data';
+    const BASE     = 'https://raw.githubusercontent.com/sinsuirakv0/KBC-rakv0-event/main/data';
+    const BASE_CSV = 'https://kbc-rakv0.vercel.app/data';
     const [gatyaRes, saleRes, itemRes, saleNameRes, gatyaNameRes] = await Promise.all([
       fetch(`${BASE}/gatya.json`),
       fetch(`${BASE}/sale.json`),
       fetch(`${BASE}/item.json`),
-      fetch(`${BASE}/sale_name.csv`),
-      fetch(`${BASE}/gatya_name.csv`),
+      fetch(`${BASE_CSV}/sale_name.csv`),
+      fetch(`${BASE_CSV}/gatya_name.csv`),
     ]);
 
     _overlayEntries = []; // エントリキャッシュをリセット
