@@ -162,8 +162,10 @@
 let gatyaData = [];
 let saleData  = [];
 let itemData  = [];
-let saleNames  = new Map(); // stageId -> 名前
-let gatyaNames = new Map(); // gacha id -> 名前
+let saleNames    = new Map(); // stageId -> 名前
+let gatyaRNames  = new Map(); // gacha id -> 名前（レア: type 1）
+let gatyaNNames  = new Map(); // gacha id -> 名前（ノーマル: type 0）
+let gatyaENames  = new Map(); // gacha id -> 名前（イベント: type 4）
 
 // =============================================
 // 検索状態
@@ -292,6 +294,14 @@ function getStageProxyUrl(id) {
   if (!entry) return null;
   const num = String(id - entry.from).padStart(3, '0');
   return `https://kbc-rakv0.vercel.app/api/stage-proxy?type=${entry.type}&num=${num}`;
+}
+
+// =============================================
+// 常設判定: endDate が "20300101" のエントリを常設とみなす
+// 常設は開催中タブでは非表示、予定・過去では通常表示
+// =============================================
+function isSteadyEntry(header) {
+  return header.endDate === '20300101';
 }
 
 function isSaleHidden(id) {
@@ -473,6 +483,7 @@ function filterAndSort(events) {
     const isPast    = e.end   <= now;
     const isCurrent = e.start <= now && e.end > now;
     const isFuture  = e.start >  now;
+    const isSteady  = e.detail?.steady ?? false; // 常設フラグ
 
     // 検索クエリがあればID/名前でフィルタ
     if (searchQuery) {
@@ -481,6 +492,9 @@ function filterAndSort(events) {
       const nmMatch = (e.name ?? '').toLowerCase().includes(q);
       if (!idMatch && !nmMatch) return false;
     }
+
+    // 常設（endDate=20300101）は開催中では表示しない
+    if (isSteady && isCurrent) return false;
 
     if (showPast)  return true;
     if (isPast)    return false;
@@ -545,7 +559,8 @@ function expandSaleEntry(entry, missionOnly) {
       ver:    `${entry.header.minVersion}~${entry.header.maxVersion}`,
       schedule: formatTimeBlocks(entry.timeBlocks),
       stageProxyUrl: getStageProxyUrl(id),
-      _entryIdx: entryIdx, // エントリ全体への参照
+      steady: isSteadyEntry(entry.header), // 常設フラグ
+      _entryIdx: entryIdx,
     };
     result.push({ start, end, name, period, detail });
   }
@@ -750,7 +765,9 @@ function renderGatya() {
     const entryIdx = storeOverlayEntry(entry); // エントリ全体を保持
 
     for (const g of (entry.gachas || [])) {
-      const csvName   = gatyaNames.get(g.id);
+      // type に応じて異なるCSVから名前を取得
+      const nameMap = type === 0 ? gatyaNNames : type === 4 ? gatyaENames : gatyaRNames;
+      const csvName   = nameMap.get(g.id);
       const flagLabel = FLAGS_LABEL[g.flags] || '';
       const guarLabel = g.guaranteed ? '＜確定＞' : '';
       const nameParts = [csvName ?? `ID:${g.id}`, guarLabel, flagLabel].filter(Boolean);
@@ -775,7 +792,8 @@ function renderGatya() {
         guaranteed: g.guaranteed,
         flagLabel,
         infoUrl,
-        _entryIdx: entryIdx, // エントリ全体への参照
+        steady: isSteadyEntry(h),  // 常設フラグ
+        _entryIdx: entryIdx,
       };
 
       buckets[sub].push({ start, end, name: nameParts.join(' '), period, detail });
@@ -891,14 +909,15 @@ function showTab(tabName) {
 // =============================================
 async function loadData() {
   try {
-    const BASE     = 'https://raw.githubusercontent.com/sinsuirakv0/KBC-rakv0-event/main/data';
-    const BASE_CSV = 'https://kbc-rakv0.vercel.app/data';
-    const [gatyaRes, saleRes, itemRes, saleNameRes, gatyaNameRes] = await Promise.all([
+    const BASE = 'https://raw.githubusercontent.com/sinsuirakv0/KBC-rakv0-event/main/data';
+    const [gatyaRes, saleRes, itemRes, saleNameRes, gatyaNameRes, gatyaNNameRes, gatyaENameRes] = await Promise.all([
       fetch(`${BASE}/gatya.json`),
       fetch(`${BASE}/sale.json`),
       fetch(`${BASE}/item.json`),
-      fetch(`${BASE_CSV}/sale_name.csv`),
-      fetch(`${BASE_CSV}/gatya_name.csv`),
+      fetch(`${BASE}/sale_name.csv`),
+      fetch(`${BASE}/gatya_name.csv`),
+      fetch(`${BASE}/gatya_n_name.csv`),
+      fetch(`${BASE}/gatya_e_name.csv`),
     ]);
 
     _overlayEntries = []; // エントリキャッシュをリセット
@@ -915,11 +934,15 @@ async function loadData() {
     const saleUpdatedAt  = saleJson.updatedAt  ?? null;
     const itemUpdatedAt  = itemJson.updatedAt  ?? null;
 
-    const saleNameText  = await saleNameRes.text();
+    const saleNameText   = await saleNameRes.text();
     saleNames = parseCSV(saleNameText);
 
-    const gatyaNameText = await gatyaNameRes.text().catch(() => '');
-    gatyaNames = parseCSV(gatyaNameText);
+    const gatyaNameText  = await gatyaNameRes.text().catch(() => '');
+    const gatyaNNameText = await gatyaNNameRes.text().catch(() => '');
+    const gatyaENameText = await gatyaENameRes.text().catch(() => '');
+    gatyaRNames = parseCSV(gatyaNameText);   // レア (type 1)
+    gatyaNNames = parseCSV(gatyaNNameText);  // ノーマル (type 0)
+    gatyaENames = parseCSV(gatyaENameText);  // イベント (type 4)
 
     // updatedAt 表示（Last-Modified の代わりに JSON 内のタイムスタンプを使用）
     updateLastModified(gatyaUpdatedAt, saleUpdatedAt, itemUpdatedAt);
@@ -980,11 +1003,13 @@ function collectTabItems() {
 
   if (activeTab === 'gatya') {
     for (const entry of gatyaData) {
+      const type    = entry.header?.gachaType ?? 1;
+      const nameMap = type === 0 ? gatyaNNames : type === 4 ? gatyaENames : gatyaRNames;
       for (const g of (entry.gachas || [])) {
         const key  = g.id;
         if (seen.has(key)) continue;
         seen.add(key);
-        const name = gatyaNames.get(g.id) ?? `ID:${g.id}`;
+        const name = nameMap.get(g.id) ?? `ID:${g.id}`;
         items.push({ id: g.id, name });
       }
     }
