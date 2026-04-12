@@ -549,15 +549,25 @@ if (shuffleSeed === null) {
 // 次インデックス計算の共通ロジック (seedを引数で渡す)
 function calcShuffleIdx(seed, currentIdx, queueLen) {
   let idx = seed % queueLen;
+
   if (idx === currentIdx && queueLen > 1) {
-    // 被った: もう一回シードを回してqueue.length-1で割る
+    // シードを回す
     seed = xorshift32(seed);
-    idx  = seed % (queueLen - 1);
-    // それでも同じなら+1 (必ず異なるインデックスになる)
-    if (idx === currentIdx) idx = (currentIdx + 1) % queueLen;
+
+    // まず普通に割る
+    let next = seed % queueLen;
+
+    // currentIdx 以上はすべて +1 してズラす
+    if (next >= currentIdx) {
+      next = (next + 1) % queueLen;
+    }
+
+    idx = next;
   }
+
   return { idx, seed };
 }
+
 
 // 実際の再生用: グローバルシードを進めてlocalStorageに保存
 function nextShuffleIdx(currentIdx, queueLen) {
