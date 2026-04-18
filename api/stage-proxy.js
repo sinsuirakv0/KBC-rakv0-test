@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       return `${attr}="${absoluteUrl}"`;
     });
 
-    // 知人提供のスクリプトをそのまま注入
+    //スクリプトを注入
     const injection = `
       <script>
         setCurrentStageIndex(120, 120);
