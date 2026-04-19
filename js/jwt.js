@@ -1,13 +1,12 @@
 import crypto from "crypto";
 
 export async function getInquiryCode() {
-  const url = "https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId=";
-  const res = await fetch(url);
+  const res = await fetch("https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId=");
   const json = await res.json();
   return json.accountId;
 }
 
-function generateSignature(inquiryCode, dataString) {
+function sign(inquiryCode, dataString) {
   const randomData = crypto.randomBytes(32).toString("hex");
   const key = inquiryCode + randomData;
 
@@ -18,81 +17,62 @@ function generateSignature(inquiryCode, dataString) {
 }
 
 export async function getPassword(inquiryCode) {
-  const url = "https://nyanko-auth.ponosgames.com/v1/users";
-
   const data = {
     accountCode: inquiryCode,
     accountCreatedAt: Math.floor(Date.now() / 1000).toString(),
     nonce: crypto.randomBytes(16).toString("hex"),
   };
 
-  const dataString = JSON.stringify(data);
+  const body = JSON.stringify(data);
 
-  const headers = {
-    "content-type": "application/json",
-    "nyanko-signature": generateSignature(inquiryCode, dataString),
-    "nyanko-timestamp": Math.floor(Date.now() / 1000).toString(),
-    "nyanko-signature-version": "1",
-    "nyanko-signature-algorithm": "HMACSHA256",
-    "user-agent": "Dalvik/2.1.0 (Linux; Android 9; SM-G955F Build/N2G48B)",
-  };
-
-  const res = await fetch(url, {
+  const res = await fetch("https://nyanko-auth.ponosgames.com/v1/users", {
     method: "POST",
-    headers,
-    body: dataString,
+    headers: {
+      "content-type": "application/json",
+      "nyanko-signature": sign(inquiryCode, body),
+      "nyanko-timestamp": Math.floor(Date.now() / 1000).toString(),
+      "nyanko-signature-version": "1",
+      "nyanko-signature-algorithm": "HMACSHA256",
+    },
+    body,
   });
 
   const json = await res.json();
   return json.payload.password;
 }
 
-export async function getToken(inquiryCode, password) {
-  const url = "https://nyanko-auth.ponosgames.com/v1/tokens";
-
+export async function getToken(inquiryCode, password, locale) {
   const data = {
     clientInfo: {
-      client: {
-        countryCode: "ja",
-        version: "999999",
-      },
-      device: {
-        model: "ONEPLUS A3010",
-      },
-      os: {
-        type: "android",
-        version: "7.1.1",
-      },
+      client: { countryCode: locale, version: "999999" },
+      device: { model: "ONEPLUS A3010" },
+      os: { type: "android", version: "7.1.1" }
     },
     password,
     accountCode: inquiryCode,
     nonce: crypto.randomBytes(16).toString("hex"),
   };
 
-  const dataString = JSON.stringify(data);
+  const body = JSON.stringify(data);
 
-  const headers = {
-    "content-type": "application/json",
-    "nyanko-signature": generateSignature(inquiryCode, dataString),
-    "nyanko-timestamp": Math.floor(Date.now() / 1000).toString(),
-    "nyanko-signature-version": "1",
-    "nyanko-signature-algorithm": "HMACSHA256",
-    "user-agent": "Dalvik/2.1.0 (Linux; Android 9; SM-G955F Build/N2G48B)",
-  };
-
-  const res = await fetch(url, {
+  const res = await fetch("https://nyanko-auth.ponosgames.com/v1/tokens", {
     method: "POST",
-    headers,
-    body: dataString,
+    headers: {
+      "content-type": "application/json",
+      "nyanko-signature": sign(inquiryCode, body),
+      "nyanko-timestamp": Math.floor(Date.now() / 1000).toString(),
+      "nyanko-signature-version": "1",
+      "nyanko-signature-algorithm": "HMACSHA256",
+    },
+    body,
   });
 
   const json = await res.json();
   return json.payload.token;
 }
 
-export async function getJWT() {
+export async function getJWT(locale) {
   const inquiry = await getInquiryCode();
   const password = await getPassword(inquiry);
-  const jwt = await getToken(inquiry, password);
-  return jwt;
+  return await getToken(inquiry, password, locale);
 }
