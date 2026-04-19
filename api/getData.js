@@ -8,7 +8,13 @@ export default async function handler(req, res) {
 
     const jwt = await getJWT(locale);
 
-    const url = `https://nyanko-events.ponosgames.com/battlecats${locale}_production/${type}.tsv?jwt=${jwt}`;
+    // ★ 日本だけ URL が特別
+    const base =
+      locale === "ja"
+        ? "battlecats_production"
+        : `battlecats${locale}_production`;
+
+    const url = `https://nyanko-events.ponosgames.com/${base}/${type}.tsv?jwt=${jwt}`;
 
     if (urlOnly) return res.status(200).send(url);
 
@@ -18,6 +24,7 @@ export default async function handler(req, res) {
     res.status(200).send(text);
 
   } catch (err) {
-    res.status(500).send("Error: " + err.message);
+    console.error("API ERROR:", err);
+    res.status(500).send("Internal Server Error: " + err.message);
   }
 }
