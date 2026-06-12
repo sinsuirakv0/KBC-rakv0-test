@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Background Player</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Noto Sans JP", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #07080d;
+      color: #fff;
+    }
+
+    #background {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, #25304a 0, transparent 35%),
+        radial-gradient(circle at 80% 70%, #3a192d 0, transparent 35%),
+        #07080d;
+    }
+
+    #player {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw;
+      min-width: 177.78vh;
+      min-height: 100vh;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #player.ready {
+      opacity: 1;
+    }
+
+    .shade {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 45%, rgba(0, 0, 0, 0.55));
+    }
+
+    .panel {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      width: min(720px, calc(100% - 32px));
+      padding: 18px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      background: rgba(11, 13, 20, 0.78);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(18px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .panel.hidden {
+      opacity: 0;
+      transform: translate(-50%, -16px);
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(20px, 4vw, 30px);
+    }
+
+    .description {
+      margin: 0 0 16px;
+      color: #b9bdc9;
+      font-size: 14px;
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      min-width: 0;
+      flex: 1;
+      padding: 13px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 15px;
+    }
+
+    input:focus {
+      border-color: #ff4d68;
+      box-shadow: 0 0 0 3px rgba(255, 77, 104, 0.18);
+    }
+
+    button {
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #ff3d5d;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    #message {
+      min-height: 20px;
+      margin: 10px 2px 0;
+      color: #ffadb9;
+      font-size: 13px;
+    }
+
+    .controls {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .controls button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(11, 13, 20, 0.78);
+      backdrop-filter: blur(14px);
+    }
+
+    @media (max-width: 580px) {
+      form {
+        flex-direction: column;
+      }
+
+      .controls {
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+      }
+
+      .controls button {
+        flex: 1;
+        padding-inline: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="background">
+    <div id="player"></div>
+  </div>
+  <div class="shade"></div>
+
+  <main class="panel" id="panel">
+    <h1>YouTube Background Player</h1>
+    <p class="description">YouTubeのリンクを貼り付けると、動画を背景で繰り返し再生します。</p>
+    <form id="videoForm">
+      <input id="urlInput" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" required>
+      <button type="submit">背景で再生</button>
+    </form>
+    <p id="message"></p>
+  </main>
+
+  <div class="controls">
+    <button id="playButton" type="button">一時停止</button>
+    <button id="muteButton" type="button">音を出す</button>
+    <button id="panelButton" type="button">入力欄を隠す</button>
+  </div>
+
+  <script>
+    let player;
+    let apiReady = false;
+    let pendingVideoId = "";
+
+    const playerElement = document.getElementById("player");
+    const panel = document.getElementById("panel");
+    const form = document.getElementById("videoForm");
+    const urlInput = document.getElementById("urlInput");
+    const message = document.getElementById("message");
+    const playButton = document.getElementById("playButton");
+    const muteButton = document.getElementById("muteButton");
+    const panelButton = document.getElementById("panelButton");
+
+    function extractVideoId(value) {
+      const trimmed = value.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+
+      try {
+        const url = new URL(trimmed);
+        const host = url.hostname.replace(/^www\./, "");
+
+        if (host === "youtu.be") return url.pathname.split("/")[1] || "";
+        if (host.endsWith("youtube.com")) {
+          if (url.pathname === "/watch") return url.searchParams.get("v") || "";
+          const match = url.pathname.match(/^\/(?:shorts|embed|live)\/([^/?]+)/);
+          return match ? match[1] : "";
+        }
+      } catch {
+        return "";
+      }
+
+      return "";
+    }
+
+    function loadVideo(videoId) {
+      pendingVideoId = videoId;
+      localStorage.setItem("backgroundVideoUrl", urlInput.value.trim());
+      message.textContent = "動画を読み込んでいます...";
+
+      if (!apiReady || !player) return;
+
+      player.loadVideoById(videoId);
+      player.mute();
+      muteButton.textContent = "音を出す";
+      playButton.textContent = "一時停止";
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const videoId = extractVideoId(urlInput.value);
+
+      if (!videoId) {
+        message.textContent = "有効なYouTubeリンクを入力してください。";
+        return;
+      }
+
+      loadVideo(videoId);
+    });
+
+    playButton.addEventListener("click", () => {
+      if (!player || !apiReady) return;
+
+      if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+        playButton.textContent = "再生";
+      } else {
+        player.playVideo();
+        playButton.textContent = "一時停止";
+      }
+    });
+
+    muteButton.addEventListener("click", () => {
+      if (!player || !apiReady) return;
+
+      if (player.isMuted()) {
+        player.unMute();
+        muteButton.textContent = "ミュート";
+      } else {
+        player.mute();
+        muteButton.textContent = "音を出す";
+      }
+    });
+
+    panelButton.addEventListener("click", () => {
+      panel.classList.toggle("hidden");
+      panelButton.textContent = panel.classList.contains("hidden") ? "入力欄を表示" : "入力欄を隠す";
+    });
+
+    window.onYouTubeIframeAPIReady = () => {
+      player = new YT.Player("player", {
+        videoId: pendingVideoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          loop: 1,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0
+        },
+        events: {
+          onReady: (event) => {
+            apiReady = true;
+            event.target.mute();
+            if (pendingVideoId) event.target.loadVideoById(pendingVideoId);
+          },
+          onStateChange: (event) => {
+            if (event.data === YT.PlayerState.ENDED) {
+              event.target.seekTo(0);
+              event.target.playVideo();
+            }
+            if (event.data === YT.PlayerState.PLAYING) {
+              playerElement.classList.add("ready");
+              message.textContent = "";
+              playButton.textContent = "一時停止";
+            }
+          },
+          onError: () => {
+            message.textContent = "この動画は再生できません。別の動画を試してください。";
+          }
+        }
+      });
+    };
+
+    const savedUrl = localStorage.getItem("backgroundVideoUrl");
+    if (savedUrl) {
+      urlInput.value = savedUrl;
+      pendingVideoId = extractVideoId(savedUrl);
+    }
+
+    const apiScript = document.createElement("script");
+    apiScript.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(apiScript);
+  </script>
+</body>
+</html>
