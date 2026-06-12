@@ -191,6 +191,8 @@
     let player;
     let apiReady = false;
     let pendingVideoId = "";
+    let soundRequested = false;
+    let manuallyPaused = false;
 
     const playerElement = document.getElementById("player");
     const panel = document.getElementById("panel");
@@ -224,14 +226,16 @@
 
     function loadVideo(videoId) {
       pendingVideoId = videoId;
+      soundRequested = true;
+      manuallyPaused = false;
       localStorage.setItem("backgroundVideoUrl", urlInput.value.trim());
       message.textContent = "動画を読み込んでいます...";
 
       if (!apiReady || !player) return;
 
       player.loadVideoById(videoId);
-      player.mute();
-      muteButton.textContent = "音を出す";
+      player.unMute();
+      muteButton.textContent = "ミュート";
       playButton.textContent = "一時停止";
     }
 
@@ -251,9 +255,11 @@
       if (!player || !apiReady) return;
 
       if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+        manuallyPaused = true;
         player.pauseVideo();
         playButton.textContent = "再生";
       } else {
+        manuallyPaused = false;
         player.playVideo();
         playButton.textContent = "一時停止";
       }
@@ -263,9 +269,11 @@
       if (!player || !apiReady) return;
 
       if (player.isMuted()) {
+        soundRequested = true;
         player.unMute();
         muteButton.textContent = "ミュート";
       } else {
+        soundRequested = false;
         player.mute();
         muteButton.textContent = "音を出す";
       }
@@ -274,6 +282,13 @@
     panelButton.addEventListener("click", () => {
       panel.classList.toggle("hidden");
       panelButton.textContent = panel.classList.contains("hidden") ? "入力欄を表示" : "入力欄を隠す";
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && player && apiReady && pendingVideoId && !manuallyPaused) {
+        player.playVideo();
+        if (soundRequested) player.unMute();
+      }
     });
 
     window.onYouTubeIframeAPIReady = () => {
@@ -300,9 +315,16 @@
               event.target.playVideo();
             }
             if (event.data === YT.PlayerState.PLAYING) {
+              if (soundRequested) {
+                event.target.unMute();
+                muteButton.textContent = "ミュート";
+              }
               playerElement.classList.add("ready");
               message.textContent = "";
               playButton.textContent = "一時停止";
+            }
+            if (event.data === YT.PlayerState.PAUSED && !manuallyPaused && !document.hidden) {
+              event.target.playVideo();
             }
           },
           onError: () => {
